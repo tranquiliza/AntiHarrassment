@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hosts", "Hosts", "{0E865BE6-7C27-4C2F-B9C0-CF6BA69EA6D3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Chatlistener", "Hosts\AntiHarassment.Chatlistener\AntiHarassment.Chatlistener.csproj", "{2387FE39-20CE-4CD8-9984-2C5FB3827CA9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{4EF55C12-F955-493B-BE15-FBCD47FB16C8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{28B6ED2D-900B-4DF9-AA6E-CE110064645E}"
+EndProject
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "AntiHarassment.Database", "Database\AntiHarassment.Database\AntiHarassment.Database.sqlproj", "{6A5553C3-FE9E-42D5-8AB1-05014141D35E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.Chatlistener.Core", "AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj", "{05F8624A-6AE3-4666-8A25-5C3D76F2525D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.Chatlistener.Sql", "AntiHarassment.Chatlistener.Sql\AntiHarassment.Chatlistener.Sql.csproj", "{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.Chatlistener.TwitchIntegration", "AntiHarassment.Chatlistener.TwitchIntegration\AntiHarassment.Chatlistener.TwitchIntegration.csproj", "{2AA5E165-CC70-43F9-A581-2E2353C53682}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2387FE39-20CE-4CD8-9984-2C5FB3827CA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2387FE39-20CE-4CD8-9984-2C5FB3827CA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2387FE39-20CE-4CD8-9984-2C5FB3827CA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2387FE39-20CE-4CD8-9984-2C5FB3827CA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A5553C3-FE9E-42D5-8AB1-05014141D35E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A5553C3-FE9E-42D5-8AB1-05014141D35E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A5553C3-FE9E-42D5-8AB1-05014141D35E}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{6A5553C3-FE9E-42D5-8AB1-05014141D35E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A5553C3-FE9E-42D5-8AB1-05014141D35E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A5553C3-FE9E-42D5-8AB1-05014141D35E}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{05F8624A-6AE3-4666-8A25-5C3D76F2525D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05F8624A-6AE3-4666-8A25-5C3D76F2525D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05F8624A-6AE3-4666-8A25-5C3D76F2525D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05F8624A-6AE3-4666-8A25-5C3D76F2525D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AA5E165-CC70-43F9-A581-2E2353C53682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AA5E165-CC70-43F9-A581-2E2353C53682}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AA5E165-CC70-43F9-A581-2E2353C53682}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AA5E165-CC70-43F9-A581-2E2353C53682}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2387FE39-20CE-4CD8-9984-2C5FB3827CA9} = {0E865BE6-7C27-4C2F-B9C0-CF6BA69EA6D3}
+		{6A5553C3-FE9E-42D5-8AB1-05014141D35E} = {4EF55C12-F955-493B-BE15-FBCD47FB16C8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DF00D685-7AA8-4140-A4BD-9BAA935732F2}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "AntiHarassment.Chatlistener": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
