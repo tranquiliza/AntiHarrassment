@@ -69,6 +69,7 @@
     <Build Include="StoredProcedures\GetChannels.sql" />
     <Build Include="Tables\ChatMessage.sql" />
     <Build Include="StoredProcedures\InsertChatMessage.sql" />
+    <Build Include="StoredProcedures\GetChatMessagesForUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

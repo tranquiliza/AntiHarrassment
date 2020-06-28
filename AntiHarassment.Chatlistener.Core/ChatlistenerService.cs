@@ -41,15 +41,21 @@ namespace AntiHarassment.Chatlistener.Core
             await chatRepository.SaveChatMessage(e.DisplayName, e.Channel, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
+        private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(5);
+
         private async Task Client_OnUserTimedout(object _, UserTimedoutEvent e)
         {
-            var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, datetimeProvider.UtcNow);
+            var timeOfSuspension = datetimeProvider.UtcNow;
+            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
+            var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser);
             await suspensionRepository.SaveSuspension(suspension).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserBanned(object _, UserBannedEvent e)
         {
-            var suspension = Suspension.CreateBan(e.Username, e.Channel, datetimeProvider.UtcNow);
+            var timeOfSuspension = datetimeProvider.UtcNow;
+            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
+            var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser);
             await suspensionRepository.SaveSuspension(suspension).ConfigureAwait(false);
         }
 

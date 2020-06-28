@@ -25,7 +25,8 @@ namespace AntiHarassment.Chatlistener.Sql
                         .WithParameter("channelOfOrigin", suspension.ChannelOfOrigin)
                         .WithParameter("typeOfSuspension", suspension.SuspensionType.ToString())
                         .WithParameter("timestamp", suspension.Timestamp)
-                        .WithParameter("duration", suspension.Duration);
+                        .WithParameter("duration", suspension.Duration)
+                        .WithParameter("data", Serialization.Serialize(suspension));
 
                     await command.ExecuteNonQueryAsync().ConfigureAwait(false);
                 }

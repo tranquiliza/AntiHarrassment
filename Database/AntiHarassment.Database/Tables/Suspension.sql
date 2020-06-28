@@ -5,7 +5,8 @@
     [ChannelOfOrigin] NVARCHAR(100) NOT NULL, 
     [TypeOfSuspension] VARCHAR(100) NOT NULL, 
     [Timestamp] DATETIME2(0) NOT NULL, 
-    [Duration] INT NOT NULL DEFAULT 0
+    [Duration] INT NOT NULL DEFAULT 0, 
+    [Data] VARCHAR(MAX) NOT NULL DEFAULT '{}'
 )
 GO
 

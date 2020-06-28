@@ -1,4 +1,5 @@
 ﻿using AntiHarassment.Chatlistener.Core;
+using AntiHarassment.Chatlistener.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,6 +14,31 @@ namespace AntiHarassment.Chatlistener.Sql
         public ChatRepository(string connectionString)
         {
             sql = SqlAccessBase.Create(connectionString);
+        }
+
+        public async Task<List<ChatMessage>> GetMessagesFor(string username, string channelOfOrigin, TimeSpan chatRecordWindow, DateTime timeOfSuspension)
+        {
+            var earliestTime = timeOfSuspension.Subtract(chatRecordWindow);
+
+            var result = new List<ChatMessage>();
+
+            using (var command = sql.CreateStoredProcedure("[Core].[GetChatMessagesForUser]"))
+            {
+                command.WithParameter("username", username)
+                    .WithParameter("channelOfOrigin", channelOfOrigin)
+                    .WithParameter("earliestTime", earliestTime);
+
+                using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
+                {
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"));
+                        result.Add(chatMessage);
+                    }
+                }
+            }
+
+            return result;
         }
 
         public async Task SaveChatMessage(string username, string channelOfOrigin, string message, DateTime timestamp)
