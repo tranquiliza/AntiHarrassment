@@ -8,4 +8,8 @@
     <PackageReference Include="TwitchLib" Version="3.1.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj" />
+  </ItemGroup>
+
 </Project>

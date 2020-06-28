@@ -63,5 +63,14 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\Schemas\Core.sql" />
+    <Build Include="Tables\Suspension.sql" />
+    <Build Include="StoredProcedures\InsertSuspension.sql" />
+    <Build Include="Tables\Channel.sql" />
+    <Build Include="StoredProcedures\GetChannels.sql" />
+    <Build Include="Tables\ChatMessage.sql" />
+    <Build Include="StoredProcedures\InsertChatMessage.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="AntiHarassment.Database.refactorlog" />
   </ItemGroup>
 </Project>

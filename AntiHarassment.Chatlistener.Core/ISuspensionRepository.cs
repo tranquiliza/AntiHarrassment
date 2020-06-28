@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Core
 {
-    public interface IChannelRepository
+    public interface ISuspensionRepository
     {
-        Task<List<Channel>> GetChannels();
+        Task SaveSuspension(Suspension suspension);
     }
 }

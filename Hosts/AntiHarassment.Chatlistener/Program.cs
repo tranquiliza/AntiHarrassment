@@ -17,7 +17,7 @@ namespace AntiHarassment.Chatlistener
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
             .RegisterApplicationServices()
-            .ConfigureServices(services => services.AddHostedService<Worker>())
+            .ConfigureServices(services => services.AddHostedService<ChatlistenerWorker>())
             .UseWindowsService();
     }
 }
