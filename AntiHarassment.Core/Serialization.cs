@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Chatlistener.Core
+namespace AntiHarassment.Core
 {
     public static class Serialization
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Chatlistener.Core.Models
+namespace AntiHarassment.Core.Models
 {
     public class Channel
     {

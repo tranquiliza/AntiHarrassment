@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Chatlistener.Core;
-using AntiHarassment.Chatlistener.Sql;
 using AntiHarassment.Chatlistener.TwitchIntegration;
+using AntiHarassment.Core;
+using AntiHarassment.Sql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;

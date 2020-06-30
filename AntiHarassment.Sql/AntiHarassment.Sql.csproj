@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>AntiHarassment.Sql</AssemblyName>
+    <RootNamespace>AntiHarassment.Sql</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj" />
+    <ProjectReference Include="..\AntiHarassment.Core\AntiHarassment.Core.csproj" />
   </ItemGroup>
 
 </Project>

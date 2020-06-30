@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace AntiHarassment.Chatlistener.Sql
+namespace AntiHarassment.Sql
 {
     public static class SqlDataReaderExtensions
     {

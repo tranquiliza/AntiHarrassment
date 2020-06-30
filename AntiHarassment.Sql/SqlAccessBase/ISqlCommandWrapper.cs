@@ -5,7 +5,7 @@ using System.Data.SqlClient;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AntiHarassment.Chatlistener.Sql
+namespace AntiHarassment.Sql
 {
     public interface ISqlCommandWrapper : IDisposable
     {

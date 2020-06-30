@@ -1,4 +1,4 @@
-﻿namespace AntiHarassment.Chatlistener.Core.Models
+﻿namespace AntiHarassment.Core.Models
 {
     public enum SuspensionType
     {

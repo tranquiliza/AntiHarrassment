@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Chatlistener.Core
+namespace AntiHarassment.Core
 {
     public class DatetimeProvider : IDatetimeProvider
     {

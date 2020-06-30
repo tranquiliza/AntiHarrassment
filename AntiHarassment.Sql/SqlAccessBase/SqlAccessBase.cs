@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Chatlistener.Sql
+namespace AntiHarassment.Sql
 {
     public abstract class SqlAccessBase : ISqlAccess
     {

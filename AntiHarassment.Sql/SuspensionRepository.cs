@@ -1,11 +1,11 @@
-﻿using AntiHarassment.Chatlistener.Core;
-using AntiHarassment.Chatlistener.Core.Models;
+﻿using AntiHarassment.Core;
+using AntiHarassment.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AntiHarassment.Chatlistener.Sql
+namespace AntiHarassment.Sql
 {
     public class SuspensionRepository : ISuspensionRepository
     {
