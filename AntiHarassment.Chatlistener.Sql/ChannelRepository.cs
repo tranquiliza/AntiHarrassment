@@ -18,23 +18,26 @@ namespace AntiHarassment.Chatlistener.Sql
 
         public async Task<List<Channel>> GetChannels()
         {
-            try
+            var result = new List<Channel>();
+
+            using (var command = sql.CreateStoredProcedure("[Core].[GetChannels]"))
+            using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
             {
-                var result = new List<Channel>();
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                    result.Add(new Channel(reader.GetString("channelName"), reader.GetBoolean("shouldListen")));
 
-                using (var command = sql.CreateStoredProcedure("[Core].[GetChannels]"))
-                using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
-                {
-                    while (await reader.ReadAsync().ConfigureAwait(false))
-                        result.Add(new Channel(reader.GetString("channelName"), reader.GetBoolean("shouldListen")));
-
-                    return result;
-                }
+                return result;
             }
-            catch (Exception ex)
+        }
+
+        public async Task Upsert(Channel channel)
+        {
+            using (var command = sql.CreateStoredProcedure("[Core].[UpsertChannel]"))
             {
-                // LOG
-                throw;
+                command.WithParameter("channelName", channel.ChannelName)
+                    .WithParameter("shouldListen", channel.ShouldListen);
+
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
     }

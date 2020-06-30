@@ -9,5 +9,6 @@ namespace AntiHarassment.Chatlistener.Core
     public interface IChannelRepository
     {
         Task<List<Channel>> GetChannels();
+        Task Upsert(Channel channel);
     }
 }

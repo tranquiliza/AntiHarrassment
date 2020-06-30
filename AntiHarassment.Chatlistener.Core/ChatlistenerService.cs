@@ -3,8 +3,6 @@ using AntiHarassment.Chatlistener.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mail;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Core
@@ -66,6 +64,22 @@ namespace AntiHarassment.Chatlistener.Core
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
             foreach (var channel in channels.Where(x => x.ShouldListen))
                 await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
+        }
+
+        public async Task ListenTo(string channelName)
+        {
+            await client.JoinChannel(channelName).ConfigureAwait(false);
+
+            var channel = new Channel(channelName, shouldListen: true);
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
+        }
+
+        public async Task UnlistenTo(string channelName)
+        {
+            await client.LeaveChannel(channelName).ConfigureAwait(false);
+
+            var channel = new Channel(channelName, shouldListen: false);
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
         }
     }
 }

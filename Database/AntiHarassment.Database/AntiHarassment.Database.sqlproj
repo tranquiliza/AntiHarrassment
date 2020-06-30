@@ -70,6 +70,8 @@
     <Build Include="Tables\ChatMessage.sql" />
     <Build Include="StoredProcedures\InsertChatMessage.sql" />
     <Build Include="StoredProcedures\GetChatMessagesForUser.sql" />
+    <Build Include="Security\Schemas\Nsb.sql" />
+    <Build Include="StoredProcedures\UpsertChannel.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

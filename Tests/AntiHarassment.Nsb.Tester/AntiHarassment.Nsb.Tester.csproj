@@ -1,13 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UserSecretsId>dotnet-AntiHarassment.Chatlistener-A9720722-746C-4E48-9E66-1F0355D848A4</UserSecretsId>
+    <UserSecretsId>dotnet-AntiHarassment.Nsb.Tester-F9605323-D4FD-4F56-88FA-1FDF9334D5F6</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.5" />
     <PackageReference Include="NServiceBus" Version="7.3.0" />
     <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.0.1" />
     <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
@@ -16,9 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj" />
-    <ProjectReference Include="..\..\AntiHarassment.Chatlistener.Sql\AntiHarassment.Chatlistener.Sql.csproj" />
-    <ProjectReference Include="..\..\AntiHarassment.Chatlistener.TwitchIntegration\AntiHarassment.Chatlistener.TwitchIntegration.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Messaging\AntiHarassment.Messaging.csproj" />
   </ItemGroup>
 </Project>

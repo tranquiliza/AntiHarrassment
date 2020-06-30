@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Events\" />
+    <Folder Include="Messages\" />
+    <Folder Include="Express\" />
+    <Folder Include="DataBus\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NServiceBus" Version="7.3.0" />
+    <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.0.1" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
+    <PackageReference Include="NServiceBus.Persistence.Sql" Version="6.0.1" />
+    <PackageReference Include="NServiceBus.SqlServer" Version="6.1.1" />
+  </ItemGroup>
+
+</Project>
