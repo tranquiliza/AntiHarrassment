@@ -12,12 +12,19 @@ namespace AntiHarassment.WebApi
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection RegisterApplicationServices(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection RegisterApplicationServices(this IServiceCollection services, IConfiguration configuration, ApplicationConfiguration applicationConfiguration)
         {
             var connstring = configuration["ConnectionStrings:AntiHarassmentDatabase"];
 
             services.AddSingleton<IChannelService, ChannelService>();
+            services.AddSingleton<IUserService, UserService>();
+
+            services.AddSingleton<ISecurity, PasswordSecurity>();
+            services.AddSingleton<IApplicationConfiguration>(applicationConfiguration);
+
             services.AddSingleton<IChannelRepository, ChannelRepository>(_ => new ChannelRepository(connstring));
+            services.AddSingleton<IUserRepository, UserRepository>(_ => new UserRepository(connstring));
+
             services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
 
             return services;

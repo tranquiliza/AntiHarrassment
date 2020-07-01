@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AntiHarassment.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ChannelsController : ControllerBase
     {
