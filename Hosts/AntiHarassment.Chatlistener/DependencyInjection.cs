@@ -16,7 +16,7 @@ namespace AntiHarassment.Chatlistener
         {
             return hostBuilder.ConfigureServices((context, services) =>
             {
-                var connectionString = context.Configuration["ConnectionStrings:ChatListenerDatabase"];
+                var connectionString = context.Configuration["ConnectionStrings:AntiHarassmentDatabase"];
                 var twitchUsername = context.Configuration["Twitch:Username"];
                 var twitchBotOAuth = context.Configuration["Twitch:OAuthToken"];
 
