@@ -60,9 +60,9 @@ namespace AntiHarassment.WebApi.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> RegisterUser([FromBody] RegisterUserModel registerUserModel)
+        public async Task<IActionResult> RegisterUser([FromBody]RegisterUserModel registerUserModel)
         {
-            var result = await userService.Create(registerUserModel.Email, registerUserModel.Password, Roles.Admin).ConfigureAwait(false);
+            var result = await userService.Create(registerUserModel.Email, registerUserModel.Password).ConfigureAwait(false);
             if (result.State != ResultState.Success)
                 return BadRequest(result.FailureReason);
 

@@ -1,0 +1,54 @@
+﻿@inject IChannelService channelService
+@inject IUserService userService
+@implements IDisposable
+
+@page "/"
+
+<p>
+    LOGGED IN: @userService.IsUserLoggedIn
+</p>
+<p>
+    IS ADMIN: @userService.IsUserAdmin
+</p>
+
+@if (channelService.Channels == null)
+{
+    <p>LOADING</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>ChannelName</th>
+                <th>ShouldListen</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var channel in channelService.Channels)
+            {
+                <tr>
+                    <td>@channel.ChannelName</td>
+                    <td>@channel.ShouldListen</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        userService.OnChange += StateHasChanged;
+        channelService.OnChange += StateHasChanged;
+
+        await channelService.Initialize();
+    }
+
+    public void Dispose()
+    {
+        userService.OnChange -= StateHasChanged;
+        channelService.OnChange -= StateHasChanged;
+    }
+}

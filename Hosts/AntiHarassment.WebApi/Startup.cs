@@ -28,6 +28,7 @@ namespace AntiHarassment.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
             services.AddControllers();
             var applicationConfiguration = ApplicationConfiguration.Readfrom(Configuration);
 
@@ -65,6 +66,10 @@ namespace AntiHarassment.WebApi
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(x => x.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader());
 
             app.UseAuthentication();
             app.UseAuthorization();
