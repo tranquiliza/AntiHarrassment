@@ -62,6 +62,12 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         private TaskCompletionSource<bool> joinChannelCompletionTask = new TaskCompletionSource<bool>();
         public async Task JoinChannel(string channelName)
         {
+            if (!client.IsConnected)
+            {
+                // RACE CONDITION
+                return;
+            }
+
             if (client.JoinedChannels.Any(x => string.Equals(channelName, x.Channel, StringComparison.OrdinalIgnoreCase)))
                 return;
 
@@ -82,6 +88,12 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         private TaskCompletionSource<bool> leaveChannelCompletionTask = new TaskCompletionSource<bool>();
         public async Task LeaveChannel(string channelName)
         {
+            if (!client.IsConnected)
+            {
+                // RACE CONDITION
+                return;
+            }
+
             if (!client.JoinedChannels.Any(x => string.Equals(channelName, x.Channel, StringComparison.OrdinalIgnoreCase)))
                 return;
 

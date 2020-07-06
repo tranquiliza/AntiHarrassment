@@ -9,6 +9,8 @@ namespace AntiHarassment.Frontend.Application
     public interface IChannelService
     {
         Task Initialize();
+        Task UpdateChannel(ChannelModel channelModel);
+
         List<ChannelModel> Channels { get; }
 
         event Action OnChange;

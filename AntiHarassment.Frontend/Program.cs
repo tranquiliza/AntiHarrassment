@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.Frontend.Application;
+using AntiHarassment.SignalR.Contract;
 
 namespace AntiHarassment.Frontend
 {
@@ -31,6 +32,7 @@ namespace AntiHarassment.Frontend
             services.AddSingleton<IApplicationStateManager, ApplicationStateManager>();
             services.AddSingleton<IChannelService, ChannelService>();
             services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton(_ => new ChannelsHubSignalRClient("https://localhost:44329/"));
 
             services.AddSingleton<IApiGateway, ApiGateway>(x => new ApiGateway("https://localhost:44329/", x.GetRequiredService<IApplicationStateManager>(), x.GetRequiredService<HttpClient>()));
         }

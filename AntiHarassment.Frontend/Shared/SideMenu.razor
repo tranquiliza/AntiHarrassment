@@ -1,0 +1,56 @@
+﻿@inject IUserService userService
+@implements IDisposable
+
+
+<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+    <div class="sidebar-sticky pt-3">
+        <ul class="nav flex-column">
+
+            <li class="nav-item">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
+            </li>
+        </ul>
+
+        @if (userService.IsUserAdmin)
+        {
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                <span>Admin Menu</span>
+                <a class="d-flex align-items-center text-muted" href="#">
+                    <span data-feather="plus-circle"></span>
+                </a>
+            </h6>
+            <ul class="nav flex-column mb-2">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="admin/channels" Match="NavLinkMatch.All">Channels</NavLink>
+                </li>
+            </ul>
+        }
+
+        @if (userService.IsUserLoggedIn)
+        {
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                <span>User Menu</span>
+                <a class="d-flex align-items-center text-muted" href="#">
+                    <span data-feather="plus-circle"></span>
+                </a>
+            </h6>
+            <ul class="nav flex-column mb-2">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="settings" Match="NavLinkMatch.All">My Settings</NavLink>
+                </li>
+            </ul>
+        }
+    </div>
+</nav>
+
+@code {
+    protected override void OnInitialized()
+    {
+        userService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        userService.OnChange -= StateHasChanged;
+    }
+}

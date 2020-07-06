@@ -1,69 +1,29 @@
 ﻿@inject IUserService userService
 @implements IDisposable
 
-<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">AntiHarassment.Frontend</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+
+<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="">Anti Harassment System</a>
+    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse"
+            data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
-</div>
-
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
+    <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+            <a @onclick="LogOut" class="nav-link hand-pointer">Sign out</a>
         </li>
-
-        @if (userService.IsUserLoggedIn)
-        {
-            <li class="nav-item px-3">
-                <a @onclick="LogOut" class="nav-link">Logout</a>
-            </li>
-        }
-        else
-        {
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="login">
-                    <span class="oi oi-plus" aria-hidden="true"></span> Login
-                </NavLink>
-            </li>
-            <li class="nav-item px-3">
-                <NavLink class="nav-link" href="register">
-                    <span class="oi oi-plus" aria-hidden="true"></span> Register
-                </NavLink>
-            </li>
-        }
-
-        @if (userService.IsUserAdmin)
-        {
-            <li class="nav-item px-3">
-                ADMIN BUTTON
-            </li>
-        }
-
     </ul>
-</div>
+</nav>
 
 @code {
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         userService.OnChange += StateHasChanged;
     }
 
-    private async Task LogOut()
+    private Task LogOut()
     {
-        await userService.TryLogout();
-    }
-
-    private bool collapseNavMenu = true;
-
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
+        return userService.TryLogout();
     }
 
     public void Dispose()

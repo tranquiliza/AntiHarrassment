@@ -30,6 +30,8 @@ namespace AntiHarassment.WebApi
         {
             services.AddCors();
             services.AddControllers();
+            services.AddSignalR();
+
             var applicationConfiguration = ApplicationConfiguration.Readfrom(Configuration);
 
             services.RegisterApplicationServices(Configuration, applicationConfiguration);
@@ -77,6 +79,7 @@ namespace AntiHarassment.WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<Hubs.ChannelsHub>(SignalR.Contract.ChannelsHubSignalRClient.HUBURL);
             });
         }
     }

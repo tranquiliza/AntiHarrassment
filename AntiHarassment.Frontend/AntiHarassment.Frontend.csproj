@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AntiHarassment.Contract\AntiHarassment.Contract.csproj" />
+    <ProjectReference Include="..\AntiHarassment.SignalR.Contract\AntiHarassment.SignalR.Contract.csproj" />
   </ItemGroup>
 
 </Project>

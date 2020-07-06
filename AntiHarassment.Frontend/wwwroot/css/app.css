@@ -1,6 +1,6 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
-html, body {
+/*html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -115,7 +115,7 @@ app {
 
 .validation-message {
     color: red;
-}
+}*/
 
 #blazor-error-ui {
     background: lightyellow;
@@ -180,4 +180,8 @@ app {
         /* Never collapse the sidebar for wide screens */
         display: block;
     }
+}
+
+.hand-pointer {
+    cursor: pointer;
 }

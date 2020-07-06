@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\AntiHarassment.Contract\AntiHarassment.Contract.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Core\AntiHarassment.Core.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Messaging\AntiHarassment.Messaging.csproj" />
+    <ProjectReference Include="..\..\AntiHarassment.SignalR.Contract\AntiHarassment.SignalR.Contract.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Sql\AntiHarassment.Sql.csproj" />
   </ItemGroup>
 
