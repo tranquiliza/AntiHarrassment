@@ -1,23 +1,144 @@
 ﻿@inherits LayoutComponentBase
 @inject IUserService userService
+@inject NavigationManager navigationManager
+@implements IDisposable
 
-<div class="sidebar">
-    <NavMenu />
-</div>
-
-<div class="main">
-    <div class="top-row px-4">
-        <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+@if (userService.IsUserLoggedIn)
+{
+    <div class="sidebar">
+        <NavMenu />
     </div>
 
-    <div class="content px-4">
-        @Body
+    <div class="main">
+        <div class="top-row px-4">
+            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
+        </div>
+
+        <div class="content px-4">
+            @Body
+        </div>
     </div>
-</div>
+}
+else
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-6 offset-3">
+
+                @if (IsRegistrering)
+                {
+                    <h1 class="h3 mb-3 font-weight-normal text-center">Please Register</h1>
+                    <EditForm class="form-signin" Model="@registerUserModel" OnValidSubmit="@RegisterUser">
+
+                        <div class="form-group">
+                            <label for="twitchUsername">Twitch Username</label>
+                            <InputText class="form-control" type="text" id="twitchUsername" @bind-Value="registerUserModel.TwitchUsername"></InputText>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <InputText class="form-control" type="text" id="email" @bind-Value="registerUserModel.Email"></InputText>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="register_password">Password</label>
+                            <InputText class="form-control" type="password" id="register_password" @bind-Value="registerUserModel.Password"></InputText>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="register_password_confirm">Confirm Password</label>
+                            <InputText class="form-control" type="password" id="register_password_confirm" @bind-Value="ConfirmPassword"></InputText>
+                        </div>
+
+                        <button type="submit" class="btn btn-lg btn-primary btn-block">Register</button>
+                        <button @onclick="_ => SetIsRegistering(false)" class="btn btn-lg btn-danger btn-block">Go Back</button>
+                    </EditForm>
+                }
+                else
+                {
+                    <h1 class="h3 mb-3 font-weight-normal text-center">Please Sign In</h1>
+                    <EditForm class="form-signin" Model="@model" OnValidSubmit="@AttemptLogin">
+                        <DataAnnotationsValidator />
+
+                        <div class="form-group">
+                            <label for="username">Twitch Username</label>
+                            <InputText class="form-control" type="text" id="username" @bind-Value="model.TwitchUsername"></InputText>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <InputText class="form-control" type="password" id="password" @bind-Value="model.Password"></InputText>
+                        </div>
+
+                        <button type="submit" class="btn btn-lg btn-primary btn-block">Sign In</button>
+                        <button @onclick="_ => SetIsRegistering(true)" class="btn btn-lg btn-primary btn-block">Register</button>
+                    </EditForm>
+                }
+
+            </div>
+        </div>
+    </div>
+}
+
 
 @code {
+    private bool IsRegistrering = false;
+
+    AuthenticateModel model = new AuthenticateModel();
+
+    private async Task AttemptLogin()
+    {
+        var success = await userService.TryLogin(model);
+        if (!success)
+        {
+            // TODO display error
+        }
+
+        model = new AuthenticateModel();
+    }
+
+    private void SetIsRegistering(bool value)
+    {
+        IsRegistrering = value;
+    }
+
+    RegisterUserModel registerUserModel = new RegisterUserModel();
+    public string ConfirmPassword { get; set; }
+
+    private async Task RegisterUser()
+    {
+        if (string.IsNullOrEmpty(registerUserModel.TwitchUsername) || string.IsNullOrEmpty(registerUserModel.Password))
+        {
+            return;
+        }
+        
+        if (!string.Equals(registerUserModel.Password, ConfirmPassword))
+        {
+            return;
+        }
+
+        await userService.CreateAccount(registerUserModel);
+
+        var authModel = new AuthenticateModel { TwitchUsername = registerUserModel.TwitchUsername, Password = registerUserModel.Password };
+
+        var success = await userService.TryLogin(authModel);
+        if (!success)
+        {
+            // DISPLAY ERROR
+        }
+
+        IsRegistrering = false;
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        userService.OnChange += StateHasChanged;
+
         await userService.Initialize();
+    }
+
+    public void Dispose()
+    {
+        userService.OnChange -= StateHasChanged;
     }
 }

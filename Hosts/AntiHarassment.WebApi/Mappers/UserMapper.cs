@@ -17,7 +17,7 @@ namespace AntiHarassment.WebApi.Mappers
             return new UserModel
             {
                 Email = user.Email,
-                Username = user.Username,
+                Username = user.TwitchUsername,
                 Id = user.Id
             };
         }
@@ -30,7 +30,7 @@ namespace AntiHarassment.WebApi.Mappers
             return new UserAuthenticatedModel
             {
                 Id = user.Id,
-                Username = user.Username,
+                Username = user.TwitchUsername,
                 Email = user.Email,
                 Token = token
             };

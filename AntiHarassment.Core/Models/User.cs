@@ -12,7 +12,7 @@ namespace AntiHarassment.Core.Models
         public Guid Id { get; private set; }
 
         [JsonProperty]
-        public string Username { get; private set; }
+        public string TwitchUsername { get; private set; }
 
         [JsonProperty]
         public string Email { get; private set; }
@@ -24,7 +24,7 @@ namespace AntiHarassment.Core.Models
         public byte[] PasswordSalt { get; private set; }
 
         [JsonProperty]
-        private List<string> Roles { get; set; } = new List<string>();
+        private List<string> roles { get; set; } = new List<string>();
 
         [JsonProperty]
         public bool EmailConfirmed { get; private set; }
@@ -38,16 +38,17 @@ namespace AntiHarassment.Core.Models
         [JsonProperty]
         public DateTime ResetTokenExpiration { get; private set; }
 
-        public IReadOnlyList<string> UserRoles => Roles.AsReadOnly();
+        [JsonIgnore]
+        public IReadOnlyList<string> Roles => roles.AsReadOnly();
 
         [Obsolete("Serialization Only", true)]
         public User() { }
 
-        private User(string email, byte[] passwordHash, byte[] passwordSalt)
+        private User(string email, string twitchUsername, byte[] passwordHash, byte[] passwordSalt)
         {
             Id = Guid.NewGuid();
             Email = email;
-            Username = email;
+            TwitchUsername = twitchUsername;
             PasswordHash = passwordHash;
             PasswordSalt = passwordSalt;
             EmailConfirmationToken = Guid.NewGuid();
@@ -55,13 +56,13 @@ namespace AntiHarassment.Core.Models
 
         internal void AddRole(string role)
         {
-            if (!Roles.Contains(role))
-                Roles.Add(role);
+            if (!roles.Contains(role))
+                roles.Add(role);
         }
 
         internal bool HasRole(string role)
         {
-            return Roles.Any(r => r == role);
+            return roles.Any(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
         }
 
         internal void UpdatePassword(byte[] passwordHash, byte[] passwordSalt)
@@ -95,6 +96,6 @@ namespace AntiHarassment.Core.Models
             return true;
         }
 
-        internal static User CreateNewUser(string email, byte[] passwordHash, byte[] passwordSalt) => new User(email, passwordHash, passwordSalt);
+        internal static User CreateNewUser(string email, string twitchUsername, byte[] passwordHash, byte[] passwordSalt) => new User(email, twitchUsername, passwordHash, passwordSalt);
     }
 }

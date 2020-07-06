@@ -19,15 +19,15 @@ namespace AntiHarassment.Core
             this.security = security;
         }
 
-        public async Task<IResult<User>> Authenticate(string email, string password)
+        public async Task<IResult<User>> Authenticate(string twitchUsername, string password)
         {
-            if (string.IsNullOrEmpty(email))
-                return Result<User>.Failure("Email must be provided");
+            if (string.IsNullOrEmpty(twitchUsername))
+                return Result<User>.Failure("Twitchusername must be provided");
 
             if (string.IsNullOrEmpty(password))
                 return Result<User>.Failure("Password must be provided");
 
-            var user = await userRepository.GetByEmail(email).ConfigureAwait(false);
+            var user = await userRepository.GetByTwitchUsername(twitchUsername).ConfigureAwait(false);
             if (user == null)
                 return Result<User>.Failure("Incorrect email or username");
 
@@ -37,12 +37,12 @@ namespace AntiHarassment.Core
             return Result<User>.Succeeded(user);
         }
 
-        public async Task<IResult<User>> Create(string email, string password, string roleName = null)
+        public async Task<IResult<User>> Create(string email, string twitchUsername, string password, string roleName = null)
         {
-            if (!EmailIsValid())
+            if (!string.IsNullOrEmpty(email) && !EmailIsValid())
                 return Result<User>.Failure("Invalid Email");
 
-            if (await userRepository.GetByEmail(email).ConfigureAwait(false) != null)
+            if (await userRepository.GetByTwitchUsername(twitchUsername).ConfigureAwait(false) != null)
                 return Result<User>.Failure("A user with that username already exists.");
 
             if (!PasswordIsValid(out var reason))
@@ -51,7 +51,7 @@ namespace AntiHarassment.Core
             if (!security.TryCreatePasswordHash(password, out var hash, out var salt))
                 return Result<User>.Failure("Unable to generate password hash and salt.");
 
-            var user = User.CreateNewUser(email, hash, salt);
+            var user = User.CreateNewUser(email, twitchUsername, hash, salt);
             if (!string.IsNullOrEmpty(roleName))
                 user.AddRole(roleName);
 

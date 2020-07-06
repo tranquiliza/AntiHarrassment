@@ -17,12 +17,12 @@ namespace AntiHarassment.Sql
             sql = SqlAccessBase.Create(connectionString);
         }
 
-        public async Task<User> GetByEmail(string email)
+        public async Task<User> GetByTwitchUsername(string twitchUsername)
         {
-            using (var command = sql.CreateStoredProcedure("[Core].[GetUserByEmail]"))
+            using (var command = sql.CreateStoredProcedure("[Core].[GetUserByTwitchUsername]"))
             {
-                command.WithParameter("email", email);
-                
+                command.WithParameter("twitchUsername", twitchUsername);
+
                 using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
                 {
                     if (await reader.ReadAsync().ConfigureAwait(false))
@@ -38,7 +38,7 @@ namespace AntiHarassment.Sql
             using (var command = sql.CreateStoredProcedure("[Core].[InsertUpdateUser]"))
             {
                 command.WithParameter("userId", user.Id)
-                    .WithParameter("username", user.Username)
+                    .WithParameter("twitchUsername", user.TwitchUsername)
                     .WithParameter("email", user.Email)
                     .WithParameter("data", Serialization.Serialize(user));
 

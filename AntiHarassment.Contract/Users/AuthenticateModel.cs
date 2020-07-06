@@ -8,7 +8,7 @@ namespace AntiHarassment.Contract
     public class AuthenticateModel
     {
         [Required]
-        public string Username { get; set; }
+        public string TwitchUsername { get; set; }
 
         [Required]
         [DataType(DataType.Password)]

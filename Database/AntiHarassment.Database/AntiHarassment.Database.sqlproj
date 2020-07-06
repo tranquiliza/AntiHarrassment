@@ -74,7 +74,7 @@
     <Build Include="StoredProcedures\UpsertChannel.sql" />
     <Build Include="Tables\Users.sql" />
     <Build Include="StoredProcedures\InsertUpdateUser.sql" />
-    <Build Include="StoredProcedures\GetUserByEmail.sql" />
+    <Build Include="StoredProcedures\GetUserByTwitchUsername.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

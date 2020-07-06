@@ -8,7 +8,7 @@ namespace AntiHarassment.Core
 {
     public interface IUserService
     {
-        Task<IResult<User>> Create(string email, string password, string roleName = null);
+        Task<IResult<User>> Create(string email, string twitchUsername, string password, string roleName = null);
         Task<IResult<User>> Authenticate(string username, string password);
     }
 }

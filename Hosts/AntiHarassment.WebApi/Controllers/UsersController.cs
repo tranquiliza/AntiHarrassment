@@ -32,7 +32,7 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpPost("Authenticate")]
         public async Task<IActionResult> Authenticate([FromBody]AuthenticateModel authenticateModel)
         {
-            var result = await userService.Authenticate(authenticateModel.Username, authenticateModel.Password).ConfigureAwait(false);
+            var result = await userService.Authenticate(authenticateModel.TwitchUsername, authenticateModel.Password).ConfigureAwait(false);
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
 
@@ -49,7 +49,7 @@ namespace AntiHarassment.WebApi.Controllers
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var roleClaims = result.Data.UserRoles.Select(role => new Claim(ClaimTypes.Role, role));
+            var roleClaims = result.Data.Roles.Select(role => new Claim(ClaimTypes.Role, role));
             if (roleClaims != null)
                 tokenDescriptor.Subject.AddClaims(roleClaims);
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -62,7 +62,7 @@ namespace AntiHarassment.WebApi.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RegisterUser([FromBody]RegisterUserModel registerUserModel)
         {
-            var result = await userService.Create(registerUserModel.Email, registerUserModel.Password).ConfigureAwait(false);
+            var result = await userService.Create(registerUserModel.Email, registerUserModel.TwitchUsername, registerUserModel.Password).ConfigureAwait(false);
             if (result.State != ResultState.Success)
                 return BadRequest(result.FailureReason);
 

@@ -34,7 +34,7 @@ namespace AntiHarassment.Frontend.Application
 
         public async Task Initialize()
         {
-            if (userService.IsUserLoggedIn)
+            if (userService.IsUserAdmin)
             {
                 Channels = await apiGateway.Get<List<ChannelModel>>("Channels").ConfigureAwait(false);
                 NotifyStateChanged();
