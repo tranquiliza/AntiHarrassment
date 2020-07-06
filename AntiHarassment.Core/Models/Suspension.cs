@@ -9,6 +9,9 @@ namespace AntiHarassment.Core.Models
     public class Suspension
     {
         [JsonProperty]
+        public Guid SuspensionId { get; private set; }
+
+        [JsonProperty]
         public string Username { get; private set; }
 
         [JsonProperty]
@@ -21,7 +24,7 @@ namespace AntiHarassment.Core.Models
         public DateTime Timestamp { get; private set; }
 
         /// <summary>
-        /// Length of the suspension in Milliseconds: 0 if permanent
+        /// Length of the suspension in Seconds: 0 if permanent
         /// </summary>
         [JsonProperty]
         public int Duration { get; private set; }
@@ -38,6 +41,7 @@ namespace AntiHarassment.Core.Models
         {
             return new Suspension
             {
+                SuspensionId = Guid.NewGuid(),
                 Username = username,
                 ChannelOfOrigin = channelOfOrigin,
                 SuspensionType = SuspensionType.Timeout,
@@ -51,6 +55,7 @@ namespace AntiHarassment.Core.Models
         {
             return new Suspension
             {
+                SuspensionId = Guid.NewGuid(),
                 Username = username,
                 ChannelOfOrigin = channelOfOrigin,
                 SuspensionType = SuspensionType.Ban,

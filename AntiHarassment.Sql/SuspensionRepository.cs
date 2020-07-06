@@ -17,24 +17,18 @@ namespace AntiHarassment.Sql
 
         public async Task SaveSuspension(Suspension suspension)
         {
-            try
+            using (var command = sql.CreateStoredProcedure("[Core].[InsertSuspension]"))
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[InsertSuspension]"))
-                {
-                    command.WithParameter("username", suspension.Username)
-                        .WithParameter("channelOfOrigin", suspension.ChannelOfOrigin)
-                        .WithParameter("typeOfSuspension", suspension.SuspensionType.ToString())
-                        .WithParameter("timestamp", suspension.Timestamp)
-                        .WithParameter("duration", suspension.Duration)
-                        .WithParameter("data", Serialization.Serialize(suspension));
+                command
+                    .WithParameter("suspensionId", suspension.SuspensionId)
+                    .WithParameter("username", suspension.Username)
+                    .WithParameter("channelOfOrigin", suspension.ChannelOfOrigin)
+                    .WithParameter("typeOfSuspension", suspension.SuspensionType.ToString())
+                    .WithParameter("timestamp", suspension.Timestamp)
+                    .WithParameter("duration", suspension.Duration)
+                    .WithParameter("data", Serialization.Serialize(suspension));
 
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                // LOG
-                throw;
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
     }
