@@ -54,7 +54,6 @@ namespace AntiHarassment.WebApi
                     ValidateAudience = false
                 };
             });
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -65,13 +64,12 @@ namespace AntiHarassment.WebApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
-
-            app.UseRouting();
-
             app.UseCors(x => x.AllowAnyOrigin()
                               .AllowAnyMethod()
                               .AllowAnyHeader());
+
+            app.UseHttpsRedirection();
+            app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.Frontend.Application;
 using AntiHarassment.SignalR.Contract;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AntiHarassment.Frontend
 {
@@ -28,13 +29,19 @@ namespace AntiHarassment.Frontend
 
         private static void ConfigureServices(this IServiceCollection services)
         {
+            // Line because optimazation is eating everything?
+            _ = new JwtHeader();
+            _ = new JwtPayload();
+
+            const string apiUrl = "https://tranquiliza.dynu.net/AntiHarassmentApi/";
+
             services.AddSingleton<IApplicationState, ApplicationState>();
             services.AddSingleton<IApplicationStateManager, ApplicationStateManager>();
             services.AddSingleton<IChannelService, ChannelService>();
             services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton(_ => new ChannelsHubSignalRClient("https://localhost:44329/"));
+            services.AddSingleton(_ => new ChannelsHubSignalRClient(apiUrl));
 
-            services.AddSingleton<IApiGateway, ApiGateway>(x => new ApiGateway("https://localhost:44329/", x.GetRequiredService<IApplicationStateManager>(), x.GetRequiredService<HttpClient>()));
+            services.AddSingleton<IApiGateway, ApiGateway>(x => new ApiGateway(apiUrl, x.GetRequiredService<IApplicationStateManager>(), x.GetRequiredService<HttpClient>()));
         }
     }
 }
