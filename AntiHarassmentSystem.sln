@@ -15,13 +15,23 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "AntiHarassment.Database", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Chatlistener.Core", "AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj", "{05F8624A-6AE3-4666-8A25-5C3D76F2525D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Chatlistener.Sql", "AntiHarassment.Chatlistener.Sql\AntiHarassment.Chatlistener.Sql.csproj", "{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Chatlistener.TwitchIntegration", "AntiHarassment.Chatlistener.TwitchIntegration\AntiHarassment.Chatlistener.TwitchIntegration.csproj", "{2AA5E165-CC70-43F9-A581-2E2353C53682}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.Messaging", "AntiHarassment.Messaging\AntiHarassment.Messaging.csproj", "{C01A7221-DAD0-4410-93EB-416AABDD12B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Messaging", "AntiHarassment.Messaging\AntiHarassment.Messaging.csproj", "{C01A7221-DAD0-4410-93EB-416AABDD12B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.Nsb.Tester", "Tests\AntiHarassment.Nsb.Tester\AntiHarassment.Nsb.Tester.csproj", "{572AF783-C223-4F68-B8D1-38D40DE5A3D8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Nsb.Tester", "Tests\AntiHarassment.Nsb.Tester\AntiHarassment.Nsb.Tester.csproj", "{572AF783-C223-4F68-B8D1-38D40DE5A3D8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.WebApi", "Hosts\AntiHarassment.WebApi\AntiHarassment.WebApi.csproj", "{1B8A0946-0D7B-4DCF-8093-57C589F99964}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Core", "AntiHarassment.Core\AntiHarassment.Core.csproj", "{A914D07E-C299-4B42-AAB2-C9C41454BA10}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Sql", "AntiHarassment.Sql\AntiHarassment.Sql.csproj", "{E3D49486-89FF-445D-A892-FDA4CA50C956}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Contract", "AntiHarassment.Contract\AntiHarassment.Contract.csproj", "{D7E023CF-E499-4AF5-A85F-1869E788B6E0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Frontend", "AntiHarassment.Frontend\AntiHarassment.Frontend.csproj", "{55A705BB-BB71-4393-AB2B-FDC5A45ECB5F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.SignalR.Contract", "AntiHarassment.SignalR.Contract\AntiHarassment.SignalR.Contract.csproj", "{0920FBBE-5B18-484A-B900-6D7AD196D060}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,10 +53,6 @@ Global
 		{05F8624A-6AE3-4666-8A25-5C3D76F2525D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05F8624A-6AE3-4666-8A25-5C3D76F2525D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05F8624A-6AE3-4666-8A25-5C3D76F2525D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{673A8E2A-6158-4A35-AE35-CEFC8E3216D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2AA5E165-CC70-43F9-A581-2E2353C53682}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2AA5E165-CC70-43F9-A581-2E2353C53682}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AA5E165-CC70-43F9-A581-2E2353C53682}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -59,6 +65,30 @@ Global
 		{572AF783-C223-4F68-B8D1-38D40DE5A3D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{572AF783-C223-4F68-B8D1-38D40DE5A3D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{572AF783-C223-4F68-B8D1-38D40DE5A3D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B8A0946-0D7B-4DCF-8093-57C589F99964}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B8A0946-0D7B-4DCF-8093-57C589F99964}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B8A0946-0D7B-4DCF-8093-57C589F99964}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B8A0946-0D7B-4DCF-8093-57C589F99964}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A914D07E-C299-4B42-AAB2-C9C41454BA10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A914D07E-C299-4B42-AAB2-C9C41454BA10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A914D07E-C299-4B42-AAB2-C9C41454BA10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A914D07E-C299-4B42-AAB2-C9C41454BA10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3D49486-89FF-445D-A892-FDA4CA50C956}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3D49486-89FF-445D-A892-FDA4CA50C956}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3D49486-89FF-445D-A892-FDA4CA50C956}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3D49486-89FF-445D-A892-FDA4CA50C956}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7E023CF-E499-4AF5-A85F-1869E788B6E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7E023CF-E499-4AF5-A85F-1869E788B6E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7E023CF-E499-4AF5-A85F-1869E788B6E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7E023CF-E499-4AF5-A85F-1869E788B6E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55A705BB-BB71-4393-AB2B-FDC5A45ECB5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55A705BB-BB71-4393-AB2B-FDC5A45ECB5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55A705BB-BB71-4393-AB2B-FDC5A45ECB5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55A705BB-BB71-4393-AB2B-FDC5A45ECB5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0920FBBE-5B18-484A-B900-6D7AD196D060}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0920FBBE-5B18-484A-B900-6D7AD196D060}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0920FBBE-5B18-484A-B900-6D7AD196D060}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0920FBBE-5B18-484A-B900-6D7AD196D060}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +97,8 @@ Global
 		{2387FE39-20CE-4CD8-9984-2C5FB3827CA9} = {0E865BE6-7C27-4C2F-B9C0-CF6BA69EA6D3}
 		{6A5553C3-FE9E-42D5-8AB1-05014141D35E} = {4EF55C12-F955-493B-BE15-FBCD47FB16C8}
 		{572AF783-C223-4F68-B8D1-38D40DE5A3D8} = {28B6ED2D-900B-4DF9-AA6E-CE110064645E}
+		{1B8A0946-0D7B-4DCF-8093-57C589F99964} = {0E865BE6-7C27-4C2F-B9C0-CF6BA69EA6D3}
+		{55A705BB-BB71-4393-AB2B-FDC5A45ECB5F} = {0E865BE6-7C27-4C2F-B9C0-CF6BA69EA6D3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DF00D685-7AA8-4140-A4BD-9BAA935732F2}

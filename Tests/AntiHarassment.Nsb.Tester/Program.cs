@@ -30,7 +30,6 @@ namespace AntiHarassment.Nsb.Tester
                         routing.RouteToEndpoint(typeof(JoinChannelCommand), "AntiHarassmentChatlistener");
                     });
 
-
                     return builder.BuildConfiguration();
                 })
                 .ConfigureServices((hostContext, services) =>

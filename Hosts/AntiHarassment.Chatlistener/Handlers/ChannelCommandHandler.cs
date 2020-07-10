@@ -1,5 +1,6 @@
 ﻿using AntiHarassment.Chatlistener.Core;
 using AntiHarassment.Messaging.Commands;
+using AntiHarassment.Messaging.Events;
 using NServiceBus;
 using System;
 using System.Collections.Generic;
@@ -19,14 +20,18 @@ namespace AntiHarassment.Chatlistener.Handlers
             this.chatlistenerService = chatlistenerService;
         }
 
-        public Task Handle(JoinChannelCommand message, IMessageHandlerContext context)
+        public async Task Handle(JoinChannelCommand message, IMessageHandlerContext context)
         {
-            return chatlistenerService.ListenTo(message.ChannelName);
+            await chatlistenerService.ListenTo(message.ChannelName).ConfigureAwait(false);
+
+            await context.Publish(new JoinedChannelEvent(message.ChannelName)).ConfigureAwait(false);
         }
 
-        public Task Handle(LeaveChannelCommand message, IMessageHandlerContext context)
+        public async Task Handle(LeaveChannelCommand message, IMessageHandlerContext context)
         {
-            return chatlistenerService.UnlistenTo(message.ChannelName);
+            await chatlistenerService.UnlistenTo(message.ChannelName).ConfigureAwait(false);
+
+            await context.Publish(new LeftChannelEvent(message.ChannelName)).ConfigureAwait(false);
         }
     }
 }

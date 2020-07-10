@@ -1,5 +1,6 @@
 ﻿using AntiHarassment.Chatlistener.Core.Events;
-using AntiHarassment.Chatlistener.Core.Models;
+using AntiHarassment.Core;
+using AntiHarassment.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

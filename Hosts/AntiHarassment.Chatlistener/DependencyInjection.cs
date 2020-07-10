@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Chatlistener.Core;
-using AntiHarassment.Chatlistener.Sql;
 using AntiHarassment.Chatlistener.TwitchIntegration;
+using AntiHarassment.Core;
+using AntiHarassment.Sql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -15,7 +16,7 @@ namespace AntiHarassment.Chatlistener
         {
             return hostBuilder.ConfigureServices((context, services) =>
             {
-                var connectionString = context.Configuration["ConnectionStrings:ChatListenerDatabase"];
+                var connectionString = context.Configuration["ConnectionStrings:AntiHarassmentDatabase"];
                 var twitchUsername = context.Configuration["Twitch:Username"];
                 var twitchBotOAuth = context.Configuration["Twitch:OAuthToken"];
 
