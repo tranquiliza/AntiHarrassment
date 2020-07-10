@@ -45,7 +45,7 @@
                             <div class="card-header">
                                 <h2 class="mb-0">
                                     <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false" aria-controls="collapseThree">
-                                        @suspension.Timestamp : <b>@suspension.Username</b> @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds") @suspension.SuspensionType.ToString()
+                                        @suspension.Timestamp.FancyFormat() - <b>@suspension.Username</b> @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds") @suspension.SuspensionType.ToString()
                                     </button>
                                 </h2>
                             </div>
@@ -53,7 +53,7 @@
                                 <div class="card-body">
                                     @foreach (var message in suspension.Messages)
                                     {
-                                        <p><b>@message.Timestamp</b>: @message.Message</p>
+                                        <p><b>@message.Timestamp</b> @message.Message</p>
                                     }
                                 </div>
                             </div>
