@@ -84,10 +84,10 @@
             await channelService.Initialize();
         }
 
-        //if (!string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel))
-        //{
-        //    await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel);
-        //}
+        if (string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel))
+        {
+            await suspensionService.FetchSuspensionForChannel(userService.CurrentUserTwitchUsername);
+        }
     }
 
     private void UpdateUi()

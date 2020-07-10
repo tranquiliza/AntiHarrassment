@@ -12,6 +12,7 @@ namespace AntiHarassment.Frontend.Application
 
         bool IsUserLoggedIn { get; }
         bool IsUserAdmin { get; }
+        string CurrentUserTwitchUsername { get; }
 
         Task Initialize();
         Task CreateAccount(RegisterUserModel model);

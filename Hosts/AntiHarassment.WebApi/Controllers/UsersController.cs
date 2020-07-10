@@ -30,7 +30,7 @@ namespace AntiHarassment.WebApi.Controllers
 
         [AllowAnonymous]
         [HttpPost("Authenticate")]
-        public async Task<IActionResult> Authenticate([FromBody]AuthenticateModel authenticateModel)
+        public async Task<IActionResult> Authenticate([FromBody] AuthenticateModel authenticateModel)
         {
             var result = await userService.Authenticate(authenticateModel.TwitchUsername, authenticateModel.Password).ConfigureAwait(false);
             if (result.State == ResultState.Failure)
@@ -52,6 +52,9 @@ namespace AntiHarassment.WebApi.Controllers
             var roleClaims = result.Data.Roles.Select(role => new Claim(ClaimTypes.Role, role));
             if (roleClaims != null)
                 tokenDescriptor.Subject.AddClaims(roleClaims);
+
+            tokenDescriptor.Subject.AddClaim(new Claim(CustomClaimTypes.TwitchUsername, result.Data.TwitchUsername));
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var bearerToken = tokenHandler.WriteToken(token);
 
@@ -60,7 +63,7 @@ namespace AntiHarassment.WebApi.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> RegisterUser([FromBody]RegisterUserModel registerUserModel)
+        public async Task<IActionResult> RegisterUser([FromBody] RegisterUserModel registerUserModel)
         {
             var result = await userService.Create(registerUserModel.Email, registerUserModel.TwitchUsername, registerUserModel.Password).ConfigureAwait(false);
             if (result.State != ResultState.Success)

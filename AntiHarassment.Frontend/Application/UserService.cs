@@ -15,12 +15,14 @@ namespace AntiHarassment.Frontend.Application
             public Guid Id { get; private set; }
             public List<string> Roles { get; private set; }
             public DateTime TokenExpires { get; private set; }
+            public string TwitchUsername { get; private set; }
 
-            public UserInformation(Guid id, List<string> roles, DateTime tokenExpires)
+            public UserInformation(Guid id, List<string> roles, DateTime tokenExpires, string twitchUsername)
             {
                 Id = id;
                 Roles = roles;
                 TokenExpires = tokenExpires;
+                TwitchUsername = twitchUsername;
             }
         }
 
@@ -33,6 +35,7 @@ namespace AntiHarassment.Frontend.Application
 
         public bool IsUserLoggedIn => User != null;
         public bool IsUserAdmin => User?.Roles.Any(role => string.Equals("ADMIN", role, StringComparison.Ordinal)) == true;
+        public string CurrentUserTwitchUsername => User?.TwitchUsername;
 
         public UserService(IApiGateway apiGateway, IApplicationStateManager applicationStateManager)
         {
@@ -57,6 +60,7 @@ namespace AntiHarassment.Frontend.Application
 
             var jwt = new JwtSecurityToken(jwtToken);
             var uniqueName = jwt.Claims.FirstOrDefault(x => x.Type == "unique_name");
+            var twitchUsername = jwt.Claims.FirstOrDefault(x => x.Type == CustomClaimTypes.TwitchUsername);
             if (!Guid.TryParse(uniqueName?.Value, out var userId))
                 return null;
 
@@ -69,7 +73,7 @@ namespace AntiHarassment.Frontend.Application
 
             var roles = jwt.Claims.Where(x => x.Type == "role").Select(x => x.Value).ToList();
 
-            return new UserInformation(userId, roles, expires);
+            return new UserInformation(userId, roles, expires, twitchUsername?.Value);
         }
 
         public async Task<bool> TryLogin(AuthenticateModel model)
