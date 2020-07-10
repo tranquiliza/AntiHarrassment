@@ -75,6 +75,9 @@
     <Build Include="Tables\Users.sql" />
     <Build Include="StoredProcedures\InsertUpdateUser.sql" />
     <Build Include="StoredProcedures\GetUserByTwitchUsername.sql" />
+    <Build Include="StoredProcedures\GetUserById.sql" />
+    <Build Include="StoredProcedures\GetSuspensionsForChannel.sql" />
+    <Build Include="StoredProcedures\GetSuspensions.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

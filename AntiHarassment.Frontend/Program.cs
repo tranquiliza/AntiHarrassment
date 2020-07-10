@@ -33,12 +33,14 @@ namespace AntiHarassment.Frontend
             _ = new JwtHeader();
             _ = new JwtPayload();
 
-            const string apiUrl = "https://tranquiliza.dynu.net/AntiHarassmentApi/";
+            const string apiUrl = "https://localhost:44329/";
+            //const string apiUrl = "https://tranquiliza.dynu.net/AntiHarassmentApi/";
 
             services.AddSingleton<IApplicationState, ApplicationState>();
             services.AddSingleton<IApplicationStateManager, ApplicationStateManager>();
             services.AddSingleton<IChannelService, ChannelService>();
             services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<ISuspensionService, SuspensionService>();
             services.AddSingleton(_ => new ChannelsHubSignalRClient(apiUrl));
 
             services.AddSingleton<IApiGateway, ApiGateway>(x => new ApiGateway(apiUrl, x.GetRequiredService<IApplicationStateManager>(), x.GetRequiredService<HttpClient>()));

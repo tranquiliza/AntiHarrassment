@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AntiHarassment.WebApi.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -53,6 +54,11 @@ namespace AntiHarassment.WebApi
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
+            });
+
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(typeof(ApplicationContextFilter));
             });
         }
 

@@ -18,12 +18,14 @@ namespace AntiHarassment.WebApi
 
             services.AddSingleton<IChannelService, ChannelService>();
             services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<ISuspensionService, SuspensionService>();
 
             services.AddSingleton<ISecurity, PasswordSecurity>();
             services.AddSingleton<IApplicationConfiguration>(applicationConfiguration);
 
             services.AddSingleton<IChannelRepository, ChannelRepository>(_ => new ChannelRepository(connstring));
             services.AddSingleton<IUserRepository, UserRepository>(_ => new UserRepository(connstring));
+            services.AddSingleton<ISuspensionRepository, SuspensionRepository>(_ => new SuspensionRepository(connstring));
 
             services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
 

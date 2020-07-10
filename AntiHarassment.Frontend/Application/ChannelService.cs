@@ -24,7 +24,6 @@ namespace AntiHarassment.Frontend.Application
             this.userService = userService;
             this.channelsHubSignalRClient = channelsHubSignalRClient;
 
-
             channelsHubSignalRClient.ChannelJoined += async (sender, args) => await ChannelsHubSignalRClient_ChannelJoined(sender, args).ConfigureAwait(false);
             channelsHubSignalRClient.ChannelLeft += ChannelsHubSignalRClient_ChannelLeft;
 

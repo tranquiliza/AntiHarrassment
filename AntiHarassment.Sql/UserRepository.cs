@@ -33,6 +33,21 @@ namespace AntiHarassment.Sql
             return null;
         }
 
+        public async Task<User> GetById(Guid id)
+        {
+            using (var command = sql.CreateStoredProcedure("[Core].[GetUserById]"))
+            {
+                command.WithParameter("userId", id);
+                using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
+                {
+                    if (await reader.ReadAsync().ConfigureAwait(false))
+                        return Serialization.Deserialize<User>(reader.GetString("data"));
+                }
+            }
+
+            return null;
+        }
+
         public async Task Save(User user)
         {
             using (var command = sql.CreateStoredProcedure("[Core].[InsertUpdateUser]"))

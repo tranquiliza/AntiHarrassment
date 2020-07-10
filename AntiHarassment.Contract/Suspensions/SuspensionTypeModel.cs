@@ -4,8 +4,9 @@ using System.Text;
 
 namespace AntiHarassment.Contract
 {
-    public class Suspension
+    public enum SuspensionTypeModel
     {
-
+        Timeout = 0,
+        Ban = 1
     }
 }

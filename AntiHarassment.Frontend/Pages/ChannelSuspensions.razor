@@ -1,0 +1,103 @@
+﻿@inject ISuspensionService suspensionService
+@inject IUserService userService
+@inject IChannelService channelService
+@implements IDisposable
+
+@page "/ChannelSuspensions"
+
+<div class="container-fluid">
+    @if (userService.IsUserAdmin && channelService.Channels != null)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
+                        @foreach (var channel in channelService.Channels)
+                        {
+                            <button @onclick="async () => await SelectChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12">
+            @if (suspensionService.Suspensions == null)
+            {
+                <p>Please select a channel</p>
+            }
+            else
+            {
+                if (suspensionService.Suspensions.Count == 0)
+                {
+                    <p>No suspensions! Lucky!</p>
+                }
+
+                <div class="accordion" id="suspensionsAccordion">
+                    @foreach (var suspension in suspensionService.Suspensions)
+                    {
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false" aria-controls="collapseThree">
+                                        @suspension.Timestamp : <b>@suspension.Username</b> @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds") @suspension.SuspensionType.ToString()
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
+                                <div class="card-body">
+                                    @foreach (var message in suspension.Messages)
+                                    {
+                                        <p><b>@message.Timestamp</b>: @message.Message</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        { counter++; }
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private int counter = 0;
+
+    private async Task SelectChannel(string channelName)
+    {
+        await suspensionService.FetchSuspensionForChannel(channelName);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        suspensionService.OnChange += UpdateUi;
+        channelService.OnChange += UpdateUi;
+
+        if (userService.IsUserAdmin)
+        {
+            await channelService.Initialize();
+        }
+
+        //if (!string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel))
+        //{
+        //    await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel);
+        //}
+    }
+
+    private void UpdateUi()
+    {
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        suspensionService.OnChange -= StateHasChanged;
+        channelService.OnChange -= UpdateUi;
+    }
+}
