@@ -1,9 +1,11 @@
 ﻿@inject IUserService userService
 @implements IDisposable
 
+
 @if (IsRegistrering)
 {
     <h1 class="h3 mb-3 font-weight-normal text-center">Please Register</h1>
+    <p class="text-danger">@ErrorMessage</p>
     <EditForm class="form-signin" Model="@registerUserModel" OnValidSubmit="@RegisterUser">
 
         <div class="form-group">
@@ -33,6 +35,7 @@
 else
 {
     <h1 class="h3 mb-3 font-weight-normal text-center">Please Sign In</h1>
+    <p class="text-danger">@ErrorMessage</p>
     <EditForm class="form-signin" Model="@model" OnValidSubmit="@AttemptLogin">
         <DataAnnotationsValidator />
 
@@ -53,6 +56,8 @@ else
 
 
 @code {
+    private string ErrorMessage = "";
+
     private bool IsRegistrering = false;
 
     AuthenticateModel model = new AuthenticateModel();
@@ -62,7 +67,8 @@ else
         var success = await userService.TryLogin(model);
         if (!success)
         {
-            // TODO display error
+            ErrorMessage = userService.LoginError;
+            return;
         }
 
         model = new AuthenticateModel();
@@ -88,14 +94,19 @@ else
             return;
         }
 
-        await userService.CreateAccount(registerUserModel);
+        var accountCreationSuccess = await userService.CreateAccount(registerUserModel);
+        if (accountCreationSuccess != true)
+        {
+            ErrorMessage = userService.CreateAccountError;
+            return;
+        }
 
         var authModel = new AuthenticateModel { TwitchUsername = registerUserModel.TwitchUsername, Password = registerUserModel.Password };
 
         var success = await userService.TryLogin(authModel);
         if (!success)
         {
-            // DISPLAY ERROR
+            ErrorMessage = userService.LoginError;
         }
 
         IsRegistrering = false;

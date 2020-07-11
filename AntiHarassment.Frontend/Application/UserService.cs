@@ -76,16 +76,25 @@ namespace AntiHarassment.Frontend.Application
             return new UserInformation(userId, roles, expires, twitchUsername?.Value);
         }
 
+        public string LoginError { get; private set; }
         public async Task<bool> TryLogin(AuthenticateModel model)
         {
-            var response = await apiGateway.Post<UserAuthenticatedModel, AuthenticateModel>(model, "Users", "Authenticate").ConfigureAwait(false);
-            if (response == null)
-                return false;
+            try
+            {
+                var response = await apiGateway.Post<UserAuthenticatedModel, AuthenticateModel>(model, "Users", "Authenticate").ConfigureAwait(false);
+                if (response == null)
+                    return false;
 
-            await applicationStateManager.SetJwtToken(response.Token).ConfigureAwait(false);
-            User = await CreateUserFromJwtToken(response.Token).ConfigureAwait(false);
-            NotifyStateChanged();
-            return true;
+                await applicationStateManager.SetJwtToken(response.Token).ConfigureAwait(false);
+                User = await CreateUserFromJwtToken(response.Token).ConfigureAwait(false);
+                NotifyStateChanged();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LoginError = ex.Message;
+                return false;
+            }
         }
 
         public async Task<bool> TryLogout()
@@ -97,9 +106,20 @@ namespace AntiHarassment.Frontend.Application
             return true;
         }
 
-        public async Task CreateAccount(RegisterUserModel model)
+        public string CreateAccountError { get; private set; }
+
+        public async Task<bool> CreateAccount(RegisterUserModel model)
         {
-            await apiGateway.Post(model, "Users").ConfigureAwait(false);
+            try
+            {
+                await apiGateway.Post(model, "Users").ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                CreateAccountError = ex.Message;
+                return false;
+            }
         }
     }
 }

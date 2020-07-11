@@ -96,7 +96,8 @@ namespace AntiHarassment.Frontend.Infrastructure
             var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
-                // Log
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new Exception(content);
             }
         }
 
@@ -105,7 +106,8 @@ namespace AntiHarassment.Frontend.Infrastructure
             var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
-                // Log
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                throw new Exception(content);
             }
 
             if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
