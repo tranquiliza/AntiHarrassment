@@ -34,6 +34,8 @@ namespace AntiHarassment.SignalR.Contract
                 hubConnection.On<string>(Methods.CHANNELLEFT, HandleChannelLeftEvent);
 
                 await hubConnection.StartAsync().ConfigureAwait(false);
+
+                started = true;
             }
         }
 

@@ -29,7 +29,14 @@ namespace AntiHarassment.WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder.WithOrigins("https://antiharassment.azurewebsites.net", "https://localhost:44394").AllowAnyHeader().AllowAnyMethod();
+                });
+            });
+
             services.AddControllers();
             services.AddSignalR();
 
@@ -70,12 +77,10 @@ namespace AntiHarassment.WebApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors(x => x.AllowAnyOrigin()
-                              .AllowAnyMethod()
-                              .AllowAnyHeader());
-
             app.UseHttpsRedirection();
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthentication();
             app.UseAuthorization();
