@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+// Possibly need a transition property in the future if changing property names.
+// https://stackoverflow.com/questions/43714050/multiple-jsonproperty-name-assigned-to-single-property
+
 namespace AntiHarassment.Core.Models
 {
     public class User
@@ -71,12 +74,16 @@ namespace AntiHarassment.Core.Models
             PasswordSalt = passwordSalt;
         }
 
-        internal Guid GenerateResetToken(DateTime tokenExpirationTime)
+        internal bool TryGenerateResetToken(DateTime tokenExpirationTime, DateTime currentTime)
         {
+            // If we already have a token, there is no reason to send a new one. Use the current. (Prevents flooding too)
+            if (ResetTokenExpiration != default && ResetTokenExpiration < currentTime) // If we have no token, we need.
+                return false;
+
             ResetToken = Guid.NewGuid();
             ResetTokenExpiration = tokenExpirationTime;
 
-            return ResetToken;
+            return true;
         }
 
         internal bool ResetTokenMatchesAndIsValid(Guid resetToken, DateTime now) => resetToken == ResetToken && now < ResetTokenExpiration;
@@ -87,12 +94,13 @@ namespace AntiHarassment.Core.Models
             ResetTokenExpiration = default;
         }
 
-        internal bool TryConfirmEmail(Guid confirmationToken)
+        internal bool TryConfirmUserRegistration(Guid confirmationToken)
         {
             if (confirmationToken != EmailConfirmationToken)
                 return false;
 
             EmailConfirmed = true;
+            EmailConfirmationToken = default;
             return true;
         }
 

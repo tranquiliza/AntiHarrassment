@@ -71,5 +71,38 @@ namespace AntiHarassment.WebApi.Controllers
 
             return Ok(result.Data.Map());
         }
+
+        [HttpPost("requestResetPasswordToken")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RequestResetToken([FromBody] RequestResetTokenModel model)
+        {
+            var result = await userService.SendPasswordResetTokenFor(model.TwitchUsername).ConfigureAwait(false);
+            if (result.State != ResultState.Success)
+                return BadRequest(result.FailureReason);
+
+            return Ok();
+        }
+
+        [HttpPost("UpdatePassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> UpdatePassword([FromBody] ResetPasswordModel model)
+        {
+            var result = await userService.UpdatePasswordFor(model.TwitchUsername, model.ResetToken, model.NewPassword).ConfigureAwait(false);
+            if (result.State != ResultState.Success)
+                return BadRequest(result.FailureReason);
+
+            return Ok();
+        }
+
+        [HttpPost("confirm/{twitchUsername}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmToken([FromRoute] string twitchUsername, [FromBody] ConfirmUserModel model)
+        {
+            var result = await userService.Confirm(twitchUsername, model.ConfirmationToken).ConfigureAwait(false);
+            if (result.State != ResultState.Success)
+                return BadRequest(result.FailureReason);
+
+            return Ok();
+        }
     }
 }

@@ -16,6 +16,8 @@ namespace AntiHarassment.WebApi
         {
             var connstring = configuration["ConnectionStrings:AntiHarassmentDatabase"];
 
+            services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
+
             services.AddSingleton<IChannelService, ChannelService>();
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<ISuspensionService, SuspensionService>();

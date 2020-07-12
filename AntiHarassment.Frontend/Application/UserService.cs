@@ -121,5 +121,57 @@ namespace AntiHarassment.Frontend.Application
                 return false;
             }
         }
+
+        public string ConfirmAccountTokenError { get; private set; }
+        public async Task<bool> ConfirmToken(string confirmationUsername, string confirmationToken)
+        {
+            try
+            {
+                if (!Guid.TryParse(confirmationToken, out var guidToken))
+                {
+                    ConfirmAccountTokenError = "Invalid Token";
+                    return false;
+                }
+
+                var model = new ConfirmUserModel { ConfirmationToken = guidToken };
+                await apiGateway.Post(model, "users", "confirm", new string[] { confirmationUsername }).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ConfirmAccountTokenError = ex.Message;
+                return false;
+            }
+        }
+
+        public string RequestPasswordResetError { get; private set; }
+        public async Task<bool> RequestPasswordReset(RequestResetTokenModel model)
+        {
+            try
+            {
+                await apiGateway.Post(model, "users", "requestResetPasswordToken").ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                RequestPasswordResetError = ex.Message;
+                return false;
+            }
+        }
+
+        public string ResetPasswordError { get; private set; }
+        public async Task<bool> ResetPassword(ResetPasswordModel model)
+        {
+            try
+            {
+                await apiGateway.Post(model, "users", "UpdatePassword").ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ResetPasswordError = ex.Message;
+                return false;
+            }
+        }
     }
 }

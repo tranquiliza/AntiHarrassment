@@ -60,5 +60,14 @@ namespace AntiHarassment.Sql
                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
+
+        public async Task Delete(Guid userId)
+        {
+            using (var command = sql.CreateStoredProcedure("[Core].[DeleteUserById]"))
+            {
+                command.WithParameter("userId", userId);
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
     }
 }
