@@ -35,7 +35,7 @@ namespace AntiHarassment.WebApi.Controllers
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
 
-            return Ok(new List<SuspensionModel>());
+            return NoContent();
         }
     }
 }
