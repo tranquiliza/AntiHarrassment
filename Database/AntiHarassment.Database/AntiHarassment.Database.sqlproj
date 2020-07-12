@@ -78,6 +78,7 @@
     <Build Include="StoredProcedures\GetUserById.sql" />
     <Build Include="StoredProcedures\GetSuspensionsForChannel.sql" />
     <Build Include="StoredProcedures\GetSuspensions.sql" />
+    <Build Include="StoredProcedures\DeleteUserById.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

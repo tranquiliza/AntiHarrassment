@@ -12,7 +12,7 @@ using NServiceBus;
 
 namespace AntiHarassment.WebApi
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -30,6 +30,8 @@ namespace AntiHarassment.WebApi
                     {
                         routing.RouteToEndpoint(typeof(LeaveChannelCommand), "AntiHarassmentChatlistener");
                         routing.RouteToEndpoint(typeof(JoinChannelCommand), "AntiHarassmentChatlistener");
+                        routing.RouteToEndpoint(typeof(SendAccountConfirmationCommand), "AntiHarassmentChatlistener");
+                        routing.RouteToEndpoint(typeof(SendPasswordResetTokenCommand), "AntiHarassmentChatlistener");
                     });
 
                     return builder.BuildConfiguration();

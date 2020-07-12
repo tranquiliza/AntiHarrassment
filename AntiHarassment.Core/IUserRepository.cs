@@ -11,5 +11,6 @@ namespace AntiHarassment.Core
         Task<User> GetByTwitchUsername(string email);
         Task Save(User user);
         Task<User> GetById(Guid id);
+        Task Delete(Guid userId);
     }
 }

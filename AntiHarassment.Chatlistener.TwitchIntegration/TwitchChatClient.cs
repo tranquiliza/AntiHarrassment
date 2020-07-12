@@ -38,7 +38,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             client.OnConnected += TwitchClient_OnConnected;
             client.Connect();
 
-            await connectionCompletionTask.Task;
+            await connectionCompletionTask.Task.ConfigureAwait(false);
         }
 
         private void TwitchClient_OnConnected(object sender, OnConnectedArgs e)
