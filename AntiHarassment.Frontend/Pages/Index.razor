@@ -1,0 +1,29 @@
+﻿@inject IChannelService channelService
+@inject IUserService userService
+@implements IDisposable
+
+@page "/"
+
+<p>
+    LOGGED IN: @userService.IsUserLoggedIn
+</p>
+<p>
+    IS ADMIN: @userService.IsUserAdmin
+</p>
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        userService.OnChange += StateHasChanged;
+        channelService.OnChange += StateHasChanged;
+
+        await channelService.Initialize();
+    }
+
+    public void Dispose()
+    {
+        userService.OnChange -= StateHasChanged;
+        channelService.OnChange -= StateHasChanged;
+    }
+}

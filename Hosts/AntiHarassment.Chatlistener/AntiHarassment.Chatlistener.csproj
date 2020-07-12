@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -8,5 +8,17 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.5" />
+    <PackageReference Include="NServiceBus" Version="7.3.0" />
+    <PackageReference Include="NServiceBus.Extensions.Hosting" Version="1.0.1" />
+    <PackageReference Include="NServiceBus.Newtonsoft.Json" Version="2.2.0" />
+    <PackageReference Include="NServiceBus.Persistence.Sql" Version="6.0.1" />
+    <PackageReference Include="NServiceBus.SqlServer" Version="6.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj" />
+    <ProjectReference Include="..\..\AntiHarassment.Chatlistener.TwitchIntegration\AntiHarassment.Chatlistener.TwitchIntegration.csproj" />
+    <ProjectReference Include="..\..\AntiHarassment.Messaging\AntiHarassment.Messaging.csproj" />
+    <ProjectReference Include="..\..\AntiHarassment.Sql\AntiHarassment.Sql.csproj" />
   </ItemGroup>
 </Project>

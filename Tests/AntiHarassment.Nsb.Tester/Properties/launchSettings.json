@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "AntiHarassment.Nsb.Tester": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

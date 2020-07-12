@@ -1,0 +1,6 @@
+﻿CREATE PROCEDURE [Core].[DeleteUserById]
+	@userId UNIQUEIDENTIFIER
+AS
+BEGIN
+	DELETE FROM [Core].[Users] WHERE [UserId] = @userId
+END

@@ -1,0 +1,29 @@
+﻿@inject IUserService userService
+@inject NavigationManager navigationManager
+
+@code {
+    protected override void OnInitialized()
+    {
+        userService.OnChange += OnUserStateChanged;
+
+        if (!userService.IsUserAdmin)
+        {
+            navigationManager.NavigateTo("");
+        }
+    }
+
+    private void OnUserStateChanged()
+    {
+        if (!userService.IsUserAdmin)
+        {
+            navigationManager.NavigateTo("");
+        }
+
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        userService.OnChange -= OnUserStateChanged;
+    }
+}

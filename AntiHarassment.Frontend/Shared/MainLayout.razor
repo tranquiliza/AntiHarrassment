@@ -1,0 +1,44 @@
+﻿@inherits LayoutComponentBase
+@inject IUserService userService
+@implements IDisposable
+
+@if (userService.IsUserLoggedIn)
+{
+    <NavMenu />
+
+    <div class="container-fluid">
+        <div class="row">
+
+            <SideMenu />
+
+            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    @Body
+                </div>
+            </main>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="row">
+            <div class="col-6 offset-3">
+                <LoginComponent></LoginComponent>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        userService.OnChange += StateHasChanged;
+        await userService.Initialize();
+    }
+
+    public void Dispose()
+    {
+        userService.OnChange -= StateHasChanged;
+    }
+}

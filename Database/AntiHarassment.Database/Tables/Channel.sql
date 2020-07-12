@@ -1,0 +1,9 @@
+﻿CREATE TABLE [Core].[Channel]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1), 
+    [ChannelName] NVARCHAR(100) NOT NULL, 
+    [ShouldListen] BIT NOT NULL DEFAULT 0
+)
+GO
+
+CREATE INDEX [IX_CHANNEL_CHANNELNAME] ON [Core].[Channel](ChannelName)

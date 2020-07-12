@@ -1,0 +1,250 @@
+﻿@inject IUserService userService
+@implements IDisposable
+
+@switch (currentState)
+{
+    case RegistrationState.Registrering:
+        <h1 class="h3 mb-3 font-weight-normal text-center">Please Register</h1>
+        <p class="text-danger">@ErrorMessage</p>
+        <EditForm class="form-signin" Model="@registerUserModel" OnValidSubmit="@RegisterUser">
+
+            <div class="form-group">
+                <label for="twitchUsername">Twitch Username</label>
+                <InputText class="form-control" type="text" id="twitchUsername" @bind-Value="registerUserModel.TwitchUsername"></InputText>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email (Optional)</label>
+                <InputText class="form-control" type="text" id="email" @bind-Value="registerUserModel.Email"></InputText>
+            </div>
+
+            <div class="form-group">
+                <label for="register_password">Password</label>
+                <InputText class="form-control" type="password" id="register_password" @bind-Value="registerUserModel.Password"></InputText>
+            </div>
+
+            <div class="form-group">
+                <label for="register_password_confirm">Confirm Password</label>
+                <InputText class="form-control" type="password" id="register_password_confirm" @bind-Value="ConfirmPassword"></InputText>
+            </div>
+
+            <button type="submit" class="btn btn-lg btn-dark btn-block">Register</button>
+            <button @onclick="_ => SetCurrentState(RegistrationState.Login)" class="btn btn-lg btn-danger btn-block">Go Back</button>
+        </EditForm>
+        break;
+    case RegistrationState.Confirming:
+        <h1 class="h3 mb-3 font-weight-normal text-center">Please enter confirmation token</h1>
+        <p>Token has been sent to your Twitch Whispers.</p>
+        <p>If you did not receive whisper, or have whispers blocked. Contact Tranquiliza: https://discord.gg/Cb7PQRj</p>
+        <p class="text-danger">@ErrorMessage</p>
+        <EditForm class="form-signin" Model="ConfirmFormModel" OnValidSubmit="ConfirmCreationToken">
+            <div class="form-group">
+                <label for="confirm_user_username">Twitch Username</label>
+                <InputText class="form-control" type="text" id="confirm_user_username" @bind-Value="ConfirmFormModel.ConfirmationUsername"></InputText>
+            </div>
+            <div class="form-group">
+                <label for="confirm_user_token">Confirmation Token</label>
+                <InputText class="form-control" type="text" id="confirm_user_token" @bind-Value="ConfirmFormModel.ConfirmationToken"></InputText>
+            </div>
+            <button type="submit" class="btn btn-lg btn-dark btn-block">Confirm</button>
+            <button @onclick="_ => SetCurrentState(RegistrationState.Login)" class="btn btn-lg btn-danger btn-block">Go Back</button>
+        </EditForm>
+        break;
+
+    case RegistrationState.RequestReset:
+        <p class="text-danger">@ErrorMessage</p>
+        <EditForm class="form-signin" Model="RequestResetTokenModel" OnValidSubmit="RequestPasswordResetToken">
+            <div class="form-group">
+                <label for="reset_user_username">Twitch Username</label>
+                <InputText class="form-control" type="text" id="reset_user_username" @bind-Value="RequestResetTokenModel.TwitchUsername"></InputText>
+            </div>
+            <button type="submit" class="btn btn-lg btn-dark btn-block">Request Reset Token</button>
+            <button @onclick="_ => SetCurrentState(RegistrationState.ResetPassword)" class="btn btn-lg btn-success btn-block">I already have a token</button>
+            <button @onclick="_ => SetCurrentState(RegistrationState.Login)" class="btn btn-lg btn-danger btn-block">Go Back</button>
+        </EditForm>
+        break;
+
+    case RegistrationState.ResetPassword:
+        <p class="text-danger">@ErrorMessage</p>
+        <EditForm class="form-signin" Model="ResetPasswordModel" OnValidSubmit="ResetPassword">
+            <div class="form-group">
+                <label for="reset_user_username">Twitch Username</label>
+                <InputText class="form-control" type="text" id="reset_user_username" @bind-Value="ResetPasswordModel.TwitchUsername"></InputText>
+            </div>
+            <div class="form-group">
+                <label for="reset_user_resetToken">Reset Token</label>
+                <InputText class="form-control" type="text" id="reset_user_resetToken" @bind-Value="resetTokenString"></InputText>
+            </div>
+            <div class="form-group">
+                <label for="reset_user_newPassword">New Password</label>
+                <InputText class="form-control" type="password" id="reset_user_newPassword" @bind-Value="ResetPasswordModel.NewPassword"></InputText>
+            </div>
+            <div class="form-group">
+                <label for="reset_user_newPassword_Confirm">Confirm Password</label>
+                <InputText class="form-control" type="password" id="reset_user_newPassword_Confirm" @bind-Value="resetConfirmPassword"></InputText>
+            </div>
+            <button type="submit" class="btn btn-lg btn-dark btn-block">Reset Password</button>
+            <button @onclick="_ => SetCurrentState(RegistrationState.Login)" class="btn btn-lg btn-danger btn-block">Go Back</button>
+        </EditForm>
+
+        break;
+
+    case RegistrationState.Login:
+    default:
+        <h1 class="h3 mb-3 font-weight-normal text-center">Please Sign In</h1>
+        <p class="text-danger">@ErrorMessage</p>
+        <EditForm class="form-signin" Model="@model" OnValidSubmit="@AttemptLogin">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label for="username">Twitch Username</label>
+                <InputText class="form-control" type="text" id="username" @bind-Value="model.TwitchUsername"></InputText>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText class="form-control" type="password" id="password" @bind-Value="model.Password"></InputText>
+            </div>
+
+            <button type="submit" class="btn btn-lg btn-dark btn-block">Sign In</button>
+            <button @onclick="_ => SetCurrentState(RegistrationState.Registrering)" class="btn btn-lg btn-dark btn-block">Register</button>
+        </EditForm>
+        <a class="hand-pointer" @onclick="_ => SetCurrentState(RegistrationState.Confirming)">Enter Confirmation</a>
+        <a class="float-right hand-pointer" @onclick="_ => SetCurrentState(RegistrationState.RequestReset)">Reset Password</a>
+        break;
+}
+
+@code {
+
+    private enum RegistrationState
+    {
+        Registrering,
+        Confirming,
+        Login,
+        RequestReset,
+        ResetPassword
+    }
+
+    private string ErrorMessage = "";
+
+    private RegistrationState currentState = RegistrationState.Login;
+
+    AuthenticateModel model = new AuthenticateModel();
+
+    private async Task AttemptLogin()
+    {
+        var success = await userService.TryLogin(model);
+        if (!success)
+        {
+            ErrorMessage = userService.LoginError;
+            return;
+        }
+
+        model = new AuthenticateModel();
+    }
+
+    private void SetCurrentState(RegistrationState value)
+    {
+        currentState = value;
+    }
+
+    RegisterUserModel registerUserModel = new RegisterUserModel();
+    private string ConfirmPassword { get; set; }
+
+    private async Task RegisterUser()
+    {
+        if (string.IsNullOrEmpty(registerUserModel.TwitchUsername) || string.IsNullOrEmpty(registerUserModel.Password))
+        {
+            return;
+        }
+
+        if (!string.Equals(registerUserModel.Password, ConfirmPassword))
+        {
+            return;
+        }
+
+        var accountCreationSuccess = await userService.CreateAccount(registerUserModel);
+        if (accountCreationSuccess != true)
+        {
+            ErrorMessage = userService.CreateAccountError;
+            return;
+        }
+
+        ConfirmFormModel.ConfirmationUsername = registerUserModel.TwitchUsername;
+        registerUserModel = new RegisterUserModel();
+
+        SetCurrentState(RegistrationState.Confirming);
+    }
+
+    public class ConfirmForm
+    {
+        public string ConfirmationUsername { get; set; }
+        public string ConfirmationToken { get; set; }
+    }
+
+    ConfirmForm ConfirmFormModel = new ConfirmForm();
+
+    private async Task ConfirmCreationToken()
+    {
+        var success = await userService.ConfirmToken(ConfirmFormModel.ConfirmationUsername, ConfirmFormModel.ConfirmationToken);
+        if (!success)
+        {
+            ErrorMessage = userService.ConfirmAccountTokenError;
+            return;
+        }
+        ConfirmFormModel = new LoginComponent.ConfirmForm();
+        SetCurrentState(RegistrationState.Login);
+    }
+
+    private RequestResetTokenModel RequestResetTokenModel = new RequestResetTokenModel();
+
+    private async Task RequestPasswordResetToken()
+    {
+        if (!await userService.RequestPasswordReset(RequestResetTokenModel))
+        {
+            ErrorMessage = userService.RequestPasswordResetError;
+        }
+
+        RequestResetTokenModel = new RequestResetTokenModel();
+        SetCurrentState(RegistrationState.ResetPassword);
+    }
+
+    private ResetPasswordModel ResetPasswordModel = new ResetPasswordModel();
+
+    private string resetTokenString = "";
+    private string resetConfirmPassword = "";
+
+    private async Task ResetPassword()
+    {
+        if (!Guid.TryParse(resetTokenString, out var resetToken))
+        {
+            ErrorMessage = "Invalid Reset Token";
+            return;
+        }
+
+        if (ResetPasswordModel.NewPassword != resetConfirmPassword)
+        {
+            ErrorMessage = "Password Mismatch";
+            return;
+        }
+
+        ResetPasswordModel.ResetToken = resetToken;
+        if (!await userService.ResetPassword(ResetPasswordModel))
+        {
+            ErrorMessage = userService.ResetPasswordError;
+        }
+
+        ResetPasswordModel = new ResetPasswordModel();
+        SetCurrentState(RegistrationState.Login);
+    }
+
+    protected override void OnInitialized()
+    {
+        userService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        userService.OnChange -= StateHasChanged;
+    }
+}

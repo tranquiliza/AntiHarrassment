@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="eb36942a-8077-4997-8035-69bbc04c0d98" ChangeDateTime="06/28/2020 00:37:25">
+    <Property Name="ElementName" Value="[Core].[Suspension].[TimeStamp]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Core].[Suspension]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Timestamp" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="d3187071-e14b-4cbb-ac38-e10834efe823" ChangeDateTime="07/06/2020 08:44:53">
+    <Property Name="ElementName" Value="[Core].[Users].[Username]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Core].[Users]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="TwitchUsername" />
+  </Operation>
+</Operations>

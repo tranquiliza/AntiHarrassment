@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using AntiHarassment.Messaging.NServiceBus;
 
 namespace AntiHarassment.Chatlistener
 {
@@ -17,7 +18,8 @@ namespace AntiHarassment.Chatlistener
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
             .RegisterApplicationServices()
-            .ConfigureServices(services => services.AddHostedService<Worker>())
+            .ConfigureNSBEndpointWithDefaults(x => HostedEndpointConfig.ReadFrom(x.Configuration))
+            .ConfigureServices(services => services.AddHostedService<ChatlistenerWorker>())
             .UseWindowsService();
     }
 }
