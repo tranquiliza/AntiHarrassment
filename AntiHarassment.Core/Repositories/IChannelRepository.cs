@@ -10,5 +10,6 @@ namespace AntiHarassment.Core
     {
         Task<List<Channel>> GetChannels();
         Task Upsert(Channel channel);
+        Task<Channel> GetChannel(string twitchUsername);
     }
 }

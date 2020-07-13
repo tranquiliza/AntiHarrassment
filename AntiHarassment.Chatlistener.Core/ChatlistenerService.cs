@@ -69,17 +69,25 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task ListenTo(string channelName)
         {
-            await client.JoinChannel(channelName).ConfigureAwait(false);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                channel = new Channel(channelName, shouldListen: true);
 
-            var channel = new Channel(channelName, shouldListen: true);
+            channel.EnableListening();
+
+            await client.JoinChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);
         }
 
         public async Task UnlistenTo(string channelName)
         {
-            await client.LeaveChannel(channelName).ConfigureAwait(false);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                channel = new Channel(channelName, shouldListen: false);
 
-            var channel = new Channel(channelName, shouldListen: false);
+            channel.DisableListening();
+
+            await client.LeaveChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);
         }
     }

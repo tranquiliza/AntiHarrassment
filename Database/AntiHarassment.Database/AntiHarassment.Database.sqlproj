@@ -60,25 +60,30 @@
     <Folder Include="StoredProcedures" />
     <Folder Include="Security" />
     <Folder Include="Security\Schemas" />
+    <Folder Include="StoredProcedures\Channels" />
+    <Folder Include="StoredProcedures\Users" />
+    <Folder Include="StoredProcedures\Suspensions" />
+    <Folder Include="StoredProcedures\ChatMessages" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\Schemas\Core.sql" />
     <Build Include="Tables\Suspension.sql" />
-    <Build Include="StoredProcedures\InsertSuspension.sql" />
     <Build Include="Tables\Channel.sql" />
-    <Build Include="StoredProcedures\GetChannels.sql" />
     <Build Include="Tables\ChatMessage.sql" />
-    <Build Include="StoredProcedures\InsertChatMessage.sql" />
-    <Build Include="StoredProcedures\GetChatMessagesForUser.sql" />
     <Build Include="Security\Schemas\Nsb.sql" />
-    <Build Include="StoredProcedures\UpsertChannel.sql" />
     <Build Include="Tables\Users.sql" />
-    <Build Include="StoredProcedures\InsertUpdateUser.sql" />
-    <Build Include="StoredProcedures\GetUserByTwitchUsername.sql" />
-    <Build Include="StoredProcedures\GetUserById.sql" />
-    <Build Include="StoredProcedures\GetSuspensionsForChannel.sql" />
-    <Build Include="StoredProcedures\GetSuspensions.sql" />
-    <Build Include="StoredProcedures\DeleteUserById.sql" />
+    <Build Include="StoredProcedures\Channels\UpsertChannel.sql" />
+    <Build Include="StoredProcedures\Channels\GetChannels.sql" />
+    <Build Include="StoredProcedures\Users\DeleteUserById.sql" />
+    <Build Include="StoredProcedures\Users\GetUserById.sql" />
+    <Build Include="StoredProcedures\Users\GetUserByTwitchUsername.sql" />
+    <Build Include="StoredProcedures\Users\InsertUpdateUser.sql" />
+    <Build Include="StoredProcedures\Suspensions\GetSuspensions.sql" />
+    <Build Include="StoredProcedures\Suspensions\GetSuspensionsForChannel.sql" />
+    <Build Include="StoredProcedures\Suspensions\InsertSuspension.sql" />
+    <Build Include="StoredProcedures\ChatMessages\GetChatMessagesForUser.sql" />
+    <Build Include="StoredProcedures\ChatMessages\InsertChatMessage.sql" />
+    <Build Include="StoredProcedures\Channels\GetChannel.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />
