@@ -18,11 +18,11 @@ else
                 <p>
                     @if (channelService.Channel.ShouldListen)
                     {
-                        <button class="btn btn-success">SYSTEM ACTIVE</button>
+                        <button class="btn btn-success disabled">SYSTEM ACTIVE</button>
                     }
                     else
                     {
-                        <button class="btn btn-danger">SYSTEM DISABLED</button>
+                        <button class="btn btn-danger disabled">SYSTEM DISABLED</button>
                     }
                 </p>
             </div>
