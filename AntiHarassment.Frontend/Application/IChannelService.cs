@@ -8,11 +8,11 @@ namespace AntiHarassment.Frontend.Application
 {
     public interface IChannelService
     {
-        Task Initialize();
-        Task UpdateChannel(ChannelModel channelModel);
-
-        List<ChannelModel> Channels { get; }
-
         event Action OnChange;
+        ChannelModel Channel { get; }
+
+        Task Initialize();
+        Task AddModerator(string moderatorTwitchUsername);
+        Task RemoveModerator(string moderatorTwitchUsername);
     }
 }

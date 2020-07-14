@@ -1,0 +1,90 @@
+﻿@inject IChannelService channelService
+@implements IDisposable
+
+@if (channelService.Channel == null)
+{
+    <p>LOADING...</p>
+}
+else
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-6">
+                <p>
+                    ChannelName: @channelService.Channel.ChannelName
+                </p>
+            </div>
+            <div class="col-6">
+                <p>
+                    @if (channelService.Channel.ShouldListen)
+                    {
+                        <button class="btn btn-success">SYSTEM ACTIVE</button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-danger">SYSTEM DISABLED</button>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-dark">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Moderator Name</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var moderator in channelService.Channel.Moderators)
+                        {
+                            <tr>
+                                <td>@moderator</td>
+                                <td>
+                                    <button @onclick="async () => await RemoveModerator(moderator)" class="btn btn-danger">Remove</button>
+                                </td>
+                            </tr>
+                        }
+
+                        <tr>
+                            <td><input type="text" @bind-value="newModeratorName" /></td>
+                            <td><button @onclick="async () => await AddModerator()" class="btn btn-dark">Add</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@page "/settings"
+
+@code {
+    private string newModeratorName = "";
+
+    protected async override Task OnInitializedAsync()
+    {
+        channelService.OnChange += StateHasChanged;
+
+        await channelService.Initialize();
+    }
+
+    private async Task AddModerator()
+    {
+        await channelService.AddModerator(newModeratorName);
+        newModeratorName = "";
+    }
+
+    private async Task RemoveModerator(string moderatorName)
+    {
+        await channelService.RemoveModerator(moderatorName);
+    }
+
+    public void Dispose()
+    {
+        channelService.OnChange -= StateHasChanged;
+    }
+}

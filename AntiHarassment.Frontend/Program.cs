@@ -38,6 +38,7 @@ namespace AntiHarassment.Frontend
 
             services.AddSingleton<IApplicationState, ApplicationState>();
             services.AddSingleton<IApplicationStateManager, ApplicationStateManager>();
+            services.AddSingleton<IAdminChannelService, AdminChannelService>();
             services.AddSingleton<IChannelService, ChannelService>();
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<ISuspensionService, SuspensionService>();

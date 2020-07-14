@@ -12,5 +12,7 @@ namespace AntiHarassment.Core
         Task<IResult<List<Channel>>> GetChannels(IApplicationContext context);
         Task UpdateChannel(string channelName, bool shouldListen);
         Task<IResult<Channel>> GetChannel(string channelName, IApplicationContext context);
+        Task<IResult<Channel>> AddModeratorToChannel(string channelName, string moderatorTwitchUsername, IApplicationContext applicationContext);
+        Task<IResult<Channel>> DeleteModeratorFromChannel(string channelName, string moderatorTwitchUsername, IApplicationContext applicationContext);
     }
 }

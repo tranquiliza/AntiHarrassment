@@ -20,6 +20,39 @@ namespace AntiHarassment.Core
             this.messageDispatcher = messageDispatcher;
         }
 
+        public async Task<IResult<Channel>> AddModeratorToChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context)
+        {
+            if (!string.Equals(channelName, context.User.TwitchUsername))
+                return Result<Channel>.Unauthorized();
+
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                return Result<Channel>.Failure("Channel was not found.");
+
+            if (!channel.TryAddModerator(moderatorTwitchUsername))
+                return Result<Channel>.Failure("Unable to add moderator");
+
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
+
+            return Result<Channel>.Succeeded(channel);
+        }
+
+        public async Task<IResult<Channel>> DeleteModeratorFromChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context)
+        {
+            if (!string.Equals(channelName, context.User.TwitchUsername))
+                return Result<Channel>.Unauthorized();
+
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                return Result<Channel>.Failure("Channel was not found.");
+
+            channel.RemoveModerator(moderatorTwitchUsername);
+
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
+
+            return Result<Channel>.Succeeded(channel);
+        }
+
         public async Task<IResult<Channel>> GetChannel(string channelName, IApplicationContext context)
         {
             if (!string.Equals(context.User.TwitchUsername, channelName, StringComparison.OrdinalIgnoreCase) || !context.User.HasRole(Roles.Admin))
