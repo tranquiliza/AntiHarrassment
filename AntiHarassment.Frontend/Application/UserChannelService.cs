@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Frontend.Application
 {
-    public class ChannelService : IChannelService
+    public class UserChannelService : IUserChannelService
     {
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
 
         public ChannelModel Channel { get; private set; }
 
-        public ChannelService(IApiGateway apiGateway, IUserService userService)
+        public UserChannelService(IApiGateway apiGateway, IUserService userService)
         {
             this.apiGateway = apiGateway;
             this.userService = userService;

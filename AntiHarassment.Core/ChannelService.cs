@@ -4,6 +4,7 @@ using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -55,7 +56,7 @@ namespace AntiHarassment.Core
 
         public async Task<IResult<Channel>> GetChannel(string channelName, IApplicationContext context)
         {
-            if (!string.Equals(context.User.TwitchUsername, channelName, StringComparison.OrdinalIgnoreCase) || !context.User.HasRole(Roles.Admin))
+            if (!string.Equals(context.User.TwitchUsername, channelName, StringComparison.OrdinalIgnoreCase) && !context.User.HasRole(Roles.Admin))
                 return Result<Channel>.Unauthorized();
 
             var result = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
@@ -67,10 +68,13 @@ namespace AntiHarassment.Core
 
         public async Task<IResult<List<Channel>>> GetChannels(IApplicationContext context)
         {
-            if (!context.User.HasRole(Roles.Admin))
-                return Result<List<Channel>>.Unauthorized();
+            var query = await channelRepository.GetChannels().ConfigureAwait(false);
+            if (context.User.HasRole(Roles.Admin))
+                return Result<List<Channel>>.Succeeded(query);
 
-            var result = await channelRepository.GetChannels().ConfigureAwait(false);
+            var result = query.Where(channel => channel.HasModerator(context.User.TwitchUsername)
+            || string.Equals(channel.ChannelName, context.User.TwitchUsername, StringComparison.OrdinalIgnoreCase)).ToList();
+
             if (result.Count == 0)
                 return Result<List<Channel>>.NoContentFound();
 

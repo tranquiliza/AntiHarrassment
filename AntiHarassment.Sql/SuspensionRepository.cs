@@ -18,7 +18,7 @@ namespace AntiHarassment.Sql
         public async Task<List<Suspension>> GetSuspensionsForChannel(string channelOfOrigin)
         {
             var result = new List<Suspension>();
-            
+
             using (var command = sql.CreateStoredProcedure("[Core].[GetSuspensionsForChannel]"))
             {
                 command.WithParameter("channelOfOrigin", channelOfOrigin);

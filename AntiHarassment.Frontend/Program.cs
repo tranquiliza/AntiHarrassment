@@ -39,7 +39,7 @@ namespace AntiHarassment.Frontend
             services.AddSingleton<IApplicationState, ApplicationState>();
             services.AddSingleton<IApplicationStateManager, ApplicationStateManager>();
             services.AddSingleton<IAdminChannelService, AdminChannelService>();
-            services.AddSingleton<IChannelService, ChannelService>();
+            services.AddSingleton<IUserChannelService, UserChannelService>();
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<ISuspensionService, SuspensionService>();
             services.AddSingleton(_ => new ChannelsHubSignalRClient(apiUrl));

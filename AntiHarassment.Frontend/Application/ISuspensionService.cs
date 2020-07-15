@@ -9,9 +9,11 @@ namespace AntiHarassment.Frontend.Application
     {
         List<SuspensionModel> Suspensions { get; }
         string CurrentlySelectedChannel { get; }
+        List<ChannelModel> Channels { get; }
 
         event Action OnChange;
 
         Task FetchSuspensionForChannel(string channelName);
+        Task Initialize();
     }
 }

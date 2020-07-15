@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -60,5 +61,8 @@ namespace AntiHarassment.Core.Models
         {
             moderators.Remove(twitchUsername);
         }
+
+        public bool HasModerator(string moderatorUsername)
+            => moderators.Any(x => string.Equals(x, moderatorUsername, StringComparison.OrdinalIgnoreCase));
     }
 }

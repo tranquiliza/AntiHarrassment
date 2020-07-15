@@ -1,9 +1,20 @@
-﻿@inject IChannelService channelService
+﻿@inject IUserChannelService channelService
 @implements IDisposable
 
 @if (channelService.Channel == null)
 {
-    <p>LOADING...</p>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <p>Hi! Are you also a streamer and would like to have this system enabled for your channel? - Please contact Anti Harassment team on the Prometheus Discord!</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <a target="_blank" href="https://discord.gg/Cb7PQRj">Prometheus Invite</a>
+            </div>
+        </div>
+    </div>
 }
 else
 {

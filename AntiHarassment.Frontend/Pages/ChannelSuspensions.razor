@@ -1,12 +1,10 @@
 ﻿@inject ISuspensionService suspensionService
-@inject IUserService userService
-@inject IAdminChannelService channelService
 @implements IDisposable
 
 @page "/ChannelSuspensions"
 
 <div class="container-fluid">
-    @if (userService.IsUserAdmin && channelService.Channels != null)
+    @if (suspensionService.Channels != null)
     {
         <div class="row">
             <div class="col-12">
@@ -15,7 +13,7 @@
                         @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
                     </button>
                     <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
-                        @foreach (var channel in channelService.Channels)
+                        @foreach (var channel in suspensionService.Channels)
                         {
                             <button @onclick="async () => await SelectChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
                         }
@@ -29,7 +27,7 @@
         <div class="col-12">
             @if (suspensionService.Suspensions == null)
             {
-                <p>Please select a channel</p>
+                <p>Loading</p>
             }
             else
             {
@@ -76,28 +74,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        suspensionService.OnChange += UpdateUi;
-        channelService.OnChange += UpdateUi;
+        suspensionService.OnChange += StateHasChanged;
 
-        if (userService.IsUserAdmin)
-        {
-            await channelService.Initialize();
-        }
-
-        if (string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel))
-        {
-            await suspensionService.FetchSuspensionForChannel(userService.CurrentUserTwitchUsername);
-        }
-    }
-
-    private void UpdateUi()
-    {
-        StateHasChanged();
+        await suspensionService.Initialize();
     }
 
     public void Dispose()
     {
         suspensionService.OnChange -= StateHasChanged;
-        channelService.OnChange -= UpdateUi;
     }
 }
