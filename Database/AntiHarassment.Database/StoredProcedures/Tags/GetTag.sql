@@ -1,0 +1,6 @@
+﻿CREATE PROCEDURE [Core].[GetTag]
+	@tagId UNIQUEIDENTIFIER
+AS
+BEGIN
+	SELECT [Data] FROM [Core].[Tags] WHERE [TagId] = @tagId
+END

@@ -6,48 +6,56 @@
 
 <AdminOnlyComponent></AdminOnlyComponent>
 
-@if (channelService.Channels == null)
-{
-    <p>LOADING</p>
-}
-else
-{
-    <table class="table table-dark">
-        <thead class="thead-dark">
-            <tr>
-                <th scope="col">ChannelName</th>
-                <th scope="col">Should Listen</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            @foreach (var channel in channelService.Channels)
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @if (channelService.Channels == null)
             {
-                <tr>
-                    <td>@channel.ChannelName</td>
-                    <td>@channel.ShouldListen</td>
-                    <td>
-                        @if (channel.ShouldListen)
-                        {
-                            <button class="btn btn-success" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Disable</button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-danger" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Enable</button>
-                        }
-                    </td>
-                </tr>
+                <p>LOADING</p>
             }
+            else
+            {
+                <table class="table table-dark">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">ChannelName</th>
+                            <th scope="col">Should Listen</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
 
-            <tr>
-                <td><input type="text" @bind-value="channelModel.ChannelName" /></td>
-                <td></td>
-                <td><button @onclick="async () => await AddNewChannel()" class="btn btn-dark">Add</button></td>
-            </tr>
-        </tbody>
-    </table>
-}
+                        @foreach (var channel in channelService.Channels.OrderBy(x => x.ChannelName))
+                        {
+                            <tr>
+                                <td>@channel.ChannelName</td>
+                                <td>@channel.ShouldListen</td>
+                                <td>
+                                    @if (channel.ShouldListen)
+                                    {
+                                        <button class="btn btn-success" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Disable</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-danger" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Enable</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+
+                        <tr>
+                            <td><input type="text" @bind-value="channelModel.ChannelName" /></td>
+                            <td></td>
+                            <td><button @onclick="async () => await AddNewChannel()" class="btn btn-dark">Add</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+
 
 @code {
     private ChannelModel channelModel = new ChannelModel() { ShouldListen = true };

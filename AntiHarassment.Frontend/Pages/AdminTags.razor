@@ -1,0 +1,63 @@
+﻿@inject ITagService tagService
+@implements IDisposable
+
+@page "/admin/tags"
+
+<AdminOnlyComponent></AdminOnlyComponent>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-6">
+            @if (tagService.Tags == null)
+            {
+                <p>LOADING</p>
+            }
+            else
+            {
+                <table class="table table-dark">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Tag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var tag in tagService.Tags)
+                        {
+                            <tr>
+                                <td>@tag.TagName</td>
+                            </tr>
+                        }
+
+                        <tr>
+                            <td>
+                                <input type="text" @bind-value="newTagName" /><button @onclick="async () => await AddNewTag()" class="btn btn-dark">Add</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string newTagName = "";
+
+    private async Task AddNewTag()
+    {
+        await tagService.AddNewTag(newTagName);
+        newTagName = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        tagService.OnChange += StateHasChanged;
+        await tagService.Initialize();
+    }
+
+    public void Dispose()
+    {
+        tagService.OnChange -= StateHasChanged;
+    }
+}

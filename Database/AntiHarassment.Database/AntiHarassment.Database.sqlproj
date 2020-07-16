@@ -64,6 +64,7 @@
     <Folder Include="StoredProcedures\Users" />
     <Folder Include="StoredProcedures\Suspensions" />
     <Folder Include="StoredProcedures\ChatMessages" />
+    <Folder Include="StoredProcedures\Tags" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\Schemas\Core.sql" />
@@ -84,6 +85,10 @@
     <Build Include="StoredProcedures\ChatMessages\GetChatMessagesForUser.sql" />
     <Build Include="StoredProcedures\ChatMessages\InsertChatMessage.sql" />
     <Build Include="StoredProcedures\Channels\GetChannel.sql" />
+    <Build Include="Tables\Tags.sql" />
+    <Build Include="StoredProcedures\Tags\UpsertTag.sql" />
+    <Build Include="StoredProcedures\Tags\GetTags.sql" />
+    <Build Include="StoredProcedures\Tags\GetTag.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Frontend", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.SignalR.Contract", "AntiHarassment.SignalR.Contract\AntiHarassment.SignalR.Contract.csproj", "{0920FBBE-5B18-484A-B900-6D7AD196D060}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.Core.Tests", "Tests\AntiHarassment.Core.Tests\AntiHarassment.Core.Tests.csproj", "{1B575109-A6CA-45A5-8981-98E4EB6CE72E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Core.Tests", "Tests\AntiHarassment.Core.Tests\AntiHarassment.Core.Tests.csproj", "{1B575109-A6CA-45A5-8981-98E4EB6CE72E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

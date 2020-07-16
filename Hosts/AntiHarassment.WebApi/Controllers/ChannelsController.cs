@@ -78,7 +78,6 @@ namespace AntiHarassment.WebApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Post([FromBody] ChannelModel model)
         {
             await channelService.UpdateChannel(model.ChannelName, model.ShouldListen).ConfigureAwait(false);

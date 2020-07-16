@@ -9,6 +9,9 @@
             <li class="nav-item">
                 <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
             </li>
+            <li class="nav-item">
+                <NavLink class="nav-link" href="ChannelSuspensions" Match="NavLinkMatch.All">Suspensions</NavLink>
+            </li>
         </ul>
 
         @if (userService.IsUserLoggedIn)
@@ -20,9 +23,6 @@
                 </a>
             </h6>
             <ul class="nav nav-pills flex-column mb-2">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="ChannelSuspensions" Match="NavLinkMatch.All">Suspensions</NavLink>
-                </li>
                 <li class="nav-item">
                     <NavLink class="nav-link" href="settings" Match="NavLinkMatch.All">Settings</NavLink>
                 </li>
@@ -40,6 +40,9 @@
             <ul class="nav nav-pills flex-column mb-2">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="admin/channels" Match="NavLinkMatch.All">Channels</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="admin/tags" Match="NavLinkMatch.All">Tags</NavLink>
                 </li>
             </ul>
         }
