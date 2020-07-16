@@ -2,5 +2,5 @@
 	@twitchUsername NVARCHAR(100)
 AS
 BEGIN
-	SELECT [Data] FROM [Core].[Channel] WHERE [ChannelName] = @twitchUsername
+	SELECT TOP(1) [Data] FROM [Core].[Channel] WHERE [ChannelName] = @twitchUsername
 END

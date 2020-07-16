@@ -8,6 +8,16 @@
 	@data VARCHAR(MAX)
 AS
 BEGIN
-	INSERT INTO [Core].[Suspension] ([SuspensionId], [Username], [ChannelOfOrigin], [TypeOfSuspension], [Timestamp], [Duration], [Data])
-	VALUES (@suspensionId, @username, @channelOfOrigin, @typeOfSuspension, @timestamp, @duration, @data)
+	IF NOT EXISTS(SELECT * FROM [Core].[Suspension] WHERE [SuspensionId] = @suspensionId)
+		INSERT INTO [Core].[Suspension] ([SuspensionId], [Username], [ChannelOfOrigin], [TypeOfSuspension], [Timestamp], [Duration], [Data])
+		VALUES (@suspensionId, @username, @channelOfOrigin, @typeOfSuspension, @timestamp, @duration, @data)
+	ELSE
+		UPDATE [Core].[Suspension] SET 
+		[Username] = @username,
+		[ChannelOfOrigin] = @channelOfOrigin,
+		[TypeOfSuspension] = @typeOfSuspension,
+		[Timestamp] = @timestamp,
+		[Duration] = @duration,
+		[Data] = @data
+		WHERE [SuspensionId] = @suspensionId	
 END

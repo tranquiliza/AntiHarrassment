@@ -24,10 +24,7 @@ namespace AntiHarassment.Core.Models
         [JsonIgnore]
         public IReadOnlyList<string> Moderators => moderators.AsReadOnly();
 
-        [Obsolete("Serialization Only", true)]
-        public Channel()
-        {
-        }
+        private Channel() { }
 
         public Channel(string channelName, bool shouldListen)
         {

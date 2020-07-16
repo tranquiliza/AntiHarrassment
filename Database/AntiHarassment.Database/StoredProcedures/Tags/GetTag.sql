@@ -2,5 +2,5 @@
 	@tagId UNIQUEIDENTIFIER
 AS
 BEGIN
-	SELECT [Data] FROM [Core].[Tags] WHERE [TagId] = @tagId
+	SELECT TOP(1) [Data] FROM [Core].[Tags] WHERE [TagId] = @tagId
 END

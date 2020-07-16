@@ -37,15 +37,24 @@
                 }
 
                 <div class="accordion" id="suspensionsAccordion">
-                    @foreach (var suspension in suspensionService.Suspensions)
+                    @foreach (var suspension in suspensionService.Suspensions.OrderBy(x => x.InvalidSuspension).ThenByDescending(x => x.Timestamp))
                     {
                         <div class="card bg-dark">
                             <div class="card-header">
-                                <h2 class="mb-0">
-                                    <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false" aria-controls="collapseThree">
-                                        @suspension.Timestamp.FancyFormat() - <b>@suspension.Username</b> @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds") @suspension.SuspensionType.ToString()
-                                    </button>
-                                </h2>
+                                <button class="btn btn-secondary btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false" aria-controls="collapseThree">
+                                    @suspension.Timestamp.FancyFormat() -
+                                    <b>@suspension.Username</b>
+                                    @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+                                    @suspension.SuspensionType.ToString()
+                                </button>
+                                @if (suspension.InvalidSuspension)
+                                {
+                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-danger btn-sm">Invalidated</button>
+                                }
+                                else
+                                {
+                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-success btn-sm">Mark as Invalid</button>
+                                }
                             </div>
                             <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
                                 <div class="card-body">
@@ -70,6 +79,11 @@
     private async Task SelectChannel(string channelName)
     {
         await suspensionService.FetchSuspensionForChannel(channelName);
+    }
+
+    private async Task UpdateValidity(Guid suspensionId, bool invalidate)
+    {
+        await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate);
     }
 
     protected override async Task OnInitializedAsync()

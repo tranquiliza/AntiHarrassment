@@ -11,6 +11,7 @@ namespace AntiHarassment.Contract
         public string ChannelOfOrigin { get; set; }
         public DateTime Timestamp { get; set; }
         public int Duration { get; set; }
+        public bool InvalidSuspension { get; set; }
         public SuspensionTypeModel SuspensionType { get; set; }
         public List<ChatMessageModel> Messages { get; set; }
     }

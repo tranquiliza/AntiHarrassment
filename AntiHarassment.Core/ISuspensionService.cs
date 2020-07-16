@@ -10,5 +10,6 @@ namespace AntiHarassment.Core
     public interface ISuspensionService
     {
         Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context);
+        Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, IApplicationContext context);
     }
 }

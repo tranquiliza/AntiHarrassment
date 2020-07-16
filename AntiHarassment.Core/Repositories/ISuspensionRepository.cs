@@ -10,5 +10,6 @@ namespace AntiHarassment.Core
     {
         Task SaveSuspension(Suspension suspension);
         Task<List<Suspension>> GetSuspensionsForChannel(string channelOfOrigin);
+        Task<Suspension> GetSuspension(Guid suspensionId);
     }
 }

@@ -89,6 +89,7 @@
     <Build Include="StoredProcedures\Tags\UpsertTag.sql" />
     <Build Include="StoredProcedures\Tags\GetTags.sql" />
     <Build Include="StoredProcedures\Tags\GetTag.sql" />
+    <Build Include="StoredProcedures\Suspensions\GetSuspension.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

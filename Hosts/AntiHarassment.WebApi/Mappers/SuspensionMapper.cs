@@ -22,6 +22,7 @@ namespace AntiHarassment.WebApi.Mappers
                 SuspensionId = suspension.SuspensionId,
                 Timestamp = suspension.Timestamp,
                 Username = suspension.Username,
+                InvalidSuspension = suspension.InvalidSuspension,
                 SuspensionType = suspension.SuspensionType.Map(),
                 Messages = suspension.ChatMessages.Map()
             };

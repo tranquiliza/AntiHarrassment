@@ -52,5 +52,21 @@ namespace AntiHarassment.Frontend.Application
             CurrentlySelectedChannel = channelName;
             NotifyStateChanged();
         }
+
+        public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate)
+        {
+            var result = await apiGateway.Post<SuspensionModel, MarkSuspensionValidityModel>(
+                new MarkSuspensionValidityModel { Invalidate = invalidate },
+                "suspensions",
+                routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
+
+            if (result != null)
+            {
+                var existingValue = Suspensions.Find(x => x.SuspensionId == suspensionId);
+                Suspensions.Remove(existingValue);
+                Suspensions.Add(result);
+                NotifyStateChanged();
+            }
+        }
     }
 }

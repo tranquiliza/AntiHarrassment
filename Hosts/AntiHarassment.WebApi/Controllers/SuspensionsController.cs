@@ -37,5 +37,21 @@ namespace AntiHarassment.WebApi.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("{suspensionId}/validity")]
+        public async Task<IActionResult> MarkSuspensionInvalid([FromRoute] Guid suspensionId, [FromBody] MarkSuspensionValidityModel model)
+        {
+            var result = await suspensionService.UpdateValidity(suspensionId, model.Invalidate, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
+        }
     }
 }

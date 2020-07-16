@@ -6,7 +6,7 @@ using System.Text;
 
 namespace AntiHarassment.Core.Models
 {
-    public class Suspension
+    public sealed class Suspension
     {
         [JsonProperty]
         public Guid SuspensionId { get; private set; }
@@ -23,6 +23,9 @@ namespace AntiHarassment.Core.Models
         [JsonProperty]
         public DateTime Timestamp { get; private set; }
 
+        [JsonProperty]
+        public bool InvalidSuspension { get; private set; }
+
         /// <summary>
         /// Length of the suspension in Seconds: 0 if permanent
         /// </summary>
@@ -36,6 +39,11 @@ namespace AntiHarassment.Core.Models
         public List<ChatMessage> ChatMessages { get; private set; }
 
         private Suspension() { }
+
+        public void UpdateValidity(bool invalidate)
+        {
+            InvalidSuspension = invalidate;
+        }
 
         public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages)
         {

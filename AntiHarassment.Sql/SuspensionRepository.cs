@@ -15,6 +15,21 @@ namespace AntiHarassment.Sql
             sql = SqlAccessBase.Create(connectionString);
         }
 
+        public async Task<Suspension> GetSuspension(Guid suspensionId)
+        {
+            using (var command = sql.CreateStoredProcedure("[Core].[GetSuspension]"))
+            {
+                command.WithParameter("suspensionId", suspensionId);
+                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    if (await reader.ReadAsync().ConfigureAwait(false))
+                        return Serialization.Deserialize<Suspension>(reader.GetString("data"));
+                }
+            }
+
+            return null;
+        }
+
         public async Task<List<Suspension>> GetSuspensionsForChannel(string channelOfOrigin)
         {
             var result = new List<Suspension>();

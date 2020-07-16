@@ -13,8 +13,7 @@ namespace AntiHarassment.Core.Models
         [JsonProperty]
         public string TagName { get; private set; }
 
-        [Obsolete("Serialization Only", true)]
-        public Tag() { }
+        private Tag() { }
 
         public Tag(string tagName)
         {

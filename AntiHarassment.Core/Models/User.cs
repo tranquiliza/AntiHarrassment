@@ -44,8 +44,7 @@ namespace AntiHarassment.Core.Models
         [JsonIgnore]
         public IReadOnlyList<string> Roles => roles.AsReadOnly();
 
-        [Obsolete("Serialization Only", true)]
-        public User() { }
+        private User() { }
 
         private User(string email, string twitchUsername, byte[] passwordHash, byte[] passwordSalt)
         {

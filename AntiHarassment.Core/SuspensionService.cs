@@ -25,7 +25,7 @@ namespace AntiHarassment.Core
             if (channel == null)
                 return Result<List<Suspension>>.NoContentFound();
 
-            if (!HaveAccess())
+            if (!HaveAccess(context, channel))
                 return Result<List<Suspension>>.Unauthorized();
 
             var dataForUser = await suspensionRepository.GetSuspensionsForChannel(channelOfOrigin).ConfigureAwait(false);
@@ -33,8 +33,30 @@ namespace AntiHarassment.Core
                 return Result<List<Suspension>>.Succeeded(dataForUser.OrderByDescending(x => x.Timestamp).ToList());
 
             return Result<List<Suspension>>.NoContentFound();
+        }
 
-            bool HaveAccess() => string.Equals(context.User?.TwitchUsername, channelOfOrigin, StringComparison.OrdinalIgnoreCase)
+        public async Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, IApplicationContext context)
+        {
+            var suspension = await suspensionRepository.GetSuspension(suspensionId).ConfigureAwait(false);
+            if (suspension == null)
+                return Result<Suspension>.Failure($"Unable to find suspension, invalid Id?: {suspensionId}");
+
+            var channel = await channelRepository.GetChannel(suspension.ChannelOfOrigin).ConfigureAwait(false);
+            if (channel == null)
+                return Result<Suspension>.Failure($"The {suspension.ChannelOfOrigin} channel, was not found");
+
+            if (!HaveAccess(context, channel))
+                return Result<Suspension>.Unauthorized();
+
+            suspension.UpdateValidity(invalidate);
+            await suspensionRepository.SaveSuspension(suspension).ConfigureAwait(false);
+
+            return Result<Suspension>.Succeeded(suspension);
+        }
+
+        private bool HaveAccess(IApplicationContext context, Channel channel)
+        {
+            return string.Equals(context.User?.TwitchUsername, channel.ChannelName, StringComparison.OrdinalIgnoreCase)
                             || context.User?.HasRole(Roles.Admin) == true
                             || channel.HasModerator(context.User?.TwitchUsername);
         }
