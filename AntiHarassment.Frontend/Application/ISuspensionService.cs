@@ -15,6 +15,9 @@ namespace AntiHarassment.Frontend.Application
 
         Task FetchSuspensionForChannel(string channelName);
         Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate);
+        Task UpdateAudited(Guid suspensionId, bool audited);
+        Task AddTagToSuspension(Guid suspensionId, Guid tagId);
+        Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId);
         Task Initialize();
     }
 }

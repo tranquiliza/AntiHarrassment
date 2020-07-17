@@ -1,4 +1,5 @@
 ﻿using AntiHarassment.Contract;
+using AntiHarassment.Contract.Suspensions;
 using AntiHarassment.Frontend.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -60,13 +61,48 @@ namespace AntiHarassment.Frontend.Application
                 "suspensions",
                 routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
 
-            if (result != null)
-            {
-                var existingValue = Suspensions.Find(x => x.SuspensionId == suspensionId);
-                Suspensions.Remove(existingValue);
-                Suspensions.Add(result);
-                NotifyStateChanged();
-            }
+            UpdateState(result);
+        }
+
+        public async Task UpdateAudited(Guid suspensionId, bool audited)
+        {
+            var result = await apiGateway.Post<SuspensionModel, UpdateSuspensionAuditStateModel>(
+                new UpdateSuspensionAuditStateModel { Audited = audited },
+                "suspensions",
+                routeValues: new string[] { suspensionId.ToString(), "audit" }).ConfigureAwait(false);
+
+            UpdateState(result);
+        }
+
+        public async Task AddTagToSuspension(Guid suspensionId, Guid tagId)
+        {
+            var result = await apiGateway.Post<SuspensionModel, AddTagToSuspensionModel>(
+                new AddTagToSuspensionModel { TagId = tagId },
+                "suspensions",
+                routeValues: new string[] { suspensionId.ToString(), "tags" }).ConfigureAwait(false);
+
+            UpdateState(result);
+        }
+
+        public async Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId)
+        {
+            var result = await apiGateway.Delete<SuspensionModel, DeleteTagFromSuspensionModel>(
+                new DeleteTagFromSuspensionModel { TagId = tagId },
+                "suspensions",
+                routeValues: new string[] { suspensionId.ToString(), "tags" }).ConfigureAwait(false);
+
+            UpdateState(result);
+        }
+
+        private void UpdateState(SuspensionModel model)
+        {
+            if (model == null)
+                return;
+
+            var existingValue = Suspensions.Find(x => x.SuspensionId == model.SuspensionId);
+            Suspensions.Remove(existingValue);
+            Suspensions.Add(model);
+            NotifyStateChanged();
         }
     }
 }

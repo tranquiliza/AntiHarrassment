@@ -9,6 +9,9 @@ namespace AntiHarassment.WebApi.Mappers
 {
     public static class TagsMapper
     {
+        public static List<TagModel> Map(this IReadOnlyList<Tag> tags)
+            => tags.ToList().Map();
+
         public static List<TagModel> Map(this List<Tag> tags)
             => tags.Select(Map).ToList();
 

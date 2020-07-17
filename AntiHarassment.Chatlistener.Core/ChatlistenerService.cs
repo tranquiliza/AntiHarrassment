@@ -47,7 +47,7 @@ namespace AntiHarassment.Chatlistener.Core
             var timeOfSuspension = datetimeProvider.UtcNow;
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
             var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser);
-            await suspensionRepository.SaveSuspension(suspension).ConfigureAwait(false);
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserBanned(object _, UserBannedEvent e)
@@ -55,7 +55,7 @@ namespace AntiHarassment.Chatlistener.Core
             var timeOfSuspension = datetimeProvider.UtcNow;
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
             var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser);
-            await suspensionRepository.SaveSuspension(suspension).ConfigureAwait(false);
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
         }
 
         public async Task ConnectAndJoinChannels()

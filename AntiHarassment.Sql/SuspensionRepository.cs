@@ -49,7 +49,7 @@ namespace AntiHarassment.Sql
             return result;
         }
 
-        public async Task SaveSuspension(Suspension suspension)
+        public async Task Save(Suspension suspension)
         {
             using (var command = sql.CreateStoredProcedure("[Core].[InsertSuspension]"))
             {
