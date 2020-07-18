@@ -45,7 +45,7 @@ namespace AntiHarassment.WebApi.Controllers
                     return Unauthorized();
 
                 if (multipleChannelsResult.State == ResultState.NoContent)
-                    return Unauthorized();
+                    return NoContent();
 
                 return Ok(multipleChannelsResult.Data.Map());
             }
@@ -80,7 +80,7 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ChannelModel model)
         {
-            await channelService.UpdateChannel(model.ChannelName, model.ShouldListen).ConfigureAwait(false);
+            await channelService.UpdateChannel(model.ChannelName, model.ShouldListen, ApplicationContext).ConfigureAwait(false);
 
             return Ok();
         }

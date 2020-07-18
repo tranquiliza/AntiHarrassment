@@ -47,6 +47,7 @@ namespace AntiHarassment.Frontend
             services.AddSingleton<ITagService, TagService>();
 
             services.AddSingleton(_ => new ChannelsHubSignalRClient(apiUrl));
+            services.AddSingleton(_ => new SuspensionsHubSignalRClient(apiUrl));
             services.AddSingleton<IApiGateway, ApiGateway>(x => new ApiGateway(apiUrl, x.GetRequiredService<IApplicationStateManager>(), x.GetRequiredService<HttpClient>()));
         }
     }

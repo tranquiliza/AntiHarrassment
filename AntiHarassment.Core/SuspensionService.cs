@@ -3,6 +3,7 @@ using AntiHarassment.Core.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -63,7 +64,7 @@ namespace AntiHarassment.Core
 
             if (!suspension.TryAddTag(tag))
                 return Result<Suspension>.Failure("Unable to add tag");
-            
+
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
             return Result<Suspension>.Succeeded(suspension);
@@ -116,6 +117,22 @@ namespace AntiHarassment.Core
             return string.Equals(context.User?.TwitchUsername, channel.ChannelName, StringComparison.OrdinalIgnoreCase)
                             || context.User?.HasRole(Roles.Admin) == true
                             || channel.HasModerator(context.User?.TwitchUsername);
+        }
+
+        public async Task<IResult<Suspension>> GetSuspensionAsync(Guid suspensionId, IApplicationContext context)
+        {
+            var suspension = await suspensionRepository.GetSuspension(suspensionId).ConfigureAwait(false);
+            if (suspension == null)
+                return Result<Suspension>.Failure("No suspension with given Id");
+
+            var channelOfOrigin = await channelRepository.GetChannel(suspension.ChannelOfOrigin).ConfigureAwait(false);
+            if (channelOfOrigin == null)
+                return Result<Suspension>.Failure("Unable to fetch channel of origin");
+
+            if (!HaveAccess(context, channelOfOrigin))
+                return Result<Suspension>.Unauthorized();
+
+            return Result<Suspension>.Succeeded(suspension);
         }
     }
 }

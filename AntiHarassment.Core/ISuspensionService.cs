@@ -14,5 +14,6 @@ namespace AntiHarassment.Core
         Task<IResult<Suspension>> UpdateAuditState(Guid suspensionId, bool audited, IApplicationContext applicationContext);
         Task<IResult<Suspension>> AddTagTo(Guid suspensionId, Guid tagId, IApplicationContext applicationContext);
         Task<IResult<Suspension>> RemoveTagFrom(Guid suspensionId, Guid tagId, IApplicationContext applicationContext);
+        Task<IResult<Suspension>> GetSuspensionAsync(Guid suspensionId, IApplicationContext applicationContext);
     }
 }

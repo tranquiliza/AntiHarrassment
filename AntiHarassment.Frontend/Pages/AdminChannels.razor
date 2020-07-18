@@ -25,7 +25,13 @@
                     </thead>
                     <tbody>
 
-                        @foreach (var channel in channelService.Channels.OrderBy(x => x.ChannelName))
+                        <tr>
+                            <td><input type="text" @bind-value="channelModel.ChannelName" /></td>
+                            <td></td>
+                            <td><button @onclick="async () => await AddNewChannel()" class="btn btn-dark">Add</button></td>
+                        </tr>
+
+                        @foreach (var channel in channelService.Channels.OrderByDescending(x => x.ShouldListen).ThenBy(x => x.ChannelName))
                         {
                             <tr>
                                 <td>@channel.ChannelName</td>
@@ -42,12 +48,6 @@
                                 </td>
                             </tr>
                         }
-
-                        <tr>
-                            <td><input type="text" @bind-value="channelModel.ChannelName" /></td>
-                            <td></td>
-                            <td><button @onclick="async () => await AddNewChannel()" class="btn btn-dark">Add</button></td>
-                        </tr>
                     </tbody>
                 </table>
             }

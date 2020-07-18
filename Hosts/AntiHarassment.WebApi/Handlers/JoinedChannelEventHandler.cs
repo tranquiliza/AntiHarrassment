@@ -21,7 +21,7 @@ namespace AntiHarassment.WebApi.Handlers
 
         public async Task Handle(JoinedChannelEvent message, IMessageHandlerContext context)
         {
-            await channelsHub.Clients.All.SendAsync(Methods.CHANNELJOINED, message.ChannelName).ConfigureAwait(false);
+            await channelsHub.Clients.All.SendAsync(ChannelsHubMethods.CHANNELJOINED, message.ChannelName).ConfigureAwait(false);
         }
     }
 }

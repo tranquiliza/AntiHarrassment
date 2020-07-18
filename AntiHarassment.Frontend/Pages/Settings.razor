@@ -6,12 +6,15 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                <p>Hi! Are you also a streamer and would like to have this system enabled for your channel? - Please contact Anti Harassment team on the Prometheus Discord!</p>
+                <p>Hi! Are you also a streamer? Would like to have this system enabled for your channel?</p>
+                <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-success">ENABLE SYSTEM</button>
             </div>
         </div>
         <div class="row">
             <div class="col-12">
-                <a target="_blank" href="https://discord.gg/Cb7PQRj">Prometheus Invite</a>
+                <p>
+                    If you have any questions regarding this system, you can find help at Prometheus Discord: <a target="_blank" href="https://discord.gg/Cb7PQRj">Prometheus Invite</a>
+                </p>
             </div>
         </div>
     </div>
@@ -29,11 +32,11 @@ else
                 <p>
                     @if (channelService.Channel.ShouldListen)
                     {
-                        <button class="btn btn-success disabled">SYSTEM ACTIVE</button>
+                        <button @onclick="async _ => await UpdateChannelState(false)" class="btn btn-success">SYSTEM ACTIVE</button>
                     }
                     else
                     {
-                        <button class="btn btn-danger disabled">SYSTEM DISABLED</button>
+                        <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-danger">SYSTEM DISABLED</button>
                     }
                 </p>
             </div>
@@ -76,6 +79,8 @@ else
 @code {
     private string newModeratorName = "";
 
+    private string buttonDisable = "";
+
     protected async override Task OnInitializedAsync()
     {
         channelService.OnChange += StateHasChanged;
@@ -92,6 +97,11 @@ else
     private async Task RemoveModerator(string moderatorName)
     {
         await channelService.RemoveModerator(moderatorName);
+    }
+
+    private async Task UpdateChannelState(bool shouldListen)
+    {
+        await channelService.UpdateChannelState(shouldListen);
     }
 
     public void Dispose()

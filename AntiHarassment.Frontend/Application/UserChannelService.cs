@@ -1,5 +1,7 @@
 ﻿using AntiHarassment.Contract;
 using AntiHarassment.Frontend.Infrastructure;
+using AntiHarassment.SignalR.Contract;
+using AntiHarassment.SignalR.Contract.EventArgs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +13,39 @@ namespace AntiHarassment.Frontend.Application
     {
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
+        private readonly ChannelsHubSignalRClient channelsHubSignalRClient;
 
         public ChannelModel Channel { get; private set; }
 
-        public UserChannelService(IApiGateway apiGateway, IUserService userService)
+        public UserChannelService(IApiGateway apiGateway, IUserService userService, ChannelsHubSignalRClient channelsHubSignalRClient)
         {
             this.apiGateway = apiGateway;
             this.userService = userService;
+            this.channelsHubSignalRClient = channelsHubSignalRClient;
+
+            channelsHubSignalRClient.ChannelJoined += async (sender, args) => await ChannelsHubSignalRClient_ChannelJoined(sender, args).ConfigureAwait(false);
+            channelsHubSignalRClient.ChannelLeft += ChannelsHubSignalRClient_ChannelLeft;
+        }
+
+        private async Task ChannelsHubSignalRClient_ChannelJoined(object _, ChannelJoinedEventArgs e)
+        {
+            if (string.Equals(e.ChannelName, userService.CurrentUserTwitchUsername, StringComparison.OrdinalIgnoreCase))
+            {
+                if (Channel == null)
+                    await FetchChannel().ConfigureAwait(false);
+
+                Channel.ShouldListen = true;
+                NotifyStateChanged();
+            }
+        }
+
+        private void ChannelsHubSignalRClient_ChannelLeft(object _, ChannelLeftEventArgs e)
+        {
+            if (string.Equals(e.ChannelName, userService.CurrentUserTwitchUsername, StringComparison.OrdinalIgnoreCase))
+            {
+                Channel.ShouldListen = false;
+                NotifyStateChanged();
+            }
         }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
@@ -28,11 +56,21 @@ namespace AntiHarassment.Frontend.Application
         {
             if (userService.IsUserLoggedIn)
             {
-                var channelParameter = new QueryParam("channelName", userService.CurrentUserTwitchUsername);
-                Channel = await apiGateway.Get<ChannelModel>("channels", queryParams: new QueryParam[] { channelParameter }).ConfigureAwait(false);
-
+                await FetchChannel().ConfigureAwait(false);
+                await channelsHubSignalRClient.StartAsync().ConfigureAwait(false);
                 NotifyStateChanged();
             }
+        }
+
+        private async Task FetchChannel()
+        {
+            var channelParameter = new QueryParam("channelName", userService.CurrentUserTwitchUsername);
+            Channel = await apiGateway.Get<ChannelModel>("channels", queryParams: new QueryParam[] { channelParameter }).ConfigureAwait(false);
+        }
+
+        public async Task UpdateChannelState(bool shouldListen)
+        {
+            await apiGateway.Post(new ChannelModel { ChannelName = userService.CurrentUserTwitchUsername, ShouldListen = shouldListen }, "channels").ConfigureAwait(false);
         }
 
         public async Task AddModerator(string moderatorTwitchUsername)

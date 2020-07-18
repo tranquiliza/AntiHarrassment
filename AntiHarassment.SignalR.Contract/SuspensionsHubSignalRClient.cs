@@ -3,21 +3,22 @@ using Microsoft.AspNetCore.SignalR.Client;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.SignalR.Contract
 {
-    public class ChannelsHubSignalRClient : IAsyncDisposable
+    public class SuspensionsHubSignalRClient : IAsyncDisposable
     {
-        public const string HUBURL = "/ChannelsHub";
+        public const string HUBURL = "/SuspensionsHub";
 
         private readonly string hubUrl;
 
         private HubConnection hubConnection;
 
-        public ChannelsHubSignalRClient(string siteUrl)
+        public SuspensionsHubSignalRClient(string siteUrl)
         {
-            this.hubUrl = siteUrl.Trim('/') + HUBURL;
+            hubUrl = siteUrl.TrimEnd('/') + HUBURL;
         }
 
         private bool started = false;
@@ -30,8 +31,7 @@ namespace AntiHarassment.SignalR.Contract
                     .WithUrl(hubUrl)
                     .Build();
 
-                hubConnection.On<string>(ChannelsHubMethods.CHANNELJOINED, HandleChannelJoinedEvent);
-                hubConnection.On<string>(ChannelsHubMethods.CHANNELLEFT, HandleChannelLeftEvent);
+                hubConnection.On<Guid, string>(SuspensionsHubMethods.NEWSUSPENSION, HandleNewSuspensionEvent);
 
                 await hubConnection.StartAsync().ConfigureAwait(false);
 
@@ -39,20 +39,12 @@ namespace AntiHarassment.SignalR.Contract
             }
         }
 
-        public delegate void ChannelJoinedEventHandler(object sender, ChannelJoinedEventArgs args);
-        public event EventHandler<ChannelJoinedEventArgs> ChannelJoined;
+        public delegate void NewSuspensionEventHandler(object sender, NewSuspensionEventArgs args);
+        public event EventHandler<NewSuspensionEventArgs> OnNewSuspension;
 
-        private void HandleChannelJoinedEvent(string channelName)
+        private void HandleNewSuspensionEvent(Guid suspensionId, string channelOfOrigin)
         {
-            ChannelJoined?.Invoke(this, new ChannelJoinedEventArgs { ChannelName = channelName });
-        }
-
-        public delegate void ChannelLeftEventHandler(object sender, ChannelLeftEventArgs args);
-        public event EventHandler<ChannelLeftEventArgs> ChannelLeft;
-
-        private void HandleChannelLeftEvent(string channelName)
-        {
-            ChannelLeft?.Invoke(this, new ChannelLeftEventArgs { ChannelName = channelName });
+            OnNewSuspension?.Invoke(this, new NewSuspensionEventArgs { SuspensionId = suspensionId, ChannelOfOrigin = channelOfOrigin });
         }
 
         public async ValueTask DisposeAsync()

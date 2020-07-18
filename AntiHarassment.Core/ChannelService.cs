@@ -81,8 +81,11 @@ namespace AntiHarassment.Core
             return Result<List<Channel>>.Succeeded(result);
         }
 
-        public async Task UpdateChannel(string channelName, bool shouldListen)
+        public async Task UpdateChannel(string channelName, bool shouldListen, IApplicationContext context)
         {
+            if (!context.User.HasRole(Roles.Admin) && !string.Equals(context.User.TwitchUsername, channelName, StringComparison.OrdinalIgnoreCase))
+                return;
+
             if (shouldListen)
             {
                 var joinChannelCommand = new JoinChannelCommand { ChannelName = channelName };

@@ -5,7 +5,11 @@
 @page "/ChannelSuspensions"
 
 <div class="container-fluid">
-    @if (suspensionService.Channels != null)
+    @if (suspensionService.Channels == null)
+    {
+        <p>You don't have access to any channels</p>
+    }
+    else
     {
         <div class="row">
             <div class="col-12">
@@ -28,7 +32,10 @@
         <div class="col-12">
             @if (suspensionService.Suspensions == null)
             {
-                <p>Loading</p>
+                @if (suspensionService.Channels != null)
+                {
+                    <p>Loading...</p>
+                }
             }
             else
             {
@@ -48,7 +55,6 @@
                                     @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
                                     @suspension.SuspensionType.ToString()
                                 </button>
-
                             </div>
                             <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
                                 <div class="card-body" style="min-height:60vh">
@@ -78,9 +84,15 @@
                                     <hr />
                                     @foreach (var tag in suspension.Tags)
                                     {
-                                        <span class="badge badge-secondary">@tag.TagName <button class="btn btn-sm" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">x</button></span>
+                                        <span class="badge badge-secondary">
+                                            @tag.TagName
+                                            @if (!suspension.Audited)
+                                            {
+                                                <button class="btn btn-sm" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">x</button>
+                                            }
+                                        </span>
                                     }
-                                    @if (tagService.Tags != null)
+                                    @if (tagService.Tags != null && !suspension.Audited)
                                     {
                                         <div class="btn-group">
                                             <button class="btn btn-secondary dropdown-toggle" type="button" id="@("tagSelectMenu"+counter)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

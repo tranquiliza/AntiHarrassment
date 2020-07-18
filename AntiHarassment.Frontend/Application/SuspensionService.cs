@@ -1,6 +1,8 @@
 ﻿using AntiHarassment.Contract;
 using AntiHarassment.Contract.Suspensions;
 using AntiHarassment.Frontend.Infrastructure;
+using AntiHarassment.SignalR.Contract;
+using AntiHarassment.SignalR.Contract.EventArgs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Frontend.Application
 {
-    public class SuspensionService : ISuspensionService
+    public class SuspensionService : ISuspensionService, IDisposable
     {
         public List<ChannelModel> Channels { get; private set; }
 
@@ -17,11 +19,29 @@ namespace AntiHarassment.Frontend.Application
 
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
+        private readonly SuspensionsHubSignalRClient suspensionsHub;
 
-        public SuspensionService(IApiGateway apiGateway, IUserService userService)
+        public SuspensionService(IApiGateway apiGateway, IUserService userService, SuspensionsHubSignalRClient suspensionsHub)
         {
             this.apiGateway = apiGateway;
             this.userService = userService;
+            this.suspensionsHub = suspensionsHub;
+            suspensionsHub.OnNewSuspension += async (sender, args) => await SuspensionsHub_OnNewSuspension(sender, args);
+        }
+
+        private async Task SuspensionsHub_OnNewSuspension(object _, NewSuspensionEventArgs e)
+        {
+            if (!string.Equals(CurrentlySelectedChannel, e.ChannelOfOrigin, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var qParam = new QueryParam("suspensionId", e.SuspensionId.ToString());
+
+            var newSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
+            if (newSuspension != null)
+            {
+                Suspensions.Add(newSuspension);
+                NotifyStateChanged();
+            }
         }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
@@ -31,6 +51,10 @@ namespace AntiHarassment.Frontend.Application
         public async Task Initialize()
         {
             Channels = await apiGateway.Get<List<ChannelModel>>("Channels").ConfigureAwait(false);
+            if (Channels == null)
+                return;
+
+            await suspensionsHub.StartAsync().ConfigureAwait(false);
 
             if (!Channels.Any(x => string.Equals(x.ChannelName, userService.CurrentUserTwitchUsername, StringComparison.OrdinalIgnoreCase)))
             {
@@ -103,6 +127,11 @@ namespace AntiHarassment.Frontend.Application
             Suspensions.Remove(existingValue);
             Suspensions.Add(model);
             NotifyStateChanged();
+        }
+
+        public void Dispose()
+        {
+            suspensionsHub.DisposeAsync();
         }
     }
 }

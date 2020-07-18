@@ -23,6 +23,22 @@ namespace AntiHarassment.WebApi.Controllers
             this.suspensionService = suspensionService;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSuspension([FromQuery] Guid suspensionId)
+        {
+            var result = await suspensionService.GetSuspensionAsync(suspensionId, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Failure)
+                return BadRequest();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
+        }
+
         [HttpGet("{channelOfOrigin}")]
         public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin)
         {
