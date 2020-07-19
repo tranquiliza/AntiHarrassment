@@ -1,8 +1,10 @@
 ﻿CREATE TABLE [Core].[Channel]
 (
 	[Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1), 
+    [ChannelId] UNIQUEIDENTIFIER NULL,
     [ChannelName] NVARCHAR(100) NOT NULL, 
-    [ShouldListen] BIT NOT NULL DEFAULT 0
+    [ShouldListen] BIT NOT NULL DEFAULT 0, 
+    [Data] NVARCHAR(MAX) NULL
 )
 GO
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Frontend.Application
 {
-    public interface IChannelService
+    public interface IAdminChannelService
     {
         Task Initialize();
         Task UpdateChannel(ChannelModel channelModel);

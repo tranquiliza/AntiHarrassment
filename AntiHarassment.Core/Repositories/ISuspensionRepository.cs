@@ -8,7 +8,8 @@ namespace AntiHarassment.Core
 {
     public interface ISuspensionRepository
     {
-        Task SaveSuspension(Suspension suspension);
+        Task Save(Suspension suspension);
         Task<List<Suspension>> GetSuspensionsForChannel(string channelOfOrigin);
+        Task<Suspension> GetSuspension(Guid suspensionId);
     }
 }

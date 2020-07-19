@@ -9,6 +9,8 @@ namespace AntiHarassment.Core.Models
         public DateTime Timestamp { get; private set; }
         public string Message { get; private set; }
 
+        private ChatMessage() { }
+
         public ChatMessage(DateTime timestamp, string message)
         {
             Timestamp = timestamp;

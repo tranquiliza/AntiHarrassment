@@ -14,13 +14,13 @@ namespace AntiHarassment.Frontend.Infrastructure
     public class ApiGateway : IApiGateway
     {
         private readonly string apiBaseAddress;
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient httpClient;
         private readonly IApplicationStateManager applicationStateManager;
 
         public ApiGateway(string apiBaseAddress, IApplicationStateManager applicationStateManager, HttpClient httpClient)
         {
             this.apiBaseAddress = apiBaseAddress;
-            _httpClient = httpClient;
+            this.httpClient = httpClient;
             this.applicationStateManager = applicationStateManager;
         }
 
@@ -68,7 +68,7 @@ namespace AntiHarassment.Frontend.Infrastructure
         {
             var requestUri = BuildRequestUri(controller, action, routeValues, queryParams);
             var request = await BuildBaseRequest("DELETE", requestUri).ConfigureAwait(false);
-            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClient.SendAsync(request).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 // LOG
@@ -93,7 +93,7 @@ namespace AntiHarassment.Frontend.Infrastructure
 
         private async Task ExecuteRequest(HttpRequestMessage request)
         {
-            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClient.SendAsync(request).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -103,15 +103,15 @@ namespace AntiHarassment.Frontend.Infrastructure
 
         private async Task<T> ExecuteRequest<T>(HttpRequestMessage request)
         {
-            var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+            var response = await httpClient.SendAsync(request).ConfigureAwait(false);
+            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                return default;
+
             if (!response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 throw new Exception(content);
             }
-
-            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
-                return default;
 
             var responseValue = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             return Serialization.Deserialize<T>(responseValue);
@@ -122,7 +122,7 @@ namespace AntiHarassment.Frontend.Infrastructure
             var jwtToken = await applicationStateManager.GetJwtToken().ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(jwtToken))
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
 
             return new HttpRequestMessage
             {

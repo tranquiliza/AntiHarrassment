@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Frontend.Application
 {
-    public class ChannelService : IChannelService
+    public class AdminChannelService : IAdminChannelService
     {
         public List<ChannelModel> Channels { get; private set; }
 
@@ -18,7 +18,7 @@ namespace AntiHarassment.Frontend.Application
         private readonly IUserService userService;
         private readonly ChannelsHubSignalRClient channelsHubSignalRClient;
 
-        public ChannelService(IApiGateway apiGateway, IUserService userService, ChannelsHubSignalRClient channelsHubSignalRClient)
+        public AdminChannelService(IApiGateway apiGateway, IUserService userService, ChannelsHubSignalRClient channelsHubSignalRClient)
         {
             this.apiGateway = apiGateway;
             this.userService = userService;
@@ -65,12 +65,16 @@ namespace AntiHarassment.Frontend.Application
 
         public event Action OnChange;
 
+        private bool isInitialized = false;
+
         public async Task Initialize()
         {
-            if (userService.IsUserAdmin)
+            if (userService.IsUserAdmin && !isInitialized)
             {
                 await channelsHubSignalRClient.StartAsync().ConfigureAwait(false);
                 await FetchChannels().ConfigureAwait(false);
+
+                isInitialized = true;
                 NotifyStateChanged();
             }
         }
