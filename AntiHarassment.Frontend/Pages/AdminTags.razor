@@ -22,7 +22,7 @@
                     </thead>
                     <tbody>
 
-                        @foreach (var tag in tagService.Tags)
+                        @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
                         {
                             <tr>
                                 <td>@tag.TagName</td>
