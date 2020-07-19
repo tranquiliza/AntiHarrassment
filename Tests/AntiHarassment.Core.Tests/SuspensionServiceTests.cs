@@ -1,5 +1,6 @@
 using AntiHarassment.Core.Models;
 using AntiHarassment.Core.Security;
+using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System.Collections.Generic;
@@ -22,8 +23,10 @@ namespace AntiHarassment.Core.Tests
             context.Setup(x => x.User).Returns(CreateAdminUserFromJson());
 
             var tagRepository = new Mock<ITagRepository>();
+            var messageDispatcher = new Mock<IMessageDispatcher>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object);
+
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -50,8 +53,9 @@ namespace AntiHarassment.Core.Tests
             var context = new Mock<IApplicationContext>();
             context.Setup(x => x.User).Returns(CreateOwnerUserFromJson());
             var tagRepository = new Mock<ITagRepository>();
+            var messageDispatcher = new Mock<IMessageDispatcher>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object);
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -80,8 +84,9 @@ namespace AntiHarassment.Core.Tests
             var context = new Mock<IApplicationContext>();
             context.Setup(x => x.User).Returns(CreateModeratorUserFromJson());
             var tagRepository = new Mock<ITagRepository>();
+            var messageDispatcher = new Mock<IMessageDispatcher>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object);
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -115,8 +120,9 @@ namespace AntiHarassment.Core.Tests
             var context = new Mock<IApplicationContext>();
             context.Setup(x => x.User).Returns(CreateUserFromJson());
             var tagRepository = new Mock<ITagRepository>();
+            var messageDispatcher = new Mock<IMessageDispatcher>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object);
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);

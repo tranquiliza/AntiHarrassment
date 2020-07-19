@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.WebApi.Handlers
 {
-    public class NewSuspensionEventHandler : IHandleMessages<NewSuspensionEvent>
+    public class NewSuspensionEventHandler : IHandleMessages<NewSuspensionEvent>, IHandleMessages<SuspensionUpdatedEvent>
     {
         private readonly IHubContext<SuspensionsHub> suspensionsHub;
 
@@ -23,6 +23,11 @@ namespace AntiHarassment.WebApi.Handlers
         public async Task Handle(NewSuspensionEvent message, IMessageHandlerContext context)
         {
             await suspensionsHub.Clients.All.SendAsync(SuspensionsHubMethods.NEWSUSPENSION, message.SuspensionId, message.ChannelOfOrigin).ConfigureAwait(false);
+        }
+
+        public async Task Handle(SuspensionUpdatedEvent message, IMessageHandlerContext context)
+        {
+            await suspensionsHub.Clients.All.SendAsync(SuspensionsHubMethods.SUSPENSIONUPDATED, message.SuspensionId, message.ChannelOfOrigin).ConfigureAwait(false);
         }
     }
 }

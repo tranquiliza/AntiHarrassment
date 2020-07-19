@@ -1,5 +1,7 @@
 ﻿using AntiHarassment.Core.Models;
 using AntiHarassment.Core.Security;
+using AntiHarassment.Messaging.Events;
+using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +16,14 @@ namespace AntiHarassment.Core
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IChannelRepository channelRepository;
         private readonly ITagRepository tagRepository;
+        private readonly IMessageDispatcher messageDispatcher;
 
-        public SuspensionService(ISuspensionRepository suspensionRepository, IChannelRepository channelRepository, ITagRepository tagRepository)
+        public SuspensionService(ISuspensionRepository suspensionRepository, IChannelRepository channelRepository, ITagRepository tagRepository, IMessageDispatcher messageDispatcher)
         {
             this.suspensionRepository = suspensionRepository;
             this.channelRepository = channelRepository;
             this.tagRepository = tagRepository;
+            this.messageDispatcher = messageDispatcher;
         }
 
         public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context)
@@ -50,6 +54,8 @@ namespace AntiHarassment.Core
             suspension.RemoveTag(tag);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
+
             return Result<Suspension>.Succeeded(suspension);
         }
 
@@ -67,6 +73,8 @@ namespace AntiHarassment.Core
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
+
             return Result<Suspension>.Succeeded(suspension);
         }
 
@@ -80,6 +88,8 @@ namespace AntiHarassment.Core
             suspension.UpdateAuditedState(audited);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
+
             return Result<Suspension>.Succeeded(suspension);
         }
 
@@ -92,6 +102,8 @@ namespace AntiHarassment.Core
             var suspension = fetch.Data;
             suspension.UpdateValidity(invalidate);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
+
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
 
             return Result<Suspension>.Succeeded(suspension);
         }
@@ -110,6 +122,11 @@ namespace AntiHarassment.Core
                 return Result<Suspension>.Unauthorized();
 
             return Result<Suspension>.Succeeded(suspension);
+        }
+
+        private async Task PublishSuspensionUpdatedEvent(Suspension suspension)
+        {
+            await messageDispatcher.Publish(new SuspensionUpdatedEvent { ChannelOfOrigin = suspension.ChannelOfOrigin, SuspensionId = suspension.SuspensionId }).ConfigureAwait(false);
         }
 
         private bool HaveAccess(IApplicationContext context, Channel channel)

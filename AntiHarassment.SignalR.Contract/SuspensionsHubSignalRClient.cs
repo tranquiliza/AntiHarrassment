@@ -32,11 +32,20 @@ namespace AntiHarassment.SignalR.Contract
                     .Build();
 
                 hubConnection.On<Guid, string>(SuspensionsHubMethods.NEWSUSPENSION, HandleNewSuspensionEvent);
+                hubConnection.On<Guid, string>(SuspensionsHubMethods.SUSPENSIONUPDATED, HandleUpdatedSuspensionEvent);
 
                 await hubConnection.StartAsync().ConfigureAwait(false);
 
                 started = true;
             }
+        }
+
+        public delegate void SuspensionUpdatedEventHandler(object sender, SuspensionUpdatedEventArgs args);
+        public event EventHandler<SuspensionUpdatedEventArgs> OnSuspensionUpdated;
+
+        private void HandleUpdatedSuspensionEvent(Guid suspensionId, string channelOfOrigin)
+        {
+            OnSuspensionUpdated?.Invoke(this, new SuspensionUpdatedEventArgs { SuspensionId = suspensionId, ChannelOfOrigin = channelOfOrigin });
         }
 
         public delegate void NewSuspensionEventHandler(object sender, NewSuspensionEventArgs args);

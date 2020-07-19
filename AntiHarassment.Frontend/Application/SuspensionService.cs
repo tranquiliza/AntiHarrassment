@@ -27,14 +27,34 @@ namespace AntiHarassment.Frontend.Application
             this.userService = userService;
             this.suspensionsHub = suspensionsHub;
             suspensionsHub.OnNewSuspension += async (sender, args) => await SuspensionsHub_OnNewSuspension(sender, args);
+            suspensionsHub.OnSuspensionUpdated += async (sender, args) => await SuspensionsHub_SuspensionUpdated(sender, args);
         }
 
-        private async Task SuspensionsHub_OnNewSuspension(object _, NewSuspensionEventArgs e)
+        private async Task SuspensionsHub_SuspensionUpdated(object _, SuspensionUpdatedEventArgs args)
         {
-            if (!string.Equals(CurrentlySelectedChannel, e.ChannelOfOrigin, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(CurrentlySelectedChannel, args.ChannelOfOrigin, StringComparison.OrdinalIgnoreCase))
                 return;
 
-            var qParam = new QueryParam("suspensionId", e.SuspensionId.ToString());
+            var qParam = new QueryParam("suspensionId", args.SuspensionId.ToString());
+
+            var updatedSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
+            if (updatedSuspension == null)
+                return;
+
+            var existingSuspension = Suspensions.Find(x => x.SuspensionId == args.SuspensionId);
+            if (existingSuspension != null)
+                Suspensions.Remove(existingSuspension);
+
+            Suspensions.Add(updatedSuspension);
+            NotifyStateChanged();
+        }
+
+        private async Task SuspensionsHub_OnNewSuspension(object _, NewSuspensionEventArgs args)
+        {
+            if (!string.Equals(CurrentlySelectedChannel, args.ChannelOfOrigin, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            var qParam = new QueryParam("suspensionId", args.SuspensionId.ToString());
 
             var newSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
             if (newSuspension != null)
