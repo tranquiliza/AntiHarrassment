@@ -18,8 +18,10 @@ namespace AntiHarassment.WebApi.Mappers
         {
             return new ChannelModel
             {
+                ChannelId = channel.ChannelId,
                 ChannelName = channel.ChannelName,
-                ShouldListen = channel.ShouldListen
+                ShouldListen = channel.ShouldListen,
+                Moderators = channel.Moderators.ToList()
             };
         }
     }

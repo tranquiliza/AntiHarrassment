@@ -1,29 +1,35 @@
-﻿@inject IChannelService channelService
-@inject IUserService userService
+﻿@inject IUserService userService
 @implements IDisposable
 
 @page "/"
 
-<p>
-    LOGGED IN: @userService.IsUserLoggedIn
-</p>
-<p>
-    IS ADMIN: @userService.IsUserAdmin
-</p>
-
+<div class="container-fluid text-center">
+    <div class="col-12">
+        <h1 class="cover-heading">Put an end to Harassment</h1>
+        <p class="lead">
+            Hi @userService.CurrentUserTwitchUsername! Nice to see you here. <br />
+            It's time we take a stand and do something to make our shared space a better place, and this is the beginning of a suite of tools to help accomplish that!
+            <br /> I Hope you will enjoy using this, and you're always welcome to ask questions, give suggestions or inform us of wishes!
+            <br /> Development's current status can be found by clicking the button below!
+        </p>
+        <p class="text-danger">Warning: Bright</p>
+        <p class="lead">
+            <a target="_blank" href="https://github.com/tranquiliza/AntiHarrassment/projects/1" class="btn btn-lg btn-secondary">See Development Plans</a>
+        </p>
+        <p class="lead">
+            <h3> Thank you once again, for taking a stand against harassment. You're making the world a better place to be!</h3>
+        </p>
+    </div>
+</div>
 
 @code {
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         userService.OnChange += StateHasChanged;
-        channelService.OnChange += StateHasChanged;
-
-        await channelService.Initialize();
     }
 
     public void Dispose()
     {
         userService.OnChange -= StateHasChanged;
-        channelService.OnChange -= StateHasChanged;
     }
 }

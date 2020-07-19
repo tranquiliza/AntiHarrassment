@@ -30,8 +30,8 @@ namespace AntiHarassment.SignalR.Contract
                     .WithUrl(hubUrl)
                     .Build();
 
-                hubConnection.On<string>(Methods.CHANNELJOINED, HandleChannelJoinedEvent);
-                hubConnection.On<string>(Methods.CHANNELLEFT, HandleChannelLeftEvent);
+                hubConnection.On<string>(ChannelsHubMethods.CHANNELJOINED, HandleChannelJoinedEvent);
+                hubConnection.On<string>(ChannelsHubMethods.CHANNELLEFT, HandleChannelLeftEvent);
 
                 await hubConnection.StartAsync().ConfigureAwait(false);
 

@@ -1,12 +1,15 @@
 ﻿@inject ISuspensionService suspensionService
-@inject IUserService userService
-@inject IChannelService channelService
+@inject ITagService tagService
 @implements IDisposable
 
 @page "/ChannelSuspensions"
 
 <div class="container-fluid">
-    @if (userService.IsUserAdmin && channelService.Channels != null)
+    @if (suspensionService.Channels == null)
+    {
+        <p>You don't have access to any channels</p>
+    }
+    else
     {
         <div class="row">
             <div class="col-12">
@@ -15,7 +18,7 @@
                         @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
                     </button>
                     <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
-                        @foreach (var channel in channelService.Channels)
+                        @foreach (var channel in suspensionService.Channels)
                         {
                             <button @onclick="async () => await SelectChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
                         }
@@ -29,28 +32,82 @@
         <div class="col-12">
             @if (suspensionService.Suspensions == null)
             {
-                <p>Please select a channel</p>
+                @if (suspensionService.Channels != null)
+                {
+                    <p>Loading...</p>
+                }
             }
             else
             {
                 if (suspensionService.Suspensions.Count == 0)
                 {
-                    <p>No suspensions! Lucky!</p>
+                    <p>No suspensions yet</p>
                 }
 
                 <div class="accordion" id="suspensionsAccordion">
-                    @foreach (var suspension in suspensionService.Suspensions)
+                    @foreach (var suspension in suspensionService.Suspensions.OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
                     {
                         <div class="card bg-dark">
                             <div class="card-header">
-                                <h2 class="mb-0">
-                                    <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false" aria-controls="collapseThree">
-                                        @suspension.Timestamp.FancyFormat() - <b>@suspension.Username</b> @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds") @suspension.SuspensionType.ToString()
-                                    </button>
-                                </h2>
+                                <button class="btn @SelectButtonColor(suspension) btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false">
+                                    @suspension.Timestamp.FancyFormat() -
+                                    <b>@suspension.Username</b>
+                                    @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+                                    @suspension.SuspensionType.ToString()
+                                </button>
                             </div>
                             <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
-                                <div class="card-body">
+                                <div class="card-body" style="min-height:60vh">
+                                    <div class="btn-group">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                @if (suspension.InvalidSuspension)
+                                                {
+                                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-danger btn-sm">Invalid</button>
+                                                }
+                                                else
+                                                {
+                                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-success btn-sm">Valid</button>
+                                                }
+
+                                                @if (suspension.Audited)
+                                                {
+                                                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn btn-success btn-sm">Audited</button>
+                                                }
+                                                else
+                                                {
+                                                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-danger btn-sm">Un-Audited</button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    @foreach (var tag in suspension.Tags)
+                                    {
+                                        <span class="badge badge-secondary">
+                                            @tag.TagName
+                                            @if (!suspension.Audited)
+                                            {
+                                                <button class="btn btn-sm" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">x</button>
+                                            }
+                                        </span>
+                                    }
+                                    @if (tagService.Tags != null && !suspension.Audited)
+                                    {
+                                        <div class="btn-group">
+                                            <button class="btn btn-secondary dropdown-toggle" type="button" id="@("tagSelectMenu"+counter)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Tags
+                                            </button>
+                                            <div class="dropdown-menu" aria-labelledby="@("#tagSelectMenu"+counter)">
+                                                @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
+                                                {
+                                                    <button @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)" class="dropdown-item" type="button">@tag.TagName</button>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                    <hr />
+
                                     @foreach (var message in suspension.Messages)
                                     {
                                         <p><b>@message.Timestamp</b> @message.Message</p>
@@ -69,35 +126,65 @@
 @code {
     private int counter = 0;
 
+    private string SelectButtonColor(SuspensionModel suspension)
+    {
+        if (suspension.Audited && suspension.InvalidSuspension)
+        {
+            return "btn-secondary";
+        }
+        if (suspension.Audited && !suspension.InvalidSuspension)
+        {
+            return "btn-success";
+        }
+        if (!suspension.Audited && suspension.InvalidSuspension)
+        {
+            return "btn-danger";
+        }
+        if (!suspension.Audited && !suspension.InvalidSuspension)
+        {
+            return "btn-warning";
+        }
+
+        return "btn-secondary";
+    }
+
     private async Task SelectChannel(string channelName)
     {
         await suspensionService.FetchSuspensionForChannel(channelName);
     }
 
-    protected override async Task OnInitializedAsync()
+    private async Task UpdateValidity(Guid suspensionId, bool invalidate)
     {
-        suspensionService.OnChange += UpdateUi;
-        channelService.OnChange += UpdateUi;
-
-        if (userService.IsUserAdmin)
-        {
-            await channelService.Initialize();
-        }
-
-        if (string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel))
-        {
-            await suspensionService.FetchSuspensionForChannel(userService.CurrentUserTwitchUsername);
-        }
+        await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate);
     }
 
-    private void UpdateUi()
+    private async Task UpdateAudited(Guid suspensionId, bool audited)
     {
-        StateHasChanged();
+        await suspensionService.UpdateAudited(suspensionId, audited);
+    }
+
+    private async Task AddTagToSuspension(Guid suspensionId, Guid tagId)
+    {
+        await suspensionService.AddTagToSuspension(suspensionId, tagId);
+    }
+
+    private async Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId)
+    {
+        await suspensionService.RemoveTagFromSuspension(suspensionId, tagId);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        suspensionService.OnChange += StateHasChanged;
+        tagService.OnChange += StateHasChanged;
+
+        await suspensionService.Initialize();
+        await tagService.Initialize();
     }
 
     public void Dispose()
     {
         suspensionService.OnChange -= StateHasChanged;
-        channelService.OnChange -= UpdateUi;
+        tagService.OnChange -= StateHasChanged;
     }
 }

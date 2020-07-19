@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AntiHarassment.WebApi.Mappers;
 
 namespace AntiHarassment.WebApi.Mappers
 {
@@ -22,6 +23,9 @@ namespace AntiHarassment.WebApi.Mappers
                 SuspensionId = suspension.SuspensionId,
                 Timestamp = suspension.Timestamp,
                 Username = suspension.Username,
+                InvalidSuspension = suspension.InvalidSuspension,
+                Audited = suspension.Audited,
+                Tags = suspension.Tags.Map(),
                 SuspensionType = suspension.SuspensionType.Map(),
                 Messages = suspension.ChatMessages.Map()
             };

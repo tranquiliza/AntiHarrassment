@@ -21,7 +21,7 @@ namespace AntiHarassment.WebApi.Handlers
 
         public async Task Handle(LeftChannelEvent message, IMessageHandlerContext context)
         {
-            await channelsHub.Clients.All.SendAsync(Methods.CHANNELLEFT, message.ChannelName).ConfigureAwait(false);
+            await channelsHub.Clients.All.SendAsync(ChannelsHubMethods.CHANNELLEFT, message.ChannelName).ConfigureAwait(false);
         }
     }
 }

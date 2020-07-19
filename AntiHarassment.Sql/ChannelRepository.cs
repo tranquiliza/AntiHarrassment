@@ -18,15 +18,59 @@ namespace AntiHarassment.Sql
 
         public async Task<List<Channel>> GetChannels()
         {
-            var result = new List<Channel>();
+            // TODO REMOVE 1.2.0
+            await MigrateOldStructuredEntries().ConfigureAwait(false);
 
+            var result = new List<Channel>();
             using (var command = sql.CreateStoredProcedure("[Core].[GetChannels]"))
             using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
             {
                 while (await reader.ReadAsync().ConfigureAwait(false))
-                    result.Add(new Channel(reader.GetString("channelName"), reader.GetBoolean("shouldListen")));
+                {
+                    var channel = Serialization.Deserialize<Channel>(reader.GetString("data"));
+                    result.Add(channel);
+                }
 
                 return result;
+            }
+        }
+
+        public async Task<Channel> GetChannel(string twitchUsername)
+        {
+            using (var command = sql.CreateStoredProcedure("[Core].[GetChannel]"))
+            {
+                command.WithParameter("twitchUsername", twitchUsername);
+                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    if (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        return Serialization.Deserialize<Channel>(reader.GetString("data"));
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // TODO Remove in Version 1.2.0
+        private async Task MigrateOldStructuredEntries()
+        {
+            const string LegacyFetch = "SELECT [ChannelName], [ShouldListen] FROM [Core].[Channel] WHERE Data IS null";
+
+            var convertedEntries = new List<Channel>();
+
+            using (var command = sql.CreateQuery(LegacyFetch))
+            using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
+            {
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                {
+                    convertedEntries.Add(new Channel(reader.GetString("channelName"), reader.GetBoolean("shouldListen")));
+                }
+            }
+
+            foreach (var channel in convertedEntries)
+            {
+                await Upsert(channel).ConfigureAwait(false);
             }
         }
 
@@ -34,8 +78,10 @@ namespace AntiHarassment.Sql
         {
             using (var command = sql.CreateStoredProcedure("[Core].[UpsertChannel]"))
             {
-                command.WithParameter("channelName", channel.ChannelName)
-                    .WithParameter("shouldListen", channel.ShouldListen);
+                command.WithParameter("channelId", channel.ChannelId)
+                    .WithParameter("channelName", channel.ChannelName)
+                    .WithParameter("shouldListen", channel.ShouldListen)
+                    .WithParameter("data", Serialization.Serialize(channel));
 
                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }

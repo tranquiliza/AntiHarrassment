@@ -1,0 +1,111 @@
+﻿@inject IUserChannelService channelService
+@implements IDisposable
+
+@if (channelService.Channel == null)
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <p>Hi! Are you also a streamer? Would like to have this system enabled for your channel?</p>
+                <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-success">ENABLE SYSTEM</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <p>
+                    If you have any questions regarding this system, you can find help at Prometheus Discord: <a target="_blank" href="https://discord.gg/Cb7PQRj">Prometheus Invite</a>
+                </p>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-6">
+                <p>
+                    ChannelName: @channelService.Channel.ChannelName
+                </p>
+            </div>
+            <div class="col-6">
+                <p>
+                    @if (channelService.Channel.ShouldListen)
+                    {
+                        <button @onclick="async _ => await UpdateChannelState(false)" class="btn btn-success">SYSTEM ACTIVE</button>
+                    }
+                    else
+                    {
+                        <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-danger">SYSTEM DISABLED</button>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-dark">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Moderator Name</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var moderator in channelService.Channel.Moderators)
+                        {
+                            <tr>
+                                <td>@moderator</td>
+                                <td>
+                                    <button @onclick="async () => await RemoveModerator(moderator)" class="btn btn-danger">Remove</button>
+                                </td>
+                            </tr>
+                        }
+
+                        <tr>
+                            <td><input type="text" @bind-value="newModeratorName" /></td>
+                            <td><button @onclick="async () => await AddModerator()" class="btn btn-dark">Add</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@page "/settings"
+
+@code {
+    private string newModeratorName = "";
+
+    private string buttonDisable = "";
+
+    protected async override Task OnInitializedAsync()
+    {
+        channelService.OnChange += StateHasChanged;
+
+        await channelService.Initialize();
+    }
+
+    private async Task AddModerator()
+    {
+        await channelService.AddModerator(newModeratorName);
+        newModeratorName = "";
+    }
+
+    private async Task RemoveModerator(string moderatorName)
+    {
+        await channelService.RemoveModerator(moderatorName);
+    }
+
+    private async Task UpdateChannelState(bool shouldListen)
+    {
+        await channelService.UpdateChannelState(shouldListen);
+    }
+
+    public void Dispose()
+    {
+        channelService.OnChange -= StateHasChanged;
+    }
+}

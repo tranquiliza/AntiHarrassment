@@ -15,7 +15,7 @@ namespace AntiHarassment.WebApi.Controllers
     [Route("[controller]")]
     [ApiController]
     [Authorize]
-    public class ChannelsController : ControllerBase
+    public class ChannelsController : ContextController
     {
         private readonly IChannelService channelService;
 
@@ -25,19 +25,62 @@ namespace AntiHarassment.WebApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery] string channelName)
         {
-            var channels = await channelService.GetChannels().ConfigureAwait(false);
+            if (!string.IsNullOrEmpty(channelName))
+            {
+                var singleChannelResult = await channelService.GetChannel(channelName, ApplicationContext).ConfigureAwait(false);
+                if (singleChannelResult.State == ResultState.AccessDenied)
+                    return Unauthorized();
 
-            return Ok(channels.Map());
+                if (singleChannelResult.State == ResultState.NoContent)
+                    return NoContent();
+
+                return Ok(singleChannelResult.Data.Map());
+            }
+            else
+            {
+                var multipleChannelsResult = await channelService.GetChannels(ApplicationContext).ConfigureAwait(false);
+                if (multipleChannelsResult.State == ResultState.AccessDenied)
+                    return Unauthorized();
+
+                if (multipleChannelsResult.State == ResultState.NoContent)
+                    return NoContent();
+
+                return Ok(multipleChannelsResult.Data.Map());
+            }
+        }
+
+        [HttpPost("{channelName}")]
+        public async Task<IActionResult> AddModerator([FromRoute] string channelName, [FromBody] AddModeratorModel model)
+        {
+            var result = await channelService.AddModeratorToChannel(channelName, model.ModeratorTwitchUsername, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return NoContent();
+
+            return Ok(result.Data.Map());
+        }
+
+        [HttpDelete("{channelName}")]
+        public async Task<IActionResult> DeleteModerator([FromRoute] string channelName, [FromBody] DeleteModeratorModel model)
+        {
+            var result = await channelService.DeleteModeratorFromChannel(channelName, model.ModeratorTwitchUsername, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return NoContent();
+
+            return Ok(result.Data.Map());
         }
 
         [HttpPost]
-        [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> Post([FromBody]ChannelModel model)
+        public async Task<IActionResult> Post([FromBody] ChannelModel model)
         {
-            await channelService.UpdateChannel(model.ChannelName, model.ShouldListen).ConfigureAwait(false);
+            await channelService.UpdateChannel(model.ChannelName, model.ShouldListen, ApplicationContext).ConfigureAwait(false);
 
             return Ok();
         }

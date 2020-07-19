@@ -1,6 +1,8 @@
 ﻿using AntiHarassment.Chatlistener.Core.Events;
 using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
+using AntiHarassment.Messaging.Events;
+using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +12,22 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public class ChatlistenerService : IChatlistenerService
     {
+        private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(5);
+
         private readonly IChatClient client;
         private readonly IChannelRepository channelRepository;
         private readonly IDatetimeProvider datetimeProvider;
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IChatRepository chatRepository;
+        private readonly IServiceProvider serviceProvider;
 
         public ChatlistenerService(
             IChatClient client,
             IChannelRepository channelRepository,
             IDatetimeProvider datetimeProvider,
             ISuspensionRepository suspensionRepository,
-            IChatRepository chatRepository)
+            IChatRepository chatRepository,
+            IServiceProvider serviceProvider)
         {
             this.client = client;
             this.channelRepository = channelRepository;
@@ -33,6 +39,7 @@ namespace AntiHarassment.Chatlistener.Core
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
 
             client.OnMessageReceived += async (sender, eventArgs) => await Client_OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            this.serviceProvider = serviceProvider;
         }
 
         private async Task Client_OnMessageReceived(object _, MessageReceivedEvent e)
@@ -40,22 +47,26 @@ namespace AntiHarassment.Chatlistener.Core
             await chatRepository.SaveChatMessage(e.DisplayName, e.Channel, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
-        private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(5);
-
         private async Task Client_OnUserTimedout(object _, UserTimedoutEvent e)
         {
+            var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
+
             var timeOfSuspension = datetimeProvider.UtcNow;
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
             var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser);
-            await suspensionRepository.SaveSuspension(suspension).ConfigureAwait(false);
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserBanned(object _, UserBannedEvent e)
         {
+            var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
+
             var timeOfSuspension = datetimeProvider.UtcNow;
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
             var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser);
-            await suspensionRepository.SaveSuspension(suspension).ConfigureAwait(false);
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
         }
 
         public async Task ConnectAndJoinChannels()
@@ -69,17 +80,25 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task ListenTo(string channelName)
         {
-            await client.JoinChannel(channelName).ConfigureAwait(false);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                channel = new Channel(channelName, shouldListen: true);
 
-            var channel = new Channel(channelName, shouldListen: true);
+            channel.EnableListening();
+
+            await client.JoinChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);
         }
 
         public async Task UnlistenTo(string channelName)
         {
-            await client.LeaveChannel(channelName).ConfigureAwait(false);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                channel = new Channel(channelName, shouldListen: false);
 
-            var channel = new Channel(channelName, shouldListen: false);
+            channel.DisableListening();
+
+            await client.LeaveChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);
         }
     }

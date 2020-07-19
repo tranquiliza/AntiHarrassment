@@ -73,3 +73,7 @@ body {
 .hand-pointer {
     cursor: pointer;
 }
+
+.dropdown-menu {
+    overflow: auto;
+}

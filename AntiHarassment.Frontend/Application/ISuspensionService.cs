@@ -9,9 +9,15 @@ namespace AntiHarassment.Frontend.Application
     {
         List<SuspensionModel> Suspensions { get; }
         string CurrentlySelectedChannel { get; }
+        List<ChannelModel> Channels { get; }
 
         event Action OnChange;
 
         Task FetchSuspensionForChannel(string channelName);
+        Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate);
+        Task UpdateAudited(Guid suspensionId, bool audited);
+        Task AddTagToSuspension(Guid suspensionId, Guid tagId);
+        Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId);
+        Task Initialize();
     }
 }

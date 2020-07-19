@@ -33,7 +33,7 @@ namespace AntiHarassment.Frontend.Application
         private void NotifyStateChanged() => OnChange?.Invoke();
         public event Action OnChange;
 
-        public bool IsUserLoggedIn => User != null;
+        public bool IsUserLoggedIn => User != null && DateTime.UtcNow < User.TokenExpires;
         public bool IsUserAdmin => User?.Roles.Any(role => string.Equals("ADMIN", role, StringComparison.Ordinal)) == true;
         public string CurrentUserTwitchUsername => User?.TwitchUsername;
 
