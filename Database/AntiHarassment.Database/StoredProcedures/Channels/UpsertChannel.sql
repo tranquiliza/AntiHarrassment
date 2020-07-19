@@ -2,7 +2,7 @@
 	@channelId UNIQUEIDENTIFIER,
 	@channelName NVARCHAR(100),
 	@shouldListen bit,
-	@data VARCHAR(MAX)
+	@data NVARCHAR(MAX)
 AS
 BEGIN
 	IF NOT EXISTS (SELECT * FROM [Core].[Channel] WHERE [ChannelName] = @channelName)

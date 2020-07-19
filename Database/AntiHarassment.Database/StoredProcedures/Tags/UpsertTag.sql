@@ -1,7 +1,7 @@
 ﻿CREATE PROCEDURE [Core].[UpsertTag]
 	@tagId UNIQUEIDENTIFIER,
 	@tagName NVARCHAR(50),
-	@data VARCHAR(MAX)
+	@data NVARCHAR(MAX)
 AS
 BEGIN
 	IF NOT EXISTS(SELECT * FROM [Core].[Tags] WHERE [TagId] = @tagId)

@@ -4,7 +4,7 @@
     [ChannelId] UNIQUEIDENTIFIER NULL,
     [ChannelName] NVARCHAR(100) NOT NULL, 
     [ShouldListen] BIT NOT NULL DEFAULT 0, 
-    [Data] VARCHAR(MAX) NULL
+    [Data] NVARCHAR(MAX) NULL
 )
 GO
 

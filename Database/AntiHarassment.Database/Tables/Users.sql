@@ -4,7 +4,7 @@
     [UserId] UNIQUEIDENTIFIER NOT NULL, 
     [TwitchUsername] NVARCHAR(1000) NOT NULL, 
     [Email] NVARCHAR(1000) NULL, 
-    [Data] VARCHAR(MAX) NOT NULL
+    [Data] NVARCHAR(MAX) NOT NULL
 )
 GO
 

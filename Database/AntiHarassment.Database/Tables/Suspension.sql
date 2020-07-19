@@ -4,10 +4,10 @@
     [SuspensionId] UNIQUEIDENTIFIER NULL,
     [Username] NVARCHAR(100) NOT NULL, 
     [ChannelOfOrigin] NVARCHAR(100) NOT NULL, 
-    [TypeOfSuspension] VARCHAR(100) NOT NULL, 
+    [TypeOfSuspension] NVARCHAR(100) NOT NULL, 
     [Timestamp] DATETIME2(0) NOT NULL, 
     [Duration] INT NOT NULL, 
-    [Data] VARCHAR(MAX) NOT NULL
+    [Data] NVARCHAR(MAX) NOT NULL
 )
 GO
 
