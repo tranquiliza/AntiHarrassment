@@ -7,7 +7,7 @@
         <div class="row">
             <div class="col-12">
                 <p>Hi! Are you also a streamer? Would like to have this system enabled for your channel?</p>
-                <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-success">ENABLE SYSTEM</button>
+                <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-danger">ENABLE SYSTEM</button>
             </div>
         </div>
         <div class="row">
@@ -32,11 +32,11 @@ else
                 <p>
                     @if (channelService.Channel.ShouldListen)
                     {
-                        <button @onclick="async _ => await UpdateChannelState(false)" class="btn btn-success">SYSTEM ACTIVE</button>
+                        <button @onclick="async _ => await UpdateChannelState(false)" class="btn btn-danger">SYSTEM ACTIVE</button>
                     }
                     else
                     {
-                        <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-danger">SYSTEM DISABLED</button>
+                        <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-success">SYSTEM DISABLED</button>
                     }
                 </p>
             </div>

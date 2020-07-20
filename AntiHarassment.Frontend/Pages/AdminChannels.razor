@@ -39,11 +39,11 @@
                                 <td>
                                     @if (channel.ShouldListen)
                                     {
-                                        <button class="btn btn-success" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Disable</button>
+                                        <button class="btn btn-danger" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Disable</button>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-danger" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Enable</button>
+                                        <button class="btn btn-success" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Enable</button>
                                     }
                                 </td>
                             </tr>
