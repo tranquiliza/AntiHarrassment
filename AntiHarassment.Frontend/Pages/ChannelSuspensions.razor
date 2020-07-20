@@ -63,20 +63,20 @@
                                             <div class="col-12">
                                                 @if (suspension.InvalidSuspension)
                                                 {
-                                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-danger btn-sm">Invalid</button>
+                                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-success btn-sm">Mark Valid</button>
                                                 }
                                                 else
                                                 {
-                                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-success btn-sm">Valid</button>
+                                                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-danger btn-sm">Mark Invalid</button>
                                                 }
 
                                                 @if (suspension.Audited)
                                                 {
-                                                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn btn-success btn-sm">Audited</button>
+                                                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn btn-danger btn-sm">Mark as Unaudited</button>
                                                 }
                                                 else
                                                 {
-                                                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-danger btn-sm">Un-Audited</button>
+                                                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
                                                 }
                                             </div>
                                         </div>
