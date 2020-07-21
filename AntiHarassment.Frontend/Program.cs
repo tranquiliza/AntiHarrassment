@@ -45,6 +45,7 @@ namespace AntiHarassment.Frontend
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<ISuspensionService, SuspensionService>();
             services.AddSingleton<ITagService, TagService>();
+            services.AddSingleton<IUserReportService, UserReportService>();
 
             services.AddSingleton(_ => new ChannelsHubSignalRClient(apiUrl));
             services.AddSingleton(_ => new SuspensionsHubSignalRClient(apiUrl));

@@ -49,6 +49,24 @@ namespace AntiHarassment.Sql
             return result;
         }
 
+        public async Task<List<Suspension>> GetSuspensionsForUser(string username)
+        {
+            var result = new List<Suspension>();
+            using (var command = sql.CreateStoredProcedure("[Core].[GetSuspensionsForUser]"))
+            {
+                command.WithParameter("username", username);
+                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                    }
+                }
+            }
+
+            return result;
+        }
+
         public async Task Save(Suspension suspension)
         {
             using (var command = sql.CreateStoredProcedure("[Core].[InsertSuspension]"))
