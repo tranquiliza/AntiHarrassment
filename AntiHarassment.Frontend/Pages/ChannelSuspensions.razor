@@ -18,7 +18,7 @@
                         @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
                     </button>
                     <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
-                        @foreach (var channel in suspensionService.Channels)
+                        @foreach (var channel in suspensionService.Channels.OrderBy(x => x.ChannelName))
                         {
                             <button @onclick="async () => await SelectChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
                         }
@@ -115,7 +115,10 @@
                                 </div>
                             </div>
                         </div>
-                        { counter++; }
+
+                        {
+                            counter++;
+                        }
                     }
                 </div>
             }
@@ -128,6 +131,7 @@
 
     private string SelectButtonColor(SuspensionModel suspension)
     {
+        Console.WriteLine("BUTTON COLOR");
         if (suspension.Audited && suspension.InvalidSuspension)
         {
             return "btn-secondary";
@@ -150,41 +154,53 @@
 
     private async Task SelectChannel(string channelName)
     {
+        Console.WriteLine("SELECT CHANNEL");
         await suspensionService.FetchSuspensionForChannel(channelName);
     }
 
     private async Task UpdateValidity(Guid suspensionId, bool invalidate)
     {
+        Console.WriteLine("UPDATE VALIDITY");
         await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate);
     }
 
     private async Task UpdateAudited(Guid suspensionId, bool audited)
     {
+        Console.WriteLine("UPDATE AUDIT");
         await suspensionService.UpdateAudited(suspensionId, audited);
     }
 
     private async Task AddTagToSuspension(Guid suspensionId, Guid tagId)
     {
+        Console.WriteLine("ADD TAG");
         await suspensionService.AddTagToSuspension(suspensionId, tagId);
     }
 
     private async Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId)
     {
+        Console.WriteLine("REMOVE TAG");
         await suspensionService.RemoveTagFromSuspension(suspensionId, tagId);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        suspensionService.OnChange += StateHasChanged;
-        tagService.OnChange += StateHasChanged;
-
-        await suspensionService.Initialize();
+        Console.WriteLine("INITIALIZE");
+        suspensionService.OnChange += UpdateUi;
+        tagService.OnChange += UpdateUi;
         await tagService.Initialize();
+        await suspensionService.Initialize();
+    }
+
+    private void UpdateUi()
+    {
+        Console.WriteLine("UPDATE UI");
+        counter = 0;
+        StateHasChanged();
     }
 
     public void Dispose()
     {
-        suspensionService.OnChange -= StateHasChanged;
-        tagService.OnChange -= StateHasChanged;
+        suspensionService.OnChange -= UpdateUi;
+        tagService.OnChange -= UpdateUi;
     }
 }
