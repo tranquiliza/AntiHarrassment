@@ -18,9 +18,6 @@ namespace AntiHarassment.Sql
 
         public async Task<List<Channel>> GetChannels()
         {
-            // TODO REMOVE 1.2.0
-            await MigrateOldStructuredEntries().ConfigureAwait(false);
-
             var result = new List<Channel>();
             using (var command = sql.CreateStoredProcedure("[Core].[GetChannels]"))
             using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
@@ -50,28 +47,6 @@ namespace AntiHarassment.Sql
             }
 
             return null;
-        }
-
-        // TODO Remove in Version 1.2.0
-        private async Task MigrateOldStructuredEntries()
-        {
-            const string LegacyFetch = "SELECT [ChannelName], [ShouldListen] FROM [Core].[Channel] WHERE Data IS null";
-
-            var convertedEntries = new List<Channel>();
-
-            using (var command = sql.CreateQuery(LegacyFetch))
-            using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
-            {
-                while (await reader.ReadAsync().ConfigureAwait(false))
-                {
-                    convertedEntries.Add(new Channel(reader.GetString("channelName"), reader.GetBoolean("shouldListen")));
-                }
-            }
-
-            foreach (var channel in convertedEntries)
-            {
-                await Upsert(channel).ConfigureAwait(false);
-            }
         }
 
         public async Task Upsert(Channel channel)

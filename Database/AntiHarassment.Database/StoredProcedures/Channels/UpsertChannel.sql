@@ -11,7 +11,6 @@ BEGIN
 	ELSE
 		UPDATE [Core].[Channel]
 		SET
-		[ChannelId] = @channelId, -- TODO REMOVE IN V1.2.0
 		[ShouldListen] = @shouldListen,
 		[Data] = @data
 		WHERE [ChannelName] = @channelName

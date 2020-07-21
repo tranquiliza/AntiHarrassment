@@ -26,8 +26,8 @@ namespace AntiHarassment.Frontend.Application
 
         public async Task Initialize()
         {
-            Tags = await apiGateway.Get<List<TagModel>>("tags").ConfigureAwait(false) ?? new List<TagModel>();
-            NotifyStateChanged();
+                Tags = await apiGateway.Get<List<TagModel>>("tags").ConfigureAwait(false) ?? new List<TagModel>();
+                NotifyStateChanged();
         }
 
         public async Task AddNewTag(string tagName)

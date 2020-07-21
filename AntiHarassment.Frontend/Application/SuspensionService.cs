@@ -85,17 +85,16 @@ namespace AntiHarassment.Frontend.Application
             {
                 await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
             }
-
-            NotifyStateChanged();
         }
 
         public async Task FetchSuspensionForChannel(string channelName)
         {
+            Suspensions = null;
+
             var result = await apiGateway.Get<List<SuspensionModel>>("suspensions", routeValues: new string[] { channelName }).ConfigureAwait(false);
             Suspensions = result ?? new List<SuspensionModel>();
 
             CurrentlySelectedChannel = channelName;
-            NotifyStateChanged();
         }
 
         public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate)
