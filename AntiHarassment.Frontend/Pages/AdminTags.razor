@@ -31,7 +31,7 @@
 
                         <tr>
                             <td>
-                                <input type="text" @bind-value="newTagName" /><button @onclick="async () => await AddNewTag()" class="btn btn-dark">Add</button>
+                                <input @onkeyup="PressedEnter" type="text" @bind-value="newTagName" /><button @onclick="async () => await AddNewTag()" class="btn btn-dark">Add</button>
                             </td>
                         </tr>
                     </tbody>
@@ -43,6 +43,14 @@
 
 @code {
     private string newTagName = "";
+
+    private async Task PressedEnter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddNewTag();
+        }
+    }
 
     private async Task AddNewTag()
     {

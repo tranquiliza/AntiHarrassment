@@ -12,7 +12,7 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public class ChatlistenerService : IChatlistenerService
     {
-        private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(5);
+        private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
 
         private readonly IChatClient client;
         private readonly IChannelRepository channelRepository;
@@ -34,12 +34,12 @@ namespace AntiHarassment.Chatlistener.Core
             this.datetimeProvider = datetimeProvider;
             this.suspensionRepository = suspensionRepository;
             this.chatRepository = chatRepository;
+            this.serviceProvider = serviceProvider;
 
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
 
             client.OnMessageReceived += async (sender, eventArgs) => await Client_OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
-            this.serviceProvider = serviceProvider;
         }
 
         private async Task Client_OnMessageReceived(object _, MessageReceivedEvent e)

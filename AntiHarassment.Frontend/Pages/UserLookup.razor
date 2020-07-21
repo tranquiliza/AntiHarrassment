@@ -1,0 +1,131 @@
+﻿@inject IUserReportService userReportService
+@implements IDisposable
+
+@page "/userlookup"
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <input @onkeyup="KeyUpEvent" type="text" @bind-value="searchTerm" /> <button class="btn btn-primary btn-sm" @onclick="async () => await SearchFor()">Search</button>
+            @if (!string.IsNullOrEmpty(userReportService.UserReportLookupError))
+            {
+                <p>
+                    @userReportService.UserReportLookupError
+                </p>
+            }
+        </div>
+    </div>
+    @if (Loading)
+    {
+        <p>LOADING....</p>
+    }
+    @if (model != null)
+    {
+        <div class="row">
+            <div class="col">
+                Username: @model.Username
+            </div>
+            <div class="col">
+                <h5>Banned In</h5>
+                @if (model.BannedFromChannels.Count > 0)
+                {
+                    <ul class="list-group bg-dark">
+                        @foreach (var channel in model.BannedFromChannels.OrderBy(x => x))
+                        {
+                            <li class="list-group-item list-group-item-dark">@channel</li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="col">
+                <h5>Timeouts In</h5>
+                @if (model.TimedoutFromChannels.Count > 0)
+                {
+                    @foreach (var channel in model.TimedoutFromChannels.OrderBy(x => x))
+                    {
+                        <ul class="list-group bg-dark">
+                            <li class="list-group-item list-group-item-dark">@channel</li>
+                        </ul>
+                    }
+                }
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <h5>Suspensions</h5>
+                <div class="accordion" id="suspensionsAccordion">
+                    @foreach (var suspension in model.Suspensions.OrderByDescending(x => x.Timestamp))
+                    {
+                        <div class="card bg-dark">
+                            <div class="card-header">
+                                <button class="btn btn-secondary btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false">
+                                    @suspension.Timestamp.FancyFormat() -
+                                    <b>@suspension.Username</b>
+                                    @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+                                    @suspension.SuspensionType.ToString()
+                                </button>
+                            </div>
+                            <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
+                                <div class="card-body">
+                                    @foreach (var tag in suspension.Tags)
+                                    {
+                                        <span class="badge badge-secondary">
+                                            @tag.TagName
+                                        </span>
+                                    }
+                                    <hr />
+                                    @foreach (var message in suspension.Messages)
+                                    {
+                                        <p><b>@message.Timestamp</b> @message.Message</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        { counter++; }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private int counter = 0;
+    private UserReportModel model;
+
+    private string searchTerm = "";
+
+    private bool Loading = false;
+
+    protected override void OnInitialized()
+    {
+        userReportService.OnChange += UpdateUi;
+    }
+
+    private void UpdateUi()
+    {
+        model = userReportService.UserReport;
+        Loading = false;
+        StateHasChanged();
+    }
+
+    private async Task KeyUpEvent(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchFor();
+        }
+    }
+
+    private async Task SearchFor()
+    {
+        Loading = true;
+
+        await userReportService.SearchForUser(searchTerm);
+    }
+
+    public void Dispose()
+    {
+        userReportService.OnChange -= UpdateUi;
+    }
+}

@@ -90,6 +90,7 @@
     <Build Include="StoredProcedures\Tags\GetTags.sql" />
     <Build Include="StoredProcedures\Tags\GetTag.sql" />
     <Build Include="StoredProcedures\Suspensions\GetSuspension.sql" />
+    <Build Include="StoredProcedures\Suspensions\GetSuspensionsForUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />
