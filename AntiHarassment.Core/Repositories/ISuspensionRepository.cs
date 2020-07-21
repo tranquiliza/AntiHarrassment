@@ -11,5 +11,6 @@ namespace AntiHarassment.Core
         Task Save(Suspension suspension);
         Task<List<Suspension>> GetSuspensionsForChannel(string channelOfOrigin);
         Task<Suspension> GetSuspension(Guid suspensionId);
+        Task<List<Suspension>> GetSuspensionsForUser(string username);
     }
 }
