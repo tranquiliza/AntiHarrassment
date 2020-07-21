@@ -16,7 +16,7 @@ namespace AntiHarassment.Core.Models
         public List<Suspension> Suspensions { get; private set; }
 
         [JsonProperty]
-        public List<Tag> Tags => Suspensions.SelectMany(x => x.Tags).ToList();
+        public List<Tag> Tags => Suspensions.SelectMany(x => x.Tags).ToList().GroupBy(x => x.TagName).Select(group => group.First()).ToList();
 
         [JsonProperty]
         public List<string> BannedFromChannels => Suspensions.GroupBy(x => x.ChannelOfOrigin)

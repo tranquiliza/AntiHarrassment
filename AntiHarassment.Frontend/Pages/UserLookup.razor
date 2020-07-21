@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <input @onkeyup="KeyUpEvent" type="text" @bind-value="searchTerm" /> <button class="btn btn-primary btn-sm" @onclick="async () => await SearchFor()">Search</button>
+            <input placeholder="Twitch Username" @onkeyup="KeyUpEvent" type="text" @bind-value="searchTerm" /> <button class="btn btn-primary btn-sm" @onclick="async () => await SearchFor()">Search</button>
             @if (!string.IsNullOrEmpty(userReportService.UserReportLookupError))
             {
                 <p>
@@ -47,6 +47,15 @@
                             <li class="list-group-item list-group-item-dark">@channel</li>
                         </ul>
                     }
+                }
+            </div>
+            <div class="col">
+                <h5>Tagged As</h5>
+                @foreach (var tag in model.Tags)
+                {
+                    <span class="badge badge-secondary">
+                        @tag.TagName
+                    </span>
                 }
             </div>
         </div>
