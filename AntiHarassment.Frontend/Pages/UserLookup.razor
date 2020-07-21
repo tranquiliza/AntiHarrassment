@@ -68,7 +68,7 @@
                         <div class="card bg-dark">
                             <div class="card-header">
                                 <button class="btn btn-secondary btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false">
-                                    @suspension.Timestamp.FancyFormat() -
+                                    @suspension.LocalTimeStamp().FancyFormat() -
                                     <b>@suspension.Username</b>
                                     @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
                                     @suspension.SuspensionType.ToString()
@@ -85,7 +85,7 @@
                                     <hr />
                                     @foreach (var message in suspension.Messages)
                                     {
-                                        <p><b>@message.Timestamp</b> @message.Message</p>
+                                        <p><b>@message.LocalTimestamp()</b> @message.Message</p>
                                     }
                                 </div>
                             </div>

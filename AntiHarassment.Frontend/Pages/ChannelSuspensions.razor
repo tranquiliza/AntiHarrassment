@@ -12,7 +12,7 @@
     else
     {
         <div class="row">
-            <div class="col-12">
+            <div class="col-2">
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
@@ -24,6 +24,9 @@
                         }
                     </div>
                 </div>
+            </div>
+            <div class="col-2">
+                <input type="date" @bind-value="selectedDate" />
             </div>
         </div>
     }
@@ -44,13 +47,34 @@
                     <p>No suspensions yet</p>
                 }
 
+                @if (suspensionService.Suspensions.Any(x => x.LocalTimeStamp().Date != selectedDate.Date && !x.Audited))
+                {
+                    <div class="card bg-danger">
+                        <div class="card-body">
+                            <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
+                            <ul class="list-group">
+                                @foreach (var unaudited in suspensionService.Suspensions
+                            .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                            .GroupBy(x => x.LocalTimeStamp()).First()
+                            .ToList())
+                                {
+                                    <li class="list-group-item list-group-item-danger">
+                                        @unaudited.LocalTimeStamp().ShortFancyFormat()
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+                }
+
                 <div class="accordion" id="suspensionsAccordion">
-                    @foreach (var suspension in suspensionService.Suspensions.OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
+                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.LocalTimeStamp().Date == selectedDate.Date).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
                     {
                         <div class="card bg-dark">
                             <div class="card-header">
                                 <button class="btn @SelectButtonColor(suspension) btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false">
-                                    @suspension.Timestamp.FancyFormat() -
+                                    @suspension.LocalTimeStamp().FancyFormat() -
                                     <b>@suspension.Username</b>
                                     @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
                                     @suspension.SuspensionType.ToString()
@@ -110,7 +134,7 @@
 
                                     @foreach (var message in suspension.Messages)
                                     {
-                                        <p><b>@message.Timestamp</b> @message.Message</p>
+                                        <p><b>@message.LocalTimestamp()</b> @message.Message</p>
                                     }
                                 </div>
                             </div>
@@ -127,11 +151,20 @@
 </div>
 
 @code {
+    private DateTime selectedDate = DateTime.UtcNow.Date;
+
+    public async Task DateSelected(ChangeEventArgs changeEventArgs)
+    {
+        if (DateTime.TryParse(changeEventArgs.Value.ToString(), out var value))
+        {
+            selectedDate = value;
+        }
+    }
+
     private int counter = 0;
 
     private string SelectButtonColor(SuspensionModel suspension)
     {
-        Console.WriteLine("BUTTON COLOR");
         if (suspension.Audited && suspension.InvalidSuspension)
         {
             return "btn-secondary";
@@ -154,37 +187,31 @@
 
     private async Task SelectChannel(string channelName)
     {
-        Console.WriteLine("SELECT CHANNEL");
         await suspensionService.FetchSuspensionForChannel(channelName);
     }
 
     private async Task UpdateValidity(Guid suspensionId, bool invalidate)
     {
-        Console.WriteLine("UPDATE VALIDITY");
         await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate);
     }
 
     private async Task UpdateAudited(Guid suspensionId, bool audited)
     {
-        Console.WriteLine("UPDATE AUDIT");
         await suspensionService.UpdateAudited(suspensionId, audited);
     }
 
     private async Task AddTagToSuspension(Guid suspensionId, Guid tagId)
     {
-        Console.WriteLine("ADD TAG");
         await suspensionService.AddTagToSuspension(suspensionId, tagId);
     }
 
     private async Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId)
     {
-        Console.WriteLine("REMOVE TAG");
         await suspensionService.RemoveTagFromSuspension(suspensionId, tagId);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("INITIALIZE");
         suspensionService.OnChange += UpdateUi;
         tagService.OnChange += UpdateUi;
         await tagService.Initialize();
@@ -193,7 +220,6 @@
 
     private void UpdateUi()
     {
-        Console.WriteLine("UPDATE UI");
         counter = 0;
         StateHasChanged();
     }
