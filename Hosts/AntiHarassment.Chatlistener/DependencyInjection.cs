@@ -19,11 +19,14 @@ namespace AntiHarassment.Chatlistener
                 var connectionString = context.Configuration["ConnectionStrings:AntiHarassmentDatabase"];
                 var twitchUsername = context.Configuration["Twitch:Username"];
                 var twitchBotOAuth = context.Configuration["Twitch:OAuthToken"];
+                var clientId = context.Configuration["Twitch:ClientId"];
+                var secret = context.Configuration["Twitch:Secret"];
 
-                var chatClientSettings = new TwitchClientSettings(twitchUsername, twitchBotOAuth);
+                var chatClientSettings = new TwitchClientSettings(twitchUsername, twitchBotOAuth, clientId, secret);
 
                 services.AddSingleton(chatClientSettings);
                 services.AddSingleton<IChatClient, TwitchChatClient>();
+                services.AddSingleton<IPubSubClient, TwitchPubSubClient>();
 
                 services.AddSingleton<IChatlistenerService, ChatlistenerService>();
                 services.AddSingleton<IUserNotificationService, UserNotificationService>();

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Core
 {
-    public interface IChatClient
+    public interface IChatClient : IDisposable
     {
         event EventHandler<MessageReceivedEvent> OnMessageReceived;
         event EventHandler<UserJoinedEvent> OnUserJoined;

@@ -137,5 +137,10 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         {
             OnUserJoined?.Invoke(this, e.Map());
         }
+
+        public void Dispose()
+        {
+            client.Disconnect();
+        }
     }
 }
