@@ -41,12 +41,12 @@
                 <h5>Timeouts In</h5>
                 @if (model.TimedoutFromChannels.Count > 0)
                 {
-                    @foreach (var channel in model.TimedoutFromChannels.OrderBy(x => x))
-                    {
-                        <ul class="list-group bg-dark">
+                    <ul class="list-group bg-dark">
+                        @foreach (var channel in model.TimedoutFromChannels.OrderBy(x => x))
+                        {
                             <li class="list-group-item list-group-item-dark">@channel</li>
-                        </ul>
-                    }
+                        }
+                    </ul>
                 }
             </div>
             <div class="col">

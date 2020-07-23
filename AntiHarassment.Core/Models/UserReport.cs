@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace AntiHarassment.Core.Models
@@ -20,11 +19,11 @@ namespace AntiHarassment.Core.Models
 
         [JsonProperty]
         public List<string> BannedFromChannels => Suspensions.GroupBy(x => x.ChannelOfOrigin)
-            .Select(groupedSuspensions => groupedSuspensions.FirstOrDefault(y => y.SuspensionType == SuspensionType.Ban)?.ChannelOfOrigin).ToList();
+            .Select(groupedSuspensions => groupedSuspensions.FirstOrDefault(y => y.SuspensionType == SuspensionType.Ban)?.ChannelOfOrigin).Where(x => x != null).ToList();
 
         [JsonProperty]
         public List<string> TimedOutFromChannels => Suspensions.GroupBy(x => x.ChannelOfOrigin)
-            .Select(groupedSuspensions => groupedSuspensions.FirstOrDefault(y => y.SuspensionType == SuspensionType.Timeout)?.ChannelOfOrigin).ToList();
+            .Select(groupedSuspensions => groupedSuspensions.FirstOrDefault(y => y.SuspensionType == SuspensionType.Timeout)?.ChannelOfOrigin).Where(x => x != null).ToList();
 
         public UserReport(string username, List<Suspension> suspensions)
         {
