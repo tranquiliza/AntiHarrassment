@@ -1,5 +1,6 @@
 ﻿@inject ISuspensionService suspensionService
 @inject ITagService tagService
+@inject IJSRuntime jsRuntime
 @implements IDisposable
 
 @page "/ChannelSuspensions"
@@ -54,10 +55,10 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-                           .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                           .GroupBy(x => x.LocalTimeStamp().Date)
-                           .Select(key => key.Key)
-                           .ToList())
+                       .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                       .GroupBy(x => x.LocalTimeStamp().Date)
+                       .Select(key => key.Key)
+                       .ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
                                         <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
@@ -103,6 +104,8 @@
                                                 {
                                                     <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
                                                 }
+                                                <a class="btn btn-primary btn-sm" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
+                                                <button class="btn btn-secondary btn-sm" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
                                             </div>
                                         </div>
                                     </div>
@@ -131,6 +134,7 @@
                                             </div>
                                         </div>
                                     }
+
                                     <hr />
 
                                     @foreach (var message in suspension.Messages)
@@ -160,6 +164,17 @@
         {
             selectedDate = value;
         }
+    }
+
+    private string CopyUsernameButtonText = "Copy Username";
+
+    private async Task CopyToClipboard(string textToCopy)
+    {
+        CopyUsernameButtonText = "Copied";
+        await jsRuntime.InvokeVoidAsync("CopyTextToClipboard", textToCopy);
+
+        await Task.Delay(800);
+        CopyUsernameButtonText = "Copy Username";
     }
 
     private int counter = 0;
