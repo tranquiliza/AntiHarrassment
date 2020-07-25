@@ -49,6 +49,9 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task Client_OnUserTimedout(object _, UserTimedoutEvent e)
         {
+            if (e.TimeoutDuration <= 10)
+                return;
+
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var timeOfSuspension = datetimeProvider.UtcNow;
