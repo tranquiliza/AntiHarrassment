@@ -1,5 +1,6 @@
 ﻿using AntiHarassment.Contract;
 using AntiHarassment.Frontend.Infrastructure;
+using AntiHarassment.SignalR.Contract;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -28,19 +29,41 @@ namespace AntiHarassment.Frontend.Application
 
         private readonly IApiGateway apiGateway;
         private readonly IApplicationStateManager applicationStateManager;
+        private readonly ChannelsHubSignalRClient channelsHubSignalRClient;
+        private readonly SuspensionsHubSignalRClient suspensionsHubSignalRClient;
+
         public UserInformation User { get; private set; }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
         public event Action OnChange;
 
-        public bool IsUserLoggedIn => User != null && DateTime.UtcNow < User.TokenExpires;
+        public bool IsUserLoggedIn
+        {
+            get
+            {
+                if (User != null && DateTime.UtcNow < User.TokenExpires)
+                    return true;
+
+                channelsHubSignalRClient.DisposeAsync();
+                suspensionsHubSignalRClient.DisposeAsync();
+
+                return false;
+            }
+        }
+
         public bool IsUserAdmin => User?.Roles.Any(role => string.Equals("ADMIN", role, StringComparison.Ordinal)) == true;
         public string CurrentUserTwitchUsername => User?.TwitchUsername;
 
-        public UserService(IApiGateway apiGateway, IApplicationStateManager applicationStateManager)
+        public UserService(
+            IApiGateway apiGateway,
+            IApplicationStateManager applicationStateManager,
+            ChannelsHubSignalRClient channelsHubSignalRClient,
+            SuspensionsHubSignalRClient suspensionsHubSignalRClient)
         {
             this.apiGateway = apiGateway;
             this.applicationStateManager = applicationStateManager;
+            this.channelsHubSignalRClient = channelsHubSignalRClient;
+            this.suspensionsHubSignalRClient = suspensionsHubSignalRClient;
         }
 
         public async Task Initialize()
