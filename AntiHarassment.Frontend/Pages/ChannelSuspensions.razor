@@ -158,14 +158,6 @@
 @code {
     private DateTime selectedDate = DateTime.UtcNow.Date;
 
-    public async Task DateSelected(ChangeEventArgs changeEventArgs)
-    {
-        if (DateTime.TryParse(changeEventArgs.Value.ToString(), out var value))
-        {
-            selectedDate = value;
-        }
-    }
-
     private string CopyUsernameButtonText = "Copy Username";
 
     private async Task CopyToClipboard(string textToCopy)

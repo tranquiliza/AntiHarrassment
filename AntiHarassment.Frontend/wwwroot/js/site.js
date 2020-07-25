@@ -9,3 +9,11 @@ window.AntiHarassmentGetItem = function (key) {
 window.CopyTextToClipboard = function (text) {
     navigator.clipboard.writeText(text);
 }
+
+window.DownloadAsFile = function (content, filename, contentType) {
+    var file = new Blob([content], { type: contentType });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(file);
+    a.download = filename;
+    a.click();
+}

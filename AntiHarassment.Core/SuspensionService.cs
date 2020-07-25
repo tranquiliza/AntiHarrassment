@@ -32,7 +32,7 @@ namespace AntiHarassment.Core
             if (channel == null)
                 return Result<List<Suspension>>.NoContentFound();
 
-            if (!HaveAccess(context, channel))
+            if (!context.HaveAccessTo(channel))
                 return Result<List<Suspension>>.Unauthorized();
 
             var dataForUser = await suspensionRepository.GetSuspensionsForChannel(channelOfOrigin).ConfigureAwait(false);
@@ -118,7 +118,7 @@ namespace AntiHarassment.Core
             if (channel == null)
                 return Result<Suspension>.Failure($"The channel {suspension.ChannelOfOrigin}, was not found");
 
-            if (!HaveAccess(context, channel))
+            if (!context.HaveAccessTo(channel))
                 return Result<Suspension>.Unauthorized();
 
             return Result<Suspension>.Succeeded(suspension);
@@ -127,13 +127,6 @@ namespace AntiHarassment.Core
         private async Task PublishSuspensionUpdatedEvent(Suspension suspension)
         {
             await messageDispatcher.Publish(new SuspensionUpdatedEvent { ChannelOfOrigin = suspension.ChannelOfOrigin, SuspensionId = suspension.SuspensionId }).ConfigureAwait(false);
-        }
-
-        private bool HaveAccess(IApplicationContext context, Channel channel)
-        {
-            return string.Equals(context.User?.TwitchUsername, channel.ChannelName, StringComparison.OrdinalIgnoreCase)
-                            || context.User?.HasRole(Roles.Admin) == true
-                            || channel.HasModerator(context.User?.TwitchUsername);
         }
 
         public async Task<IResult<Suspension>> GetSuspensionAsync(Guid suspensionId, IApplicationContext context)
@@ -146,7 +139,7 @@ namespace AntiHarassment.Core
             if (channelOfOrigin == null)
                 return Result<Suspension>.Failure("Unable to fetch channel of origin");
 
-            if (!HaveAccess(context, channelOfOrigin))
+            if (!context.HaveAccessTo(channelOfOrigin))
                 return Result<Suspension>.Unauthorized();
 
             return Result<Suspension>.Succeeded(suspension);

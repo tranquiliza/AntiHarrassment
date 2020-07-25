@@ -6,6 +6,7 @@ namespace AntiHarassment.Core.Models
 {
     public class ChatMessage
     {
+        public string Username { get; private set; }
         public DateTime Timestamp { get; private set; }
         public string Message { get; private set; }
 
@@ -15,6 +16,11 @@ namespace AntiHarassment.Core.Models
         {
             Timestamp = timestamp;
             Message = message;
+        }
+
+        public void AttachUsername(string username)
+        {
+            Username = username;
         }
     }
 }
