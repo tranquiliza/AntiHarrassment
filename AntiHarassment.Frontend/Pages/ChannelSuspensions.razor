@@ -112,7 +112,7 @@
                                     <hr />
                                     @foreach (var tag in suspension.Tags)
                                     {
-                                        <span class="badge badge-secondary">
+                                        <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
                                             @tag.TagName
                                             @if (!suspension.Audited)
                                             {
@@ -129,7 +129,7 @@
                                             <div class="dropdown-menu" aria-labelledby="@("#tagSelectMenu"+counter)">
                                                 @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
                                                 {
-                                                    <button @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)" class="dropdown-item" type="button">@tag.TagName</button>
+                                                    <button @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)" class="dropdown-item" type="button" data-placement="right" title="@tag.TagDescription">@tag.TagName</button>
                                                 }
                                             </div>
                                         </div>

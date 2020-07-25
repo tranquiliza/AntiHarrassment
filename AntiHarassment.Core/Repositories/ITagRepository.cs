@@ -11,5 +11,6 @@ namespace AntiHarassment.Core
         Task Save(Tag newTag);
         Task<Tag> Get(Guid tagId);
         Task<List<Tag>> Get();
+        Task Delete(Guid tagId);
     }
 }

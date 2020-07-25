@@ -54,7 +54,7 @@
                 <h5>Tagged As</h5>
                 @foreach (var tag in model.Tags)
                 {
-                    <span class="badge badge-secondary">
+                    <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
                         @tag.TagName
                     </span>
                 }
@@ -79,7 +79,7 @@
                                 <div class="card-body">
                                     @foreach (var tag in suspension.Tags)
                                     {
-                                        <span class="badge badge-secondary">
+                                        <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
                                             @tag.TagName
                                         </span>
                                     }

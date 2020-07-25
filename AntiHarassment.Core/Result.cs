@@ -21,6 +21,11 @@ namespace AntiHarassment.Core
             State = ResultState.Failure,
             FailureReason = failureReason
         };
+
+        public static Result Unauthorized() => new Result
+        {
+            State = ResultState.AccessDenied
+        };
     }
 
     public class Result<T> : Result, IResult<T>
