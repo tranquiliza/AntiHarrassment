@@ -29,7 +29,7 @@ namespace AntiHarassment.WebApi.Controllers
         {
             if (model.TagId != default)
             {
-                var result = await tagService.Update(model.TagId, model.TagName, ApplicationContext).ConfigureAwait(false);
+                var result = await tagService.Update(model.TagId, model.TagName, model.TagDescription, ApplicationContext).ConfigureAwait(false);
                 if (result.State == ResultState.Success)
                     return Ok(result.Data.Map());
 
@@ -37,7 +37,7 @@ namespace AntiHarassment.WebApi.Controllers
             }
             else
             {
-                var result = await tagService.Create(model.TagName, ApplicationContext).ConfigureAwait(false);
+                var result = await tagService.Create(model.TagName, model.TagDescription, ApplicationContext).ConfigureAwait(false);
                 if (result.State == ResultState.Success)
                     return Ok(result.Data.Map());
 
@@ -62,6 +62,20 @@ namespace AntiHarassment.WebApi.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpDelete("{tagId}")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<IActionResult> DeleteTag([FromRoute] Guid tagId)
+        {
+            var result = await tagService.Delete(tagId, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Failure)
+                return BadRequest();
+
+            return Ok();
         }
     }
 }

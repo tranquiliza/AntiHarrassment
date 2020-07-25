@@ -12,6 +12,8 @@ namespace AntiHarassment.Frontend.Application
         List<TagModel> Tags { get; }
 
         Task Initialize();
-        Task AddNewTag(string tagName);
+        Task AddNewTag(string tagName, string tagDescription);
+        Task DeleteTag(Guid tagId);
+        Task UpdateTag(Guid tagId, string tagName, string tagDescription);
     }
 }
