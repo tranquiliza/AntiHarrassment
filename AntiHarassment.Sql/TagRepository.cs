@@ -16,6 +16,15 @@ namespace AntiHarassment.Sql
             sql = SqlAccessBase.Create(connectionString);
         }
 
+        public async Task Delete(Guid tagId)
+        {
+            using (var command = sql.CreateStoredProcedure("[Core].[DeleteTag]"))
+            {
+                command.WithParameter("tagId", tagId);
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
+
         public async Task<Tag> Get(Guid tagId)
         {
             using (var command = sql.CreateStoredProcedure("[Core].[GetTag]"))

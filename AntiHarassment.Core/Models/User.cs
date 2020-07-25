@@ -76,7 +76,7 @@ namespace AntiHarassment.Core.Models
         internal bool TryGenerateResetToken(DateTime tokenExpirationTime, DateTime currentTime)
         {
             // If we already have a token, there is no reason to send a new one. Use the current. (Prevents flooding too)
-            if (ResetTokenExpiration != default && ResetTokenExpiration < currentTime) // If we have no token, we need.
+            if (ResetTokenExpiration != default && ResetTokenExpiration > currentTime) // If we have no token, we need.
                 return false;
 
             ResetToken = Guid.NewGuid();

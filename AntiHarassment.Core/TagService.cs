@@ -16,14 +16,24 @@ namespace AntiHarassment.Core
             this.tagRepository = tagRepository;
         }
 
-        public async Task<IResult<Tag>> Create(string tagName, IApplicationContext context)
+        public async Task<IResult<Tag>> Create(string tagName, string description, IApplicationContext context)
         {
             if (!context.User.HasRole(Roles.Admin))
                 return Result<Tag>.Unauthorized();
 
-            var newTag = new Tag(tagName);
+            var newTag = new Tag(tagName, description);
             await tagRepository.Save(newTag).ConfigureAwait(false);
             return Result<Tag>.Succeeded(newTag);
+        }
+
+        public async Task<IResult> Delete(Guid tagId, IApplicationContext applicationContext)
+        {
+            if (!applicationContext.User.HasRole(Roles.Admin))
+                return Result.Unauthorized();
+
+            await tagRepository.Delete(tagId).ConfigureAwait(false);
+
+            return Result.Succeeded;
         }
 
         public async Task<IResult<Tag>> Get(Guid tagId)
@@ -44,7 +54,7 @@ namespace AntiHarassment.Core
             return Result<List<Tag>>.Succeeded(tags);
         }
 
-        public async Task<IResult<Tag>> Update(Guid tagId, string tagName, IApplicationContext context)
+        public async Task<IResult<Tag>> Update(Guid tagId, string tagName, string description, IApplicationContext context)
         {
             if (!context.User.HasRole(Roles.Admin))
                 return Result<Tag>.Unauthorized();
@@ -54,6 +64,8 @@ namespace AntiHarassment.Core
                 return Result<Tag>.Failure("Tag not found, invalid Id");
 
             existingTag.UpdateName(tagName);
+            existingTag.UpdateDescription(description);
+
             await tagRepository.Save(existingTag).ConfigureAwait(false);
 
             return Result<Tag>.Succeeded(existingTag);

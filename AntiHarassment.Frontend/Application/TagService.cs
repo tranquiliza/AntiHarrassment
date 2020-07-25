@@ -26,16 +26,47 @@ namespace AntiHarassment.Frontend.Application
 
         public async Task Initialize()
         {
-                Tags = await apiGateway.Get<List<TagModel>>("tags").ConfigureAwait(false) ?? new List<TagModel>();
-                NotifyStateChanged();
+            Tags = await apiGateway.Get<List<TagModel>>("tags").ConfigureAwait(false) ?? new List<TagModel>();
+            NotifyStateChanged();
         }
 
-        public async Task AddNewTag(string tagName)
+        public async Task UpdateTag(Guid tagId, string tagName, string tagDescription)
         {
             if (!userService.IsUserAdmin)
                 return;
 
-            var newTag = await apiGateway.Post<TagModel, UpdateTagModel>(new UpdateTagModel { TagName = tagName }, "tags").ConfigureAwait(false);
+            var model = new UpdateTagModel { TagId = tagId, TagName = tagName, TagDescription = tagDescription };
+
+            var updatedTag = await apiGateway.Post<TagModel, UpdateTagModel>(model, "tags").ConfigureAwait(false);
+            if (updatedTag != null)
+            {
+                var existingTag = Tags.Find(x => x.TagId == tagId);
+                if (existingTag != null)
+                    Tags.Remove(existingTag);
+
+                Tags.Add(updatedTag);
+
+                NotifyStateChanged();
+            }
+        }
+
+        public async Task DeleteTag(Guid tagId)
+        {
+            await apiGateway.Delete("tags", routeValues: new string[] { tagId.ToString() }).ConfigureAwait(false);
+
+            var existingTag = Tags.Find(x => x.TagId == tagId);
+            if (existingTag != null)
+                Tags.Remove(existingTag);
+
+            NotifyStateChanged();
+        }
+
+        public async Task AddNewTag(string tagName, string tagDescription)
+        {
+            if (!userService.IsUserAdmin)
+                return;
+
+            var newTag = await apiGateway.Post<TagModel, UpdateTagModel>(new UpdateTagModel { TagName = tagName, TagDescription = tagDescription }, "tags").ConfigureAwait(false);
             if (newTag != null)
                 Tags.Add(newTag);
 

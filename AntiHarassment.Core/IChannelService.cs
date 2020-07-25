@@ -14,5 +14,6 @@ namespace AntiHarassment.Core
         Task<IResult<Channel>> GetChannel(string channelName, IApplicationContext context);
         Task<IResult<Channel>> AddModeratorToChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context);
         Task<IResult<Channel>> DeleteModeratorFromChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context);
+        Task<IResult<List<ChatMessage>>> GetChatLogs(string channelName, DateTime earliestTime, DateTime latestDate, IApplicationContext context);
     }
 }

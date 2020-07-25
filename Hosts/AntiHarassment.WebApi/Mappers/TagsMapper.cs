@@ -19,7 +19,8 @@ namespace AntiHarassment.WebApi.Mappers
             => new TagModel
             {
                 TagId = tag.TagId,
-                TagName = tag.TagName
+                TagName = tag.TagName,
+                TagDescription = tag.Description
             };
     }
 }

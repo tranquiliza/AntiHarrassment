@@ -15,5 +15,7 @@ namespace AntiHarassment.Frontend.Application
         Task AddModerator(string moderatorTwitchUsername);
         Task RemoveModerator(string moderatorTwitchUsername);
         Task UpdateChannelState(bool shouldListen);
+        Task DownloadChatLog(DateTime earliestTime, DateTime latestTime, bool downloadPlain);
+        Task ChangeChannel(string channelName);
     }
 }

@@ -14,16 +14,18 @@ namespace AntiHarassment.Core
     {
         private readonly IChannelRepository channelRepository;
         private readonly IMessageDispatcher messageDispatcher;
+        private readonly IChatRepository chatRepository;
 
-        public ChannelService(IChannelRepository channelRepository, IMessageDispatcher messageDispatcher)
+        public ChannelService(IChannelRepository channelRepository, IMessageDispatcher messageDispatcher, IChatRepository chatRepository)
         {
             this.channelRepository = channelRepository;
             this.messageDispatcher = messageDispatcher;
+            this.chatRepository = chatRepository;
         }
 
         public async Task<IResult<Channel>> AddModeratorToChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context)
         {
-            if (!string.Equals(channelName, context.User.TwitchUsername))
+            if (!string.Equals(channelName, context.User.TwitchUsername) && !context.User.HasRole(Roles.Admin))
                 return Result<Channel>.Unauthorized();
 
             var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
@@ -40,7 +42,7 @@ namespace AntiHarassment.Core
 
         public async Task<IResult<Channel>> DeleteModeratorFromChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context)
         {
-            if (!string.Equals(channelName, context.User.TwitchUsername))
+            if (!string.Equals(channelName, context.User.TwitchUsername) && !context.User.HasRole(Roles.Admin))
                 return Result<Channel>.Unauthorized();
 
             var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
@@ -96,6 +98,19 @@ namespace AntiHarassment.Core
                 var leaveChannelCommand = new LeaveChannelCommand { ChannelName = channelName };
                 await messageDispatcher.Send(leaveChannelCommand).ConfigureAwait(false);
             }
+        }
+
+        public async Task<IResult<List<ChatMessage>>> GetChatLogs(string channelName, DateTime earliestTime, DateTime latestDate, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (!context.HaveAccessTo(channel))
+                return Result<List<ChatMessage>>.Unauthorized();
+
+            var chatLogs = await chatRepository.GetMessagesForChannel(channel.ChannelName, earliestTime, latestDate).ConfigureAwait(false);
+            if (chatLogs.Count == 0)
+                return Result<List<ChatMessage>>.NoContentFound();
+
+            return Result<List<ChatMessage>>.Succeeded(chatLogs);
         }
     }
 }

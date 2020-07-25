@@ -1,5 +1,6 @@
 ﻿@inject ISuspensionService suspensionService
 @inject ITagService tagService
+@inject IJSRuntime jsRuntime
 @implements IDisposable
 
 @page "/ChannelSuspensions"
@@ -54,12 +55,13 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-                            .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                            .GroupBy(x => x.LocalTimeStamp()).First()
-                            .ToList())
+                       .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                       .GroupBy(x => x.LocalTimeStamp().Date)
+                       .Select(key => key.Key)
+                       .ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
-                                        @unaudited.LocalTimeStamp().ShortFancyFormat()
+                                        <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
                                     </li>
                                 }
                             </ul>
@@ -102,13 +104,15 @@
                                                 {
                                                     <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
                                                 }
+                                                <a class="btn btn-primary btn-sm" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
+                                                <button class="btn btn-secondary btn-sm" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
                                             </div>
                                         </div>
                                     </div>
                                     <hr />
                                     @foreach (var tag in suspension.Tags)
                                     {
-                                        <span class="badge badge-secondary">
+                                        <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
                                             @tag.TagName
                                             @if (!suspension.Audited)
                                             {
@@ -125,11 +129,12 @@
                                             <div class="dropdown-menu" aria-labelledby="@("#tagSelectMenu"+counter)">
                                                 @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
                                                 {
-                                                    <button @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)" class="dropdown-item" type="button">@tag.TagName</button>
+                                                    <button @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)" class="dropdown-item" type="button" data-placement="right" title="@tag.TagDescription">@tag.TagName</button>
                                                 }
                                             </div>
                                         </div>
                                     }
+
                                     <hr />
 
                                     @foreach (var message in suspension.Messages)
@@ -153,12 +158,15 @@
 @code {
     private DateTime selectedDate = DateTime.UtcNow.Date;
 
-    public async Task DateSelected(ChangeEventArgs changeEventArgs)
+    private string CopyUsernameButtonText = "Copy Username";
+
+    private async Task CopyToClipboard(string textToCopy)
     {
-        if (DateTime.TryParse(changeEventArgs.Value.ToString(), out var value))
-        {
-            selectedDate = value;
-        }
+        CopyUsernameButtonText = "Copied";
+        await jsRuntime.InvokeVoidAsync("CopyTextToClipboard", textToCopy);
+
+        await Task.Delay(800);
+        CopyUsernameButtonText = "Copy Username";
     }
 
     private int counter = 0;

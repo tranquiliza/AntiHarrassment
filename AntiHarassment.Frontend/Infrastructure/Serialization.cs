@@ -15,6 +15,12 @@ namespace AntiHarassment.Frontend.Infrastructure
             return JsonSerializer.Serialize(input, _options);
         }
 
+        public static string SerializePretty<T>(T input)
+        {
+            var prettyPrintOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true };
+            return JsonSerializer.Serialize(input, prettyPrintOptions);
+        }
+
         public static T Deserialize<T>(string input)
         {
             return JsonSerializer.Deserialize<T>(input, _options);

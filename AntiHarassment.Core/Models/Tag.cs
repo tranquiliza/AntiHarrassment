@@ -13,17 +13,26 @@ namespace AntiHarassment.Core.Models
         [JsonProperty]
         public string TagName { get; private set; }
 
+        [JsonProperty]
+        public string Description { get; private set; }
+
         private Tag() { }
 
-        public Tag(string tagName)
+        public Tag(string tagName, string description)
         {
             TagId = Guid.NewGuid();
             TagName = tagName;
+            Description = description;
         }
 
         public void UpdateName(string newName)
         {
             TagName = newName;
+        }
+
+        public void UpdateDescription(string description)
+        {
+            Description = description;
         }
     }
 }

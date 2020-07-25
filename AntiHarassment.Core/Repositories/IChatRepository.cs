@@ -10,5 +10,6 @@ namespace AntiHarassment.Core
     {
         Task SaveChatMessage(string username, string channelOfOrigin, string message, DateTime timestamp);
         Task<List<ChatMessage>> GetMessagesFor(string username, string channelOfOrigin, TimeSpan historySpan, DateTime timeOfSuspension);
+        Task<List<ChatMessage>> GetMessagesForChannel(string channelOfOrigin, DateTime earliestTime, DateTime latestTime);
     }
 }
