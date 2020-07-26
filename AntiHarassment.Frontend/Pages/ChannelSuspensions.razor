@@ -55,10 +55,10 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-                       .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                       .GroupBy(x => x.LocalTimeStamp().Date)
-                       .Select(key => key.Key)
-                       .ToList())
+                      .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                      .GroupBy(x => x.LocalTimeStamp().Date)
+                      .Select(key => key.Key)
+                      .ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
                                         <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
@@ -139,7 +139,15 @@
 
                                     @foreach (var message in suspension.Messages)
                                     {
-                                        <p><b>@message.LocalTimestamp()</b> @message.Message</p>
+                                        @if (message.AutoModded)
+                                        {
+                                            <p class="text-danger"><b>@message.LocalTimestamp()</b> @message.Message</p>
+                                        }
+                                        else
+                                        {
+                                            <p><b>@message.LocalTimestamp()</b> @message.Message</p>
+                                        }
+
                                     }
                                 </div>
                             </div>
@@ -156,7 +164,7 @@
 </div>
 
 @code {
-    private DateTime selectedDate = DateTime.UtcNow.Date;
+    private DateTime selectedDate = DateTime.Now.Date;
 
     private string CopyUsernameButtonText = "Copy Username";
 
