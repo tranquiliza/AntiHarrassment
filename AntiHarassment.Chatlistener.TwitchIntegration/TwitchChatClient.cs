@@ -120,7 +120,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 
         private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
         {
-            OnMessageReceived?.Invoke(this, e.Map());
+            OnMessageReceived?.Invoke(this, e.Map(autoModded: false));
         }
 
         private void Client_OnUserBanned(object sender, OnUserBannedArgs e)

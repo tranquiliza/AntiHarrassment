@@ -4,7 +4,8 @@
     [Username] NVARCHAR(100) NOT NULL, 
     [ChannelOfOrigin] NVARCHAR(100) NOT NULL,
     [Message] NVARCHAR(2000) NOT NULL, 
-    [Timestamp] DATETIME2(0) NOT NULL
+    [Timestamp] DATETIME2(0) NOT NULL,
+    [AutoModded] BIT NOT NULL DEFAULT 0
 )
 GO
 

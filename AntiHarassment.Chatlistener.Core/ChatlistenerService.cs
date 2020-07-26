@@ -42,12 +42,13 @@ namespace AntiHarassment.Chatlistener.Core
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
 
-            client.OnMessageReceived += async (sender, eventArgs) => await Client_OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
         }
 
-        private async Task Client_OnMessageReceived(object _, MessageReceivedEvent e)
+        private async Task OnMessageReceived(object _, MessageReceivedEvent e)
         {
-            await chatRepository.SaveChatMessage(e.DisplayName, e.Channel, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
+            await chatRepository.SaveChatMessage(e.DisplayName, e.Channel, e.AutoModded, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserTimedout(object _, UserTimedoutEvent e)
