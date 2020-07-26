@@ -31,6 +31,7 @@ namespace AntiHarassment.WebApi
             services.AddSingleton<IUserRepository, UserRepository>(_ => new UserRepository(connstring));
             services.AddSingleton<ISuspensionRepository, SuspensionRepository>(_ => new SuspensionRepository(connstring));
             services.AddSingleton<ITagRepository, TagRepository>(_ => new TagRepository(connstring));
+            services.AddSingleton<IChatRepository, ChatRepository>(_ => new ChatRepository(connstring));
 
             services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
 

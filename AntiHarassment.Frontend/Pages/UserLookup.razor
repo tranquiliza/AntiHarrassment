@@ -2,6 +2,7 @@
 @implements IDisposable
 
 @page "/userlookup"
+@page "/userlookup/{Username}"
 
 <div class="container-fluid">
     <div class="row">
@@ -53,7 +54,7 @@
                 <h5>Tagged As</h5>
                 @foreach (var tag in model.Tags)
                 {
-                    <span class="badge badge-secondary">
+                    <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
                         @tag.TagName
                     </span>
                 }
@@ -78,7 +79,7 @@
                                 <div class="card-body">
                                     @foreach (var tag in suspension.Tags)
                                     {
-                                        <span class="badge badge-secondary">
+                                        <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
                                             @tag.TagName
                                         </span>
                                     }
@@ -99,6 +100,9 @@
 </div>
 
 @code {
+    [Parameter]
+    public string Username { get; set; }
+
     private int counter = 0;
     private UserReportModel model;
 
@@ -106,9 +110,15 @@
 
     private bool Loading = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         userReportService.OnChange += UpdateUi;
+
+        if (!string.IsNullOrEmpty(Username))
+        {
+            searchTerm = Username;
+            await SearchFor();
+        }
     }
 
     private void UpdateUi()

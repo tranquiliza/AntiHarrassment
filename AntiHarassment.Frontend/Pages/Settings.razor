@@ -1,4 +1,6 @@
 ﻿@inject IUserChannelService channelService
+@inject IAdminChannelService adminChannelService
+@inject IUserService userService
 @implements IDisposable
 
 @if (channelService.Channel == null)
@@ -24,9 +26,29 @@ else
     <div class="container-fluid">
         <div class="row">
             <div class="col-6">
-                <p>
-                    ChannelName: @channelService.Channel.ChannelName
-                </p>
+                @if (userService.IsUserAdmin)
+                {
+                    @if (adminChannelService.Channels != null)
+                    {
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                @(string.IsNullOrEmpty(channelService.Channel.ChannelName) ? "Channels" : channelService.Channel.ChannelName)
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
+                                @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
+                                {
+                                    <button @onclick="async () => await channelService.ChangeChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>
+                        ChannelName: @channelService.Channel.ChannelName
+                    </p>
+                }
             </div>
             <div class="col-6">
                 <p>
@@ -39,6 +61,26 @@ else
                         <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-success">SYSTEM DISABLED</button>
                     }
                 </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body bg-dark">
+                        <h5 class="card-header">Download Chatlogs</h5>
+                        <label for="earliestTime"></label>
+                        <input @bind-value="earliestTime" id="earliestTime" type="date" />
+
+                        <label for="latestTime"></label>
+                        <input @bind-value="latestTime" id="latestTime" type="date" />
+
+                        <div class="btn-group">
+                            <button class="btn btn-primary btn-sm" @onclick="async _ => await DownloadLog(true)">Download csv</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="async _ => await DownloadLog(false)">Download json</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -77,6 +119,19 @@ else
 @page "/settings"
 
 @code {
+    private DateTime earliestTime = DateTime.UtcNow.AddDays(-1);
+    private DateTime latestTime = DateTime.UtcNow;
+
+    private async Task DownloadLog(bool downloadPlain)
+    {
+        if (earliestTime == default || latestTime == default)
+        {
+            return;
+        }
+
+        await channelService.DownloadChatLog(earliestTime, latestTime, downloadPlain);
+    }
+
     private string newModeratorName = "";
 
     private string buttonDisable = "";
@@ -84,8 +139,11 @@ else
     protected async override Task OnInitializedAsync()
     {
         channelService.OnChange += StateHasChanged;
+        adminChannelService.OnChange += StateHasChanged;
+        userService.OnChange += StateHasChanged;
 
         await channelService.Initialize();
+        await adminChannelService.Initialize();
     }
 
     private async Task AddModerator()
@@ -107,5 +165,7 @@ else
     public void Dispose()
     {
         channelService.OnChange -= StateHasChanged;
+        adminChannelService.OnChange -= StateHasChanged;
+        userService.OnChange -= StateHasChanged;
     }
 }

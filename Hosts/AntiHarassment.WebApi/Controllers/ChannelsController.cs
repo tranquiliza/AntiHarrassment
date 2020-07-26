@@ -51,6 +51,19 @@ namespace AntiHarassment.WebApi.Controllers
             }
         }
 
+        [HttpGet("{channelName}/chatlogs")]
+        public async Task<IActionResult> GetChatLogForChannel([FromRoute] string channelName, [FromQuery] DateTime earliestTime, [FromQuery] DateTime latestTime)
+        {
+            var result = await channelService.GetChatLogs(channelName, earliestTime, latestTime, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return NoContent();
+
+            return Ok(result.Data.Map());
+        }
+
         [HttpPost("{channelName}")]
         public async Task<IActionResult> AddModerator([FromRoute] string channelName, [FromBody] AddModeratorModel model)
         {

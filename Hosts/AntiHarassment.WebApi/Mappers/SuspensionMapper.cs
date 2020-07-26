@@ -38,15 +38,5 @@ namespace AntiHarassment.WebApi.Mappers
                 SuspensionType.Ban => SuspensionTypeModel.Ban,
                 _ => throw new NotImplementedException(),
             };
-
-        private static List<ChatMessageModel> Map(this List<ChatMessage> chatMessages)
-            => chatMessages.Select(Map).ToList();
-
-        private static ChatMessageModel Map(this ChatMessage chatMessage)
-            => new ChatMessageModel
-            {
-                Message = chatMessage.Message,
-                Timestamp = chatMessage.Timestamp
-            };
     }
 }
