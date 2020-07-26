@@ -5,17 +5,15 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 {
     internal static class EventMappers
     {
-        internal static MessageReceivedEvent Map(this OnMessageReceivedArgs from)
+        internal static MessageReceivedEvent Map(this OnMessageReceivedArgs from, bool autoModded)
         {
             return new MessageReceivedEvent
             {
                 Message = from.ChatMessage.Message,
-                Username = from.ChatMessage.Username,
                 Channel = from.ChatMessage.Channel,
-                UserColorHex = from.ChatMessage.ColorHex,
                 UserId = from.ChatMessage.UserId,
-                EmoteReplacedMessage = from.ChatMessage.EmoteReplacedMessage,
-                DisplayName = from.ChatMessage.DisplayName
+                DisplayName = from.ChatMessage.DisplayName,
+                AutoModded = autoModded
             };
         }
 

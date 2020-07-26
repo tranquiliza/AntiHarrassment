@@ -33,7 +33,7 @@ namespace AntiHarassment.Sql
                 {
                     while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"));
+                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
                         result.Add(chatMessage);
                     }
                 }
@@ -55,7 +55,7 @@ namespace AntiHarassment.Sql
                 {
                     while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"));
+                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
                         chatMessage.AttachUsername(reader.GetString("username"));
 
                         result.Add(chatMessage);
@@ -66,13 +66,14 @@ namespace AntiHarassment.Sql
             return result;
         }
 
-        public async Task SaveChatMessage(string username, string channelOfOrigin, string message, DateTime timestamp)
+        public async Task SaveChatMessage(string username, string channelOfOrigin, bool autoModded, string message, DateTime timestamp)
         {
             using (var command = sql.CreateStoredProcedure("[Core].[InsertChatMessage]"))
             {
                 command.WithParameter("username", username)
                     .WithParameter("channelOfOrigin", channelOfOrigin)
                     .WithParameter("message", message)
+                    .WithParameter("automodded", autoModded)
                     .WithParameter("timestamp", timestamp);
 
                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);

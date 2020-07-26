@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Core
 {
-    public class ChatlistenerService : IChatlistenerService
+    public class ChatlistenerService : IChatlistenerService, IDisposable
     {
         private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
 
         private readonly IChatClient client;
+        private readonly IPubSubClient pubSubClient;
         private readonly IChannelRepository channelRepository;
         private readonly IDatetimeProvider datetimeProvider;
         private readonly ISuspensionRepository suspensionRepository;
@@ -23,6 +24,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         public ChatlistenerService(
             IChatClient client,
+            IPubSubClient pubSubClient,
             IChannelRepository channelRepository,
             IDatetimeProvider datetimeProvider,
             ISuspensionRepository suspensionRepository,
@@ -30,6 +32,7 @@ namespace AntiHarassment.Chatlistener.Core
             IServiceProvider serviceProvider)
         {
             this.client = client;
+            this.pubSubClient = pubSubClient;
             this.channelRepository = channelRepository;
             this.datetimeProvider = datetimeProvider;
             this.suspensionRepository = suspensionRepository;
@@ -39,12 +42,13 @@ namespace AntiHarassment.Chatlistener.Core
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
 
-            client.OnMessageReceived += async (sender, eventArgs) => await Client_OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
         }
 
-        private async Task Client_OnMessageReceived(object _, MessageReceivedEvent e)
+        private async Task OnMessageReceived(object _, MessageReceivedEvent e)
         {
-            await chatRepository.SaveChatMessage(e.DisplayName, e.Channel, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
+            await chatRepository.SaveChatMessage(e.DisplayName, e.Channel, e.AutoModded, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserTimedout(object _, UserTimedoutEvent e)
@@ -63,6 +67,8 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task Client_OnUserBanned(object _, UserBannedEvent e)
         {
+            Console.WriteLine("BAN FROM CLIENT: " + e.Username);
+
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var timeOfSuspension = datetimeProvider.UtcNow;
@@ -75,10 +81,18 @@ namespace AntiHarassment.Chatlistener.Core
         public async Task ConnectAndJoinChannels()
         {
             await client.Connect().ConfigureAwait(false);
+            await pubSubClient.Connect().ConfigureAwait(false);
 
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
-            foreach (var channel in channels.Where(x => x.ShouldListen))
+            var enabledChannels = channels.Where(x => x.ShouldListen);
+
+            // TODO THIS IS FRAGILE, NEEDS TO MAKE SURE ONLY 100 AT MAX PER REQUEST!
+            await pubSubClient.JoinChannels(enabledChannels.Select(x => x.ChannelName).ToList()).ConfigureAwait(false);
+
+            foreach (var channel in enabledChannels)
+            {
                 await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
+            }
         }
 
         public async Task ListenTo(string channelName)
@@ -103,6 +117,12 @@ namespace AntiHarassment.Chatlistener.Core
 
             await client.LeaveChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);
+        }
+
+        public void Dispose()
+        {
+            client.Dispose();
+            pubSubClient.Dispose();
         }
     }
 }
