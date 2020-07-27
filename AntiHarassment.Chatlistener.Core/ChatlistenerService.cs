@@ -67,8 +67,6 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task Client_OnUserBanned(object _, UserBannedEvent e)
         {
-            Console.WriteLine("BAN FROM CLIENT: " + e.Username);
-
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var timeOfSuspension = datetimeProvider.UtcNow;
@@ -86,13 +84,14 @@ namespace AntiHarassment.Chatlistener.Core
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
             var enabledChannels = channels.Where(x => x.ShouldListen);
 
-            // TODO THIS IS FRAGILE, NEEDS TO MAKE SURE ONLY 100 AT MAX PER REQUEST!
-            await pubSubClient.JoinChannels(enabledChannels.Select(x => x.ChannelName).ToList()).ConfigureAwait(false);
+            if (!await pubSubClient.JoinChannels(enabledChannels.Select(x => x.ChannelName).ToList()).ConfigureAwait(false))
+            {
+                // Log we have problem too?
+                return;
+            }
 
             foreach (var channel in enabledChannels)
-            {
                 await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
-            }
         }
 
         public async Task ListenTo(string channelName)
@@ -102,6 +101,11 @@ namespace AntiHarassment.Chatlistener.Core
                 channel = new Channel(channelName, shouldListen: true);
 
             channel.EnableListening();
+
+            if (!await pubSubClient.JoinChannel(channelName).ConfigureAwait(false))
+            {
+                // Log and warn
+            }
 
             await client.JoinChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);
@@ -114,6 +118,11 @@ namespace AntiHarassment.Chatlistener.Core
                 channel = new Channel(channelName, shouldListen: false);
 
             channel.DisableListening();
+
+            if (!pubSubClient.LeaveChannel(channelName))
+            {
+                // Log and warn
+            }
 
             await client.LeaveChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);

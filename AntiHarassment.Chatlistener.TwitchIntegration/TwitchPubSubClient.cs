@@ -6,9 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api;
+using TwitchLib.Api.Helix.Models.Users;
 using TwitchLib.PubSub;
 using TwitchLib.PubSub.Events;
 using TwitchLib.PubSub.Models.Responses;
@@ -18,9 +20,14 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 {
     public class TwitchPubSubClient : IPubSubClient
     {
+        // Need to make sure that pubsub server never exceeds 50 topics. 
+        // When time arrives, refactor to have a collection of pubsubservice, wrapped with information about active topics
+        // maximum of 10 per IP.
         private readonly TwitchPubSub pubSubService;
         private readonly TwitchAPI twitchApi;
         private readonly TwitchClientSettings twitchClientSettings;
+
+        private User BotUser { get; set; }
 
         public event EventHandler<MessageReceivedEvent> OnMessageReceived;
         //public event EventHandler<UserJoinedEvent> OnUserJoined;
@@ -35,11 +42,11 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             pubSubService = new TwitchPubSub();
             twitchApi = new TwitchAPI();
 
-            pubSubService.OnTimeout += PubSubService_OnTimeout;
-            pubSubService.OnBan += PubSubService_OnBan;
+            //pubSubService.OnTimeout += PubSubService_OnTimeout;
+            //pubSubService.OnBan += PubSubService_OnBan;
+            //pubSubService.OnUntimeout += PubSubService_OnUntimeout;
+            //pubSubService.OnUnban += PubSubService_OnUnban;
             pubSubService.OnLog += PubSubService_OnLog;
-            pubSubService.OnUntimeout += PubSubService_OnUntimeout;
-            pubSubService.OnUnban += PubSubService_OnUnban;
         }
 
         public Task Connect()
@@ -50,46 +57,100 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             return Task.CompletedTask;
         }
 
-        public async Task JoinChannels(List<string> channelNames)
+        public async Task<bool> JoinChannels(List<string> channelNames)
         {
             channelNames.Add(twitchClientSettings.TwitchUsername);
+            // TODO THIS IS FRAGILE, NEEDS TO MAKE SURE ONLY 100 AT MAX PER REQUEST!
             var response = await twitchApi.Helix.Users.GetUsersAsync(logins: channelNames).ConfigureAwait(false);
 
-            var botUser = Array.Find(response.Users, x => string.Equals(x.DisplayName, twitchClientSettings.TwitchUsername, StringComparison.OrdinalIgnoreCase));
-            if (botUser == null)
-            {
-                // SHIT
-                return;
-            }
+            if (BotUser == null)
+                BotUser = Array.Find(response.Users, x => string.Equals(x.DisplayName, twitchClientSettings.TwitchUsername, StringComparison.OrdinalIgnoreCase));
 
-            foreach (var user in response.Users)
+            if (BotUser == null)
+                return false;
+
+            foreach (var user in response.Users.Where(x => x != BotUser))
             {
+                if (UserIdChannelName.Count == 50)
+                {
+                    // LOG problem
+                    continue;
+                }
+
+                if (UserIdChannelName.ContainsKey(user.Id))
+                    continue;
+
                 UserIdChannelName.Add(user.Id, user.DisplayName);
-                pubSubService.ListenToChatModeratorActions(botUser.Id, user.Id);
+                pubSubService.ListenToChatModeratorActions(BotUser.Id, user.Id);
             }
 
             pubSubService.SendTopics(twitchClientSettings.TwitchBotOAuth);
+
+            return true;
         }
 
-        private void PubSubService_OnUntimeout(object sender, OnUntimeoutArgs e)
+        public async Task<bool> JoinChannel(string channelName)
         {
-            Console.WriteLine("UNTIMEOUT: " + e.UntimeoutedUser);
+            if (UserIdChannelName.Count == 50)
+            {
+                // We should log that this has become a problem
+                return false;
+            }
+
+            var channelNames = new List<string> { channelName };
+            if (BotUser == null)
+                channelNames.Add(twitchClientSettings.TwitchUsername);
+
+            var response = await twitchApi.Helix.Users.GetUsersAsync(logins: channelNames).ConfigureAwait(false);
+
+            if (BotUser == null)
+                BotUser = Array.Find(response.Users, x => string.Equals(x.DisplayName == twitchClientSettings.TwitchUsername, StringComparison.OrdinalIgnoreCase));
+
+            if (BotUser == null)
+                return false;
+
+            foreach (var user in response.Users.Where(x => x != BotUser))
+            {
+                if (UserIdChannelName.ContainsKey(user.Id))
+                    return false;
+
+                UserIdChannelName.Add(user.Id, user.DisplayName);
+                pubSubService.ListenToChatModeratorActions(BotUser.Id, user.Id);
+            }
+
+            pubSubService.SendTopics(twitchClientSettings.TwitchBotOAuth);
+            return true;
         }
 
-        private void PubSubService_OnUnban(object sender, OnUnbanArgs e)
+        public bool LeaveChannel(string channelName)
         {
-            Console.WriteLine("UNBAN: " + e.UnbannedUser);
+            var channelValuePair = UserIdChannelName.FirstOrDefault(x => string.Equals(x.Value, channelName, StringComparison.OrdinalIgnoreCase));
+            if (channelValuePair.Key == null)
+                return false;
+
+            pubSubService.ListenToChatModeratorActions(BotUser.Id, channelValuePair.Key);
+            pubSubService.SendTopics(twitchClientSettings.TwitchBotOAuth, unlisten: true);
+
+            UserIdChannelName.Remove(channelValuePair.Key);
+
+            return true;
         }
 
-        private void PubSubService_OnBan(object sender, OnBanArgs e)
-        {
-            Console.WriteLine("BAN: " + e.BannedUser);
-        }
+        //private void PubSubService_OnUntimeout(object sender, OnUntimeoutArgs e)
+        //{
+        //}
 
-        private void PubSubService_OnTimeout(object sender, OnTimeoutArgs e)
-        {
-            Console.WriteLine("TIMEOUT: " + e.TimedoutUser);
-        }
+        //private void PubSubService_OnUnban(object sender, OnUnbanArgs e)
+        //{
+        //}
+
+        //private void PubSubService_OnBan(object sender, OnBanArgs e)
+        //{
+        //}
+
+        //private void PubSubService_OnTimeout(object sender, OnTimeoutArgs e)
+        //{
+        //}
 
         private void PubSubService_OnLog(object sender, OnLogArgs e)
         {
@@ -107,7 +168,6 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                     var targetChannelId = msg.Topic.Split('.')[2];
                     if (!UserIdChannelName.TryGetValue(targetChannelId, out var targetChannelName))
                     {
-                        Console.WriteLine("Unable to match targetChannelId, to a channel?: " + targetChannelId);
                         return;
                     }
 
@@ -155,13 +215,12 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                     break;
             }
 
-            UnaccountedFor(message);
+            //UnaccountedFor(message);
         }
 
-        private void UnaccountedFor(string message)
-        {
-            Console.WriteLine(message);
-        }
+        //private void UnaccountedFor(string message)
+        //{
+        //}
 
         public void Dispose()
         {

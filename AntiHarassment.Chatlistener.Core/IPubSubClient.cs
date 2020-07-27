@@ -10,7 +10,9 @@ namespace AntiHarassment.Chatlistener.Core
     {
         event EventHandler<MessageReceivedEvent> OnMessageReceived;
 
-        Task JoinChannels(List<string> channelNames);
+        Task<bool> JoinChannels(List<string> channelNames);
+        Task<bool> JoinChannel(string channelName);
+        bool LeaveChannel(string channelName);
         Task Connect();
     }
 }
