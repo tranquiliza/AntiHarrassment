@@ -1,11 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using AntiHarassment.Core.Security;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace AntiHarassment.Core.Models
 {
-    public class Tag
+    public class Tag : DomainBase
     {
         [JsonProperty]
         public Guid TagId { get; private set; }
@@ -25,14 +26,24 @@ namespace AntiHarassment.Core.Models
             Description = description;
         }
 
-        public void UpdateName(string newName)
+        public void UpdateName(string newName, IApplicationContext context, DateTime timestamp)
         {
+            if (TagName == newName)
+                return;
+
             TagName = newName;
+
+            AddAuditTrail(context, nameof(TagName), TagName, timestamp);
         }
 
-        public void UpdateDescription(string description)
+        public void UpdateDescription(string description, IApplicationContext context, DateTime timestamp)
         {
+            if (Description == description)
+                return;
+
             Description = description;
+
+            AddAuditTrail(context, nameof(Description), Description, timestamp);
         }
     }
 }

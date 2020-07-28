@@ -3,6 +3,7 @@ using AntiHarassment.Core.Security;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -24,9 +25,9 @@ namespace AntiHarassment.Core.Tests
 
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
+            var datetimeProvider = new Mock<IDatetimeProvider>();
 
-
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -54,8 +55,9 @@ namespace AntiHarassment.Core.Tests
             context.Setup(x => x.User).Returns(CreateOwnerUserFromJson());
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
+            var datetimeProvider = new Mock<IDatetimeProvider>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -80,13 +82,14 @@ namespace AntiHarassment.Core.Tests
             var suspensionRepositoryMock = new Mock<ISuspensionRepository>();
             suspensionRepositoryMock.Setup(x => x.GetSuspensionsForChannel(It.IsAny<string>())).ReturnsAsync(new List<Suspension>());
             var channelRepository = new Mock<IChannelRepository>();
-            channelRepository.Setup(x => x.GetChannel(It.IsAny<string>())).ReturnsAsync(CreateChannelWithModerator(moderatorName));
             var context = new Mock<IApplicationContext>();
             context.Setup(x => x.User).Returns(CreateModeratorUserFromJson());
+            channelRepository.Setup(x => x.GetChannel(It.IsAny<string>())).ReturnsAsync(CreateChannelWithModerator(moderatorName, context.Object));
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
+            var datetimeProvider = new Mock<IDatetimeProvider>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -95,10 +98,10 @@ namespace AntiHarassment.Core.Tests
             Assert.AreEqual(result.State, ResultState.NoContent);
         }
 
-        private Channel CreateChannelWithModerator(string moderatorName)
+        private Channel CreateChannelWithModerator(string moderatorName, IApplicationContext context)
         {
             var channel = new Channel("Tranquiliza", true);
-            channel.TryAddModerator(moderatorName);
+            channel.TryAddModerator(moderatorName, context, DateTime.UtcNow);
             return channel;
         }
 
@@ -121,8 +124,9 @@ namespace AntiHarassment.Core.Tests
             context.Setup(x => x.User).Returns(CreateUserFromJson());
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
+            var datetimeProvider = new Mock<IDatetimeProvider>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object);
+            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);

@@ -15,12 +15,18 @@ namespace AntiHarassment.Core
         private readonly IChannelRepository channelRepository;
         private readonly IMessageDispatcher messageDispatcher;
         private readonly IChatRepository chatRepository;
+        private readonly IDatetimeProvider datetimeProvider;
 
-        public ChannelService(IChannelRepository channelRepository, IMessageDispatcher messageDispatcher, IChatRepository chatRepository)
+        public ChannelService(
+            IChannelRepository channelRepository,
+            IMessageDispatcher messageDispatcher,
+            IChatRepository chatRepository,
+            IDatetimeProvider datetimeProvider)
         {
             this.channelRepository = channelRepository;
             this.messageDispatcher = messageDispatcher;
             this.chatRepository = chatRepository;
+            this.datetimeProvider = datetimeProvider;
         }
 
         public async Task<IResult<Channel>> AddModeratorToChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context)
@@ -32,7 +38,7 @@ namespace AntiHarassment.Core
             if (channel == null)
                 return Result<Channel>.Failure("Channel was not found.");
 
-            if (!channel.TryAddModerator(moderatorTwitchUsername))
+            if (!channel.TryAddModerator(moderatorTwitchUsername, context, datetimeProvider.UtcNow))
                 return Result<Channel>.Failure("Unable to add moderator");
 
             await channelRepository.Upsert(channel).ConfigureAwait(false);
@@ -49,7 +55,7 @@ namespace AntiHarassment.Core
             if (channel == null)
                 return Result<Channel>.Failure("Channel was not found.");
 
-            channel.RemoveModerator(moderatorTwitchUsername);
+            channel.RemoveModerator(moderatorTwitchUsername, context, datetimeProvider.UtcNow);
 
             await channelRepository.Upsert(channel).ConfigureAwait(false);
 
@@ -90,12 +96,12 @@ namespace AntiHarassment.Core
 
             if (shouldListen)
             {
-                var joinChannelCommand = new JoinChannelCommand { ChannelName = channelName };
+                var joinChannelCommand = new JoinChannelCommand { ChannelName = channelName, RequestedByUserId = context.UserId };
                 await messageDispatcher.Send(joinChannelCommand).ConfigureAwait(false);
             }
             else
             {
-                var leaveChannelCommand = new LeaveChannelCommand { ChannelName = channelName };
+                var leaveChannelCommand = new LeaveChannelCommand { ChannelName = channelName, RequestedByUserId = context.UserId };
                 await messageDispatcher.Send(leaveChannelCommand).ConfigureAwait(false);
             }
         }

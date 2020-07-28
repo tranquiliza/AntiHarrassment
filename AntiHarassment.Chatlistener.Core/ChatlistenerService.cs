@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Chatlistener.Core.Events;
 using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
+using AntiHarassment.Core.Security;
 using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.Logging;
@@ -41,13 +42,13 @@ namespace AntiHarassment.Chatlistener.Core
             this.suspensionRepository = suspensionRepository;
             this.chatRepository = chatRepository;
             this.serviceProvider = serviceProvider;
+            this.logger = logger;
 
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
 
             client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
             pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
-            this.logger = logger;
         }
 
         private async Task OnMessageReceived(object _, MessageReceivedEvent e)
@@ -101,13 +102,13 @@ namespace AntiHarassment.Chatlistener.Core
             logger.LogInformation("Connected to channels");
         }
 
-        public async Task ListenTo(string channelName)
+        public async Task ListenTo(string channelName, IApplicationContext context)
         {
             var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
             if (channel == null)
                 channel = new Channel(channelName, shouldListen: true);
 
-            channel.EnableListening();
+            channel.EnableListening(context, datetimeProvider.UtcNow);
 
             if (!await pubSubClient.JoinChannel(channelName).ConfigureAwait(false))
             {
@@ -118,13 +119,13 @@ namespace AntiHarassment.Chatlistener.Core
             await channelRepository.Upsert(channel).ConfigureAwait(false);
         }
 
-        public async Task UnlistenTo(string channelName)
+        public async Task UnlistenTo(string channelName, IApplicationContext context)
         {
             var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
             if (channel == null)
                 channel = new Channel(channelName, shouldListen: false);
 
-            channel.DisableListening();
+            channel.DisableListening(context, datetimeProvider.UtcNow);
 
             if (!pubSubClient.LeaveChannel(channelName))
             {

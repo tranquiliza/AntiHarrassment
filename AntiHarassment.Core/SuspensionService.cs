@@ -17,13 +17,20 @@ namespace AntiHarassment.Core
         private readonly IChannelRepository channelRepository;
         private readonly ITagRepository tagRepository;
         private readonly IMessageDispatcher messageDispatcher;
+        private readonly IDatetimeProvider datetimeProvider;
 
-        public SuspensionService(ISuspensionRepository suspensionRepository, IChannelRepository channelRepository, ITagRepository tagRepository, IMessageDispatcher messageDispatcher)
+        public SuspensionService(
+            ISuspensionRepository suspensionRepository,
+            IChannelRepository channelRepository,
+            ITagRepository tagRepository,
+            IMessageDispatcher messageDispatcher,
+            IDatetimeProvider datetimeProvider)
         {
             this.suspensionRepository = suspensionRepository;
             this.channelRepository = channelRepository;
             this.tagRepository = tagRepository;
             this.messageDispatcher = messageDispatcher;
+            this.datetimeProvider = datetimeProvider;
         }
 
         public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context)
@@ -51,7 +58,7 @@ namespace AntiHarassment.Core
             var suspension = fetch.Data;
 
             var tag = await tagRepository.Get(tagId).ConfigureAwait(false);
-            suspension.RemoveTag(tag);
+            suspension.RemoveTag(tag, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
@@ -68,7 +75,7 @@ namespace AntiHarassment.Core
             var suspension = fetch.Data;
             var tag = await tagRepository.Get(tagId).ConfigureAwait(false);
 
-            if (!suspension.TryAddTag(tag))
+            if (!suspension.TryAddTag(tag, context, datetimeProvider.UtcNow))
                 return Result<Suspension>.Failure("Unable to add tag");
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
@@ -85,7 +92,7 @@ namespace AntiHarassment.Core
                 return fetch;
 
             var suspension = fetch.Data;
-            suspension.UpdateAuditedState(audited);
+            suspension.UpdateAuditedState(audited, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
@@ -100,7 +107,7 @@ namespace AntiHarassment.Core
                 return fetch;
 
             var suspension = fetch.Data;
-            suspension.UpdateValidity(invalidate);
+            suspension.UpdateValidity(invalidate, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
