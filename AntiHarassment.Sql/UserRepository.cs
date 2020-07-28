@@ -1,5 +1,6 @@
 ﻿using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,62 +12,96 @@ namespace AntiHarassment.Sql
     public class UserRepository : IUserRepository
     {
         private readonly ISqlAccess sql;
+        private readonly ILogger<UserRepository> logger;
 
-        public UserRepository(string connectionString)
+        public UserRepository(string connectionString, ILogger<UserRepository> logger)
         {
             sql = SqlAccessBase.Create(connectionString);
+            this.logger = logger;
         }
 
         public async Task<User> GetByTwitchUsername(string twitchUsername)
         {
-            using (var command = sql.CreateStoredProcedure("[Core].[GetUserByTwitchUsername]"))
+            try
             {
-                command.WithParameter("twitchUsername", twitchUsername);
-
-                using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
+                using (var command = sql.CreateStoredProcedure("[Core].[GetUserByTwitchUsername]"))
                 {
-                    if (await reader.ReadAsync().ConfigureAwait(false))
-                        return Serialization.Deserialize<User>(reader.GetString("data"));
-                }
-            }
+                    command.WithParameter("twitchUsername", twitchUsername);
 
-            return null;
+                    using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
+                    {
+                        if (await reader.ReadAsync().ConfigureAwait(false))
+                            return Serialization.Deserialize<User>(reader.GetString("data"));
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting user by twitchUsername");
+                throw;
+            }
         }
 
         public async Task<User> GetById(Guid id)
         {
-            using (var command = sql.CreateStoredProcedure("[Core].[GetUserById]"))
+            try
             {
-                command.WithParameter("userId", id);
-                using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
+                using (var command = sql.CreateStoredProcedure("[Core].[GetUserById]"))
                 {
-                    if (await reader.ReadAsync().ConfigureAwait(false))
-                        return Serialization.Deserialize<User>(reader.GetString("data"));
+                    command.WithParameter("userId", id);
+                    using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
+                    {
+                        if (await reader.ReadAsync().ConfigureAwait(false))
+                            return Serialization.Deserialize<User>(reader.GetString("data"));
+                    }
                 }
-            }
 
-            return null;
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting user by id");
+                throw;
+            }
         }
 
         public async Task Save(User user)
         {
-            using (var command = sql.CreateStoredProcedure("[Core].[InsertUpdateUser]"))
+            try
             {
-                command.WithParameter("userId", user.Id)
-                    .WithParameter("twitchUsername", user.TwitchUsername)
-                    .WithParameter("email", user.Email)
-                    .WithParameter("data", Serialization.Serialize(user));
+                using (var command = sql.CreateStoredProcedure("[Core].[InsertUpdateUser]"))
+                {
+                    command.WithParameter("userId", user.Id)
+                        .WithParameter("twitchUsername", user.TwitchUsername)
+                        .WithParameter("email", user.Email)
+                        .WithParameter("data", Serialization.Serialize(user));
 
-                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when saving user");
+                throw;
             }
         }
 
         public async Task Delete(Guid userId)
         {
-            using (var command = sql.CreateStoredProcedure("[Core].[DeleteUserById]"))
+            try
             {
-                command.WithParameter("userId", userId);
-                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                using (var command = sql.CreateStoredProcedure("[Core].[DeleteUserById]"))
+                {
+                    command.WithParameter("userId", userId);
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when marking user deleted");
+                throw;
             }
         }
     }

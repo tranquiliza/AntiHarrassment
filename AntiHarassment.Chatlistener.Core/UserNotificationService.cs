@@ -1,4 +1,5 @@
 ﻿using AntiHarassment.Core;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,11 +11,13 @@ namespace AntiHarassment.Chatlistener.Core
     {
         private readonly IChatClient chatClient;
         private readonly IUserRepository userRepository;
+        private readonly ILogger<UserNotificationService> logger;
 
-        public UserNotificationService(IChatClient chatClient, IUserRepository userRepository)
+        public UserNotificationService(IChatClient chatClient, IUserRepository userRepository, ILogger<UserNotificationService> logger)
         {
             this.chatClient = chatClient;
             this.userRepository = userRepository;
+            this.logger = logger;
         }
 
         public async Task SendConfirmationTokenToUser(Guid userId)
@@ -25,6 +28,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             var message = $"This is your token: {user.EmailConfirmationToken}";
             await chatClient.SendWhisper(user.TwitchUsername, message).ConfigureAwait(false);
+            logger.LogInformation("Sent confirm token whisper to {username}", user.TwitchUsername);
         }
 
         public async Task SendPassworkResetTokenToUser(Guid userId)
@@ -35,6 +39,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             var message = $"This is your password reset token: {user.ResetToken}";
             await chatClient.SendWhisper(user.TwitchUsername, message).ConfigureAwait(false);
+            logger.LogInformation("Sent password reset token whisper to {username}", user.TwitchUsername);
         }
     }
 }

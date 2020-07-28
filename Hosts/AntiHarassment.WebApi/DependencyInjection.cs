@@ -3,6 +3,8 @@ using AntiHarassment.Messaging.NServiceBus;
 using AntiHarassment.Sql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,11 +29,11 @@ namespace AntiHarassment.WebApi
             services.AddSingleton<ISecurity, PasswordSecurity>();
             services.AddSingleton<IApplicationConfiguration>(applicationConfiguration);
 
-            services.AddSingleton<IChannelRepository, ChannelRepository>(_ => new ChannelRepository(connstring));
-            services.AddSingleton<IUserRepository, UserRepository>(_ => new UserRepository(connstring));
-            services.AddSingleton<ISuspensionRepository, SuspensionRepository>(_ => new SuspensionRepository(connstring));
-            services.AddSingleton<ITagRepository, TagRepository>(_ => new TagRepository(connstring));
-            services.AddSingleton<IChatRepository, ChatRepository>(_ => new ChatRepository(connstring));
+            services.AddSingleton<IChannelRepository, ChannelRepository>(x => new ChannelRepository(connstring, x.GetRequiredService<ILogger<ChannelRepository>>()));
+            services.AddSingleton<IUserRepository, UserRepository>(x => new UserRepository(connstring, x.GetRequiredService<ILogger<UserRepository>>()));
+            services.AddSingleton<ISuspensionRepository, SuspensionRepository>(x => new SuspensionRepository(connstring, x.GetRequiredService<ILogger<SuspensionRepository>>()));
+            services.AddSingleton<ITagRepository, TagRepository>(x => new TagRepository(connstring, x.GetRequiredService<ILogger<TagRepository>>()));
+            services.AddSingleton<IChatRepository, ChatRepository>(x => new ChatRepository(connstring, x.GetRequiredService<ILogger<ChatRepository>>()));
 
             services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
 

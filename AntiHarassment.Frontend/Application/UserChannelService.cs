@@ -134,7 +134,7 @@ namespace AntiHarassment.Frontend.Application
         private async Task DownloadAsCsv(List<ChatMessageModel> chatLogs, string fileName)
         {
             var builder = new StringBuilder();
-            builder.AppendLine("Timestamp;Username;Message;");
+            builder.AppendLine("Timestamp;AutoModded;Username;Message;");
             foreach (var message in chatLogs)
                 builder.AppendLine(ConvertToLine(message));
 
@@ -143,7 +143,7 @@ namespace AntiHarassment.Frontend.Application
 
         private string ConvertToLine(ChatMessageModel model)
         {
-            return $"{model.Timestamp};{model.Username};{model.Message};";
+            return $"{model.Timestamp};{model.AutoModded};{model.Username};{model.Message};";
         }
     }
 }
