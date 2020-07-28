@@ -1,13 +1,10 @@
 ﻿using AntiHarassment.Chatlistener.Core;
 using AntiHarassment.Chatlistener.Core.Events;
-using AntiHarassment.Core;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Users;
@@ -26,6 +23,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         private readonly TwitchPubSub pubSubService;
         private readonly TwitchAPI twitchApi;
         private readonly TwitchClientSettings twitchClientSettings;
+        private readonly ILogger<TwitchPubSubClient> logger;
 
         private User BotUser { get; set; }
 
@@ -36,7 +34,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 
         private Dictionary<string, string> UserIdChannelName = new Dictionary<string, string>();
 
-        public TwitchPubSubClient(TwitchClientSettings twitchClientSettings)
+        public TwitchPubSubClient(TwitchClientSettings twitchClientSettings, ILogger<TwitchPubSubClient> logger)
         {
             this.twitchClientSettings = twitchClientSettings;
             pubSubService = new TwitchPubSub();
@@ -47,6 +45,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             //pubSubService.OnUntimeout += PubSubService_OnUntimeout;
             //pubSubService.OnUnban += PubSubService_OnUnban;
             pubSubService.OnLog += PubSubService_OnLog;
+            this.logger = logger;
         }
 
         public Task Connect()
@@ -67,18 +66,24 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                 BotUser = Array.Find(response.Users, x => string.Equals(x.DisplayName, twitchClientSettings.TwitchUsername, StringComparison.OrdinalIgnoreCase));
 
             if (BotUser == null)
+            {
+                logger.LogWarning("Was unable to find bot users Id");
                 return false;
+            }
 
             foreach (var user in response.Users.Where(x => x != BotUser))
             {
                 if (UserIdChannelName.Count == 50)
                 {
-                    // LOG problem
+                    logger.LogWarning("Channel count at 50, cannot listen to more topics on this connection");
                     continue;
                 }
 
                 if (UserIdChannelName.ContainsKey(user.Id))
+                {
+                    logger.LogInformation("Channel already in pubsub listening, skipping: {arg}", user.DisplayName);
                     continue;
+                }
 
                 UserIdChannelName.Add(user.Id, user.DisplayName);
                 pubSubService.ListenToChatModeratorActions(BotUser.Id, user.Id);
@@ -93,7 +98,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         {
             if (UserIdChannelName.Count == 50)
             {
-                // We should log that this has become a problem
+                logger.LogWarning("Channel count at 50, cannot listen to more topics on this connection");
                 return false;
             }
 
@@ -107,12 +112,18 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                 BotUser = Array.Find(response.Users, x => string.Equals(x.DisplayName == twitchClientSettings.TwitchUsername, StringComparison.OrdinalIgnoreCase));
 
             if (BotUser == null)
+            {
+                logger.LogWarning("Was unable to find bot users Id");
                 return false;
+            }
 
             foreach (var user in response.Users.Where(x => x != BotUser))
             {
                 if (UserIdChannelName.ContainsKey(user.Id))
+                {
+                    logger.LogInformation("Channel already in pubsub listening, skipping: {arg}", user.DisplayName);
                     return false;
+                }
 
                 UserIdChannelName.Add(user.Id, user.DisplayName);
                 pubSubService.ListenToChatModeratorActions(BotUser.Id, user.Id);
@@ -215,12 +226,13 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                     break;
             }
 
-            //UnaccountedFor(message);
+            UnaccountedFor(message);
         }
 
-        //private void UnaccountedFor(string message)
-        //{
-        //}
+        private void UnaccountedFor(string message)
+        {
+            logger.LogDebug("Received a message that is unaccounted for: {arg}", message);
+        }
 
         public void Dispose()
         {

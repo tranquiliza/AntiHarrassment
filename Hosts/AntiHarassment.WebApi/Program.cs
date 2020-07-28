@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using NServiceBus;
+using Serilog;
 
 namespace AntiHarassment.WebApi
 {
@@ -16,11 +15,30 @@ namespace AntiHarassment.WebApi
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+
+            try
+            {
+                Log.Information("Starting Up");
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Application startup failed");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseSerilog()
                 .UseNServiceBus(context =>
                 {
                     var config = HostedEndpointConfig.ReadFrom(context.Configuration);
