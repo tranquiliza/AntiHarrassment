@@ -4,6 +4,8 @@ using AntiHarassment.Core;
 using AntiHarassment.Sql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -30,10 +32,10 @@ namespace AntiHarassment.Chatlistener
 
                 services.AddSingleton<IChatlistenerService, ChatlistenerService>();
                 services.AddSingleton<IUserNotificationService, UserNotificationService>();
-                services.AddSingleton<IChannelRepository, ChannelRepository>(_ => new ChannelRepository(connectionString));
-                services.AddSingleton<ISuspensionRepository, SuspensionRepository>(_ => new SuspensionRepository(connectionString));
-                services.AddSingleton<IChatRepository, ChatRepository>(_ => new ChatRepository(connectionString));
-                services.AddSingleton<IUserRepository, UserRepository>(_ => new UserRepository(connectionString));
+                services.AddSingleton<IChannelRepository, ChannelRepository>(x => new ChannelRepository(connectionString, x.GetRequiredService<ILogger<ChannelRepository>>()));
+                services.AddSingleton<ISuspensionRepository, SuspensionRepository>(x => new SuspensionRepository(connectionString, x.GetRequiredService<ILogger<SuspensionRepository>>()));
+                services.AddSingleton<IChatRepository, ChatRepository>(x => new ChatRepository(connectionString, x.GetRequiredService<ILogger<ChatRepository>>()));
+                services.AddSingleton<IUserRepository, UserRepository>(x => new UserRepository(connectionString, x.GetRequiredService<ILogger<UserRepository>>()));
 
                 services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
             });

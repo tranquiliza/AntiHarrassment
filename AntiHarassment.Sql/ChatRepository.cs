@@ -1,6 +1,6 @@
 ﻿using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
-using NServiceBus.Routing.MessageDrivenSubscriptions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,72 +11,98 @@ namespace AntiHarassment.Sql
     public class ChatRepository : IChatRepository
     {
         private readonly ISqlAccess sql;
+        private readonly ILogger<ChatRepository> logger;
 
-        public ChatRepository(string connectionString)
+        public ChatRepository(string connectionString, ILogger<ChatRepository> logger)
         {
             sql = SqlAccessBase.Create(connectionString);
+            this.logger = logger;
         }
 
         public async Task<List<ChatMessage>> GetMessagesFor(string username, string channelOfOrigin, TimeSpan chatRecordWindow, DateTime timeOfSuspension)
         {
-            var earliestTime = timeOfSuspension.Subtract(chatRecordWindow);
-
-            var result = new List<ChatMessage>();
-
-            using (var command = sql.CreateStoredProcedure("[Core].[GetChatMessagesForUser]"))
+            try
             {
-                command.WithParameter("username", username)
-                    .WithParameter("channelOfOrigin", channelOfOrigin)
-                    .WithParameter("earliestTime", earliestTime);
+                var earliestTime = timeOfSuspension.Subtract(chatRecordWindow);
 
-                using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
+                var result = new List<ChatMessage>();
+
+                using (var command = sql.CreateStoredProcedure("[Core].[GetChatMessagesForUser]"))
                 {
-                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    command.WithParameter("username", username)
+                        .WithParameter("channelOfOrigin", channelOfOrigin)
+                        .WithParameter("earliestTime", earliestTime);
+
+                    using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
                     {
-                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
-                        result.Add(chatMessage);
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
+                            result.Add(chatMessage);
+                        }
                     }
                 }
-            }
 
-            return result;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting messages for Username on Channel (Suspension ChatLog)");
+                throw;
+            }
         }
 
         public async Task<List<ChatMessage>> GetMessagesForChannel(string channelOfOrigin, DateTime earliestTime, DateTime latestTime)
         {
-            var result = new List<ChatMessage>();
-            using (var command = sql.CreateStoredProcedure("[Core].[GetChatLogForChannel]"))
+            try
             {
-                command.WithParameter("channelOfOrigin", channelOfOrigin)
-                    .WithParameter("earliestTime", earliestTime)
-                    .WithParameter("latestTime", latestTime);
-
-                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                var result = new List<ChatMessage>();
+                using (var command = sql.CreateStoredProcedure("[Core].[GetChatLogForChannel]"))
                 {
-                    while (await reader.ReadAsync().ConfigureAwait(false))
-                    {
-                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
-                        chatMessage.AttachUsername(reader.GetString("username"));
+                    command.WithParameter("channelOfOrigin", channelOfOrigin)
+                        .WithParameter("earliestTime", earliestTime)
+                        .WithParameter("latestTime", latestTime);
 
-                        result.Add(chatMessage);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
+                            chatMessage.AttachUsername(reader.GetString("username"));
+
+                            result.Add(chatMessage);
+                        }
                     }
                 }
-            }
 
-            return result;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting messages for channel");
+                throw;
+            }
         }
 
         public async Task SaveChatMessage(string username, string channelOfOrigin, bool autoModded, string message, DateTime timestamp)
         {
-            using (var command = sql.CreateStoredProcedure("[Core].[InsertChatMessage]"))
+            try
             {
-                command.WithParameter("username", username)
-                    .WithParameter("channelOfOrigin", channelOfOrigin)
-                    .WithParameter("message", message)
-                    .WithParameter("automodded", autoModded)
-                    .WithParameter("timestamp", timestamp);
+                using (var command = sql.CreateStoredProcedure("[Core].[InsertChatMessage]"))
+                {
+                    command.WithParameter("username", username)
+                        .WithParameter("channelOfOrigin", channelOfOrigin)
+                        .WithParameter("message", message)
+                        .WithParameter("automodded", autoModded)
+                        .WithParameter("timestamp", timestamp);
 
-                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when attempting to save chat message");
+                throw;
             }
         }
     }

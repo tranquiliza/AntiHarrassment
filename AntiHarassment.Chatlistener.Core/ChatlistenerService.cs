@@ -3,6 +3,7 @@ using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
 using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IChatRepository chatRepository;
         private readonly IServiceProvider serviceProvider;
+        private readonly ILogger<ChatlistenerService> logger;
 
         public ChatlistenerService(
             IChatClient client,
@@ -29,7 +31,8 @@ namespace AntiHarassment.Chatlistener.Core
             IDatetimeProvider datetimeProvider,
             ISuspensionRepository suspensionRepository,
             IChatRepository chatRepository,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            ILogger<ChatlistenerService> logger)
         {
             this.client = client;
             this.pubSubClient = pubSubClient;
@@ -44,6 +47,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
             pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            this.logger = logger;
         }
 
         private async Task OnMessageReceived(object _, MessageReceivedEvent e)
@@ -78,6 +82,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task ConnectAndJoinChannels()
         {
+            logger.LogInformation("Connecting and joining channels");
             await client.Connect().ConfigureAwait(false);
             await pubSubClient.Connect().ConfigureAwait(false);
 
@@ -86,12 +91,14 @@ namespace AntiHarassment.Chatlistener.Core
 
             if (!await pubSubClient.JoinChannels(enabledChannels.Select(x => x.ChannelName).ToList()).ConfigureAwait(false))
             {
-                // Log we have problem too?
+                logger.LogWarning("Unable to join all channels. Have we hit the channel cap? {enabledChannels}", enabledChannels.Count());
                 return;
             }
 
             foreach (var channel in enabledChannels)
                 await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
+
+            logger.LogInformation("Connected to channels");
         }
 
         public async Task ListenTo(string channelName)
@@ -104,7 +111,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             if (!await pubSubClient.JoinChannel(channelName).ConfigureAwait(false))
             {
-                // Log and warn
+                logger.LogWarning("Unable to join channel {channelName} have we hit the cap?", channelName);
             }
 
             await client.JoinChannel(channelName).ConfigureAwait(false);
@@ -121,7 +128,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             if (!pubSubClient.LeaveChannel(channelName))
             {
-                // Log and warn
+                logger.LogInformation("Was unable to leave {channelName}", channelName);
             }
 
             await client.LeaveChannel(channelName).ConfigureAwait(false);
