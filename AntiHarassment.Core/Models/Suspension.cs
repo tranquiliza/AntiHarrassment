@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using AntiHarassment.Core.Security;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace AntiHarassment.Core.Models
 {
-    public sealed class Suspension
+    public sealed class Suspension : DomainBase
     {
         [JsonProperty]
         public Guid SuspensionId { get; private set; }
@@ -50,30 +51,38 @@ namespace AntiHarassment.Core.Models
 
         private Suspension() { }
 
-        public void UpdateValidity(bool invalidate)
+        public void UpdateValidity(bool invalidate, IApplicationContext context, DateTime timestamp)
         {
             InvalidSuspension = invalidate;
+
+            AddAuditTrail(context, nameof(InvalidSuspension), invalidate, timestamp);
         }
 
-        public void UpdateAuditedState(bool audited)
+        public void UpdateAuditedState(bool audited, IApplicationContext context, DateTime timestamp)
         {
             Audited = audited;
+
+            AddAuditTrail(context, nameof(Audited), audited, timestamp);
         }
 
-        public bool TryAddTag(Tag tag)
+        public bool TryAddTag(Tag tag, IApplicationContext context, DateTime timestamp)
         {
             if (tags.Any(x => x.TagId == tag.TagId))
                 return false;
 
             tags.Add(tag);
+
+            AddAuditTrail(context, nameof(tags), tags, timestamp);
             return true;
         }
 
-        public void RemoveTag(Tag tag)
+        public void RemoveTag(Tag tag, IApplicationContext context, DateTime timestamp)
         {
             var existingTag = tags.Find(x => x.TagId == tag.TagId);
             if (existingTag != null)
                 tags.Remove(existingTag);
+
+            AddAuditTrail(context, nameof(tags), tags, timestamp);
         }
 
         public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages)

@@ -10,10 +10,12 @@ namespace AntiHarassment.Core
     public class TagService : ITagService
     {
         private readonly ITagRepository tagRepository;
+        private readonly IDatetimeProvider datetimeProvider;
 
-        public TagService(ITagRepository tagRepository)
+        public TagService(ITagRepository tagRepository, IDatetimeProvider datetimeProvider)
         {
             this.tagRepository = tagRepository;
+            this.datetimeProvider = datetimeProvider;
         }
 
         public async Task<IResult<Tag>> Create(string tagName, string description, IApplicationContext context)
@@ -63,8 +65,8 @@ namespace AntiHarassment.Core
             if (existingTag == null)
                 return Result<Tag>.Failure("Tag not found, invalid Id");
 
-            existingTag.UpdateName(tagName);
-            existingTag.UpdateDescription(description);
+            existingTag.UpdateName(tagName, context, datetimeProvider.UtcNow);
+            existingTag.UpdateDescription(description, context, datetimeProvider.UtcNow);
 
             await tagRepository.Save(existingTag).ConfigureAwait(false);
 
