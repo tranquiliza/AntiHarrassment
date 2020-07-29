@@ -6,17 +6,17 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-6">
+        <div class="col-4">
             <input class="form-control" placeholder="Twitch Username" @onkeyup="KeyUpEvent" type="text" @bind-value="searchTerm" />
-        </div>
-        <div class="col-6">
-            <button class="btn btn-primary btn-sm" @onclick="async () => await SearchFor()">Search</button>
             @if (!string.IsNullOrEmpty(userReportService.UserReportLookupError))
             {
                 <p>
                     @userReportService.UserReportLookupError
                 </p>
             }
+        </div>
+        <div class="col-8">
+            <button class="btn btn-primary" @onclick="async () => await SearchFor()">Search</button>
         </div>
     </div>
     @if (Loading)
