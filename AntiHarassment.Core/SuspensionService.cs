@@ -100,14 +100,16 @@ namespace AntiHarassment.Core
             return Result<Suspension>.Succeeded(suspension);
         }
 
-        public async Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, IApplicationContext context)
+        public async Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, string invalidationReason, IApplicationContext context)
         {
             var fetch = await RetrieveSuspensionAndCheckAccess(suspensionId, context).ConfigureAwait(false);
             if (fetch.State != ResultState.Success)
                 return fetch;
 
             var suspension = fetch.Data;
-            suspension.UpdateValidity(invalidate, context, datetimeProvider.UtcNow);
+            if (!suspension.UpdateValidity(invalidate, invalidationReason, context, datetimeProvider.UtcNow))
+                return Result<Suspension>.Failure("Cannot mark Invalid without a reason");
+
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);

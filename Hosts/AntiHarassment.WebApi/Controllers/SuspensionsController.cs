@@ -58,7 +58,7 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpPost("{suspensionId}/validity")]
         public async Task<IActionResult> UpdateSuspensionValidity([FromRoute] Guid suspensionId, [FromBody] MarkSuspensionValidityModel model)
         {
-            var result = await suspensionService.UpdateValidity(suspensionId, model.Invalidate, ApplicationContext).ConfigureAwait(false);
+            var result = await suspensionService.UpdateValidity(suspensionId, model.Invalidate, model.InvalidationReason, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
 

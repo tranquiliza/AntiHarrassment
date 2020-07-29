@@ -66,18 +66,30 @@ else
 
         <div class="row">
             <div class="col-12">
-                <div class="card">
+                <div class="card bg-dark">
                     <div class="card-body bg-dark">
-                        <h5 class="card-header">Download Chatlogs</h5>
-                        <label for="earliestTime"></label>
-                        <input @bind-value="earliestTime" id="earliestTime" type="date" />
-
-                        <label for="latestTime"></label>
-                        <input @bind-value="latestTime" id="latestTime" type="date" />
-
-                        <div class="btn-group">
-                            <button class="btn btn-primary btn-sm" @onclick="async _ => await DownloadLog(true)">Download csv</button>
-                            <button class="btn btn-secondary btn-sm" @onclick="async _ => await DownloadLog(false)">Download json</button>
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="card-header">Download Chatlogs</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <label for="earliestTime"></label>
+                                <input class="form-control" @bind-value="earliestTime" id="earliestTime" type="date" />
+                            </div>
+                            <div class="col-6">
+                                <label for="latestTime"></label>
+                                <input class="form-control" @bind-value="latestTime" id="latestTime" type="date" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="btn-group">
+                                    <button class="btn btn-primary btn-sm" @onclick="async _ => await DownloadLog(true)">Download csv</button>
+                                    <button class="btn btn-secondary btn-sm" @onclick="async _ => await DownloadLog(false)">Download json</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -106,7 +118,7 @@ else
                         }
 
                         <tr>
-                            <td><input type="text" @bind-value="newModeratorName" /></td>
+                            <td><input class="form-control" type="text" @bind-value="newModeratorName" /></td>
                             <td><button @onclick="async () => await AddModerator()" class="btn btn-dark">Add</button></td>
                         </tr>
                     </tbody>

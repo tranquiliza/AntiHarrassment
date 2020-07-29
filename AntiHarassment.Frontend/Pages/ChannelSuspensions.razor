@@ -13,7 +13,7 @@
     else
     {
         <div class="row">
-            <div class="col-2">
+            <div class="col-3">
                 <div class="dropdown">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
@@ -26,8 +26,8 @@
                     </div>
                 </div>
             </div>
-            <div class="col-2">
-                <input type="date" @bind-value="selectedDate" />
+            <div class="col-3">
+                <input class="form-control" type="date" @bind-value="selectedDate" />
             </div>
         </div>
     }
@@ -55,10 +55,10 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-                      .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                      .GroupBy(x => x.LocalTimeStamp().Date)
-                      .Select(key => key.Key)
-                      .ToList())
+.Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+.GroupBy(x => x.LocalTimeStamp().Date)
+.Select(key => key.Key)
+.ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
                                         <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
@@ -120,6 +120,7 @@
                                             }
                                         </span>
                                     }
+
                                     @if (tagService.Tags != null && !suspension.Audited)
                                     {
                                         <div class="btn-group">
@@ -133,9 +134,14 @@
                                                 }
                                             </div>
                                         </div>
+                                        <hr />
                                     }
 
-                                    <hr />
+                                    @if (suspension.InvalidSuspension)
+                                    {
+                                        <p class="text-danger"><b>Invalid Because:</b> @suspension.InvalidationReason</p>
+                                        <hr />
+                                    }
 
                                     @foreach (var message in suspension.Messages)
                                     {
@@ -159,6 +165,31 @@
                     }
                 </div>
             }
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="invalidReasoningModal" tabindex="-1" role="dialog" aria-labelledby="invalidReasoningModalLabel" aria-hidden="true">
+    <div class="modal-dialog bg-dark">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="invalidReasoningModalLabel">Why is this Suspension Invalid?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(InvalidReasonErrorMessage))
+                {
+                    <p class="text-danger">@InvalidReasonErrorMessage</p>
+                }
+                <input class="form-control" type="text" @bind-value="InvalidationReason" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                <button @onclick="MarkInvalid" type="button" class="btn btn-success">Mark Invalid</button>
+            </div>
         </div>
     </div>
 </div>
@@ -206,9 +237,37 @@
         await suspensionService.FetchSuspensionForChannel(channelName);
     }
 
+    private string InvalidationReason = "";
+    private Guid CurrentlySelectedSuspension = default;
+
+    private string InvalidReasonErrorMessage = "";
+
     private async Task UpdateValidity(Guid suspensionId, bool invalidate)
     {
-        await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate);
+        if (invalidate)
+        {
+            CurrentlySelectedSuspension = suspensionId;
+            InvalidationReason = "";
+
+            await jsRuntime.InvokeVoidAsync("OpenModalForInvalidReasoning");
+            return;
+        }
+
+        await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate, "");
+    }
+
+    private async Task MarkInvalid()
+    {
+        if (CurrentlySelectedSuspension != default && !string.IsNullOrEmpty(InvalidationReason))
+        {
+            await suspensionService.UpdateSuspensionValidity(CurrentlySelectedSuspension, true, InvalidationReason);
+            await jsRuntime.InvokeVoidAsync("CloseModalForInvalidReasoning");
+            InvalidReasonErrorMessage = "";
+        }
+        else
+        {
+            InvalidReasonErrorMessage = "You must give a reason why the suspension is invalid!";
+        }
     }
 
     private async Task UpdateAudited(Guid suspensionId, bool audited)
