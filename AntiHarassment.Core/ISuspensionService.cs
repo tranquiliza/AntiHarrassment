@@ -15,5 +15,7 @@ namespace AntiHarassment.Core
         Task<IResult<Suspension>> AddTagTo(Guid suspensionId, Guid tagId, IApplicationContext applicationContext);
         Task<IResult<Suspension>> RemoveTagFrom(Guid suspensionId, Guid tagId, IApplicationContext applicationContext);
         Task<IResult<Suspension>> GetSuspensionAsync(Guid suspensionId, IApplicationContext applicationContext);
+        Task<IResult<Suspension>> AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context);
+        Task<IResult<Suspension>> RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context);
     }
 }

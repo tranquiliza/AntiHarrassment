@@ -28,7 +28,8 @@ namespace AntiHarassment.WebApi.Mappers
                 Audited = suspension.Audited,
                 Tags = suspension.Tags.Map(),
                 SuspensionType = suspension.SuspensionType.Map(),
-                Messages = suspension.ChatMessages.Map()
+                Messages = suspension.ChatMessages.Map(),
+                LinkedUsernames = suspension.LinkedUsernames.ToList()
             };
         }
 

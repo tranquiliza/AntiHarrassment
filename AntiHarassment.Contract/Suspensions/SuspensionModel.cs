@@ -18,5 +18,6 @@ namespace AntiHarassment.Contract
         public SuspensionTypeModel SuspensionType { get; set; }
         public List<TagModel> Tags { get; set; }
         public List<ChatMessageModel> Messages { get; set; }
+        public List<string> LinkedUsernames { get; set; }
     }
 }

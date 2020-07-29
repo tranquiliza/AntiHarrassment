@@ -25,3 +25,11 @@ window.OpenModalForInvalidReasoning = function () {
 window.CloseModalForInvalidReasoning = function () {
     $('#invalidReasoningModal').modal('hide');
 }
+
+window.OpenModalForUserLinking = function () {
+    $('#accountLinkingModal').modal('show');
+}
+
+window.CloseModalForUserLinking = function () {
+    $('#accountLinkingModal').modal('hide');
+}

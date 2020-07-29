@@ -12,7 +12,22 @@ namespace AntiHarassment.Frontend.Application
 {
     public class SuspensionService : ISuspensionService, IDisposable
     {
+        private List<string> usersFromChannel { get; set; }
         public List<ChannelModel> Channels { get; private set; }
+        public List<string> UsersFromChannel
+        {
+            get
+            {
+                return usersFromChannel?.Where(
+                    x => x.StartsWith(string.IsNullOrEmpty(CurrentSearchTerm) ? "" : CurrentSearchTerm, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(x, CurrentlySelectedSuspension?.Username)
+                    && CurrentlySelectedSuspension?.LinkedUsernames.Contains(x) == false
+                ).ToList();
+            }
+        }
+
+        public string CurrentSearchTerm { get; set; }
+        public SuspensionModel CurrentlySelectedSuspension { get; set; }
 
         public string CurrentlySelectedChannel { get; private set; }
         public List<SuspensionModel> Suspensions { get; private set; }
@@ -36,7 +51,6 @@ namespace AntiHarassment.Frontend.Application
                 return;
 
             var qParam = new QueryParam("suspensionId", args.SuspensionId.ToString());
-
             var updatedSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
             if (updatedSuspension == null)
                 return;
@@ -55,7 +69,6 @@ namespace AntiHarassment.Frontend.Application
                 return;
 
             var qParam = new QueryParam("suspensionId", args.SuspensionId.ToString());
-
             var newSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
             if (newSuspension != null)
             {
@@ -79,11 +92,15 @@ namespace AntiHarassment.Frontend.Application
             if (!Channels.Any(x => string.Equals(x.ChannelName, userService.CurrentUserTwitchUsername, StringComparison.OrdinalIgnoreCase)))
             {
                 if (Channels.Count > 0)
+                {
                     await FetchSuspensionForChannel(Channels[0].ChannelName).ConfigureAwait(false);
+                    await FetchSeenUsersForChannel(Channels[0].ChannelName).ConfigureAwait(false);
+                }
             }
             else
             {
                 await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
+                await FetchSeenUsersForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
             }
         }
 
@@ -95,6 +112,33 @@ namespace AntiHarassment.Frontend.Application
             Suspensions = result ?? new List<SuspensionModel>();
 
             CurrentlySelectedChannel = channelName;
+        }
+
+        private async Task FetchSeenUsersForChannel(string channelName)
+        {
+            usersFromChannel = null;
+            var result = await apiGateway.Get<List<string>>("channels", routeValues: new string[] { channelName, "users" }).ConfigureAwait(false);
+            usersFromChannel = result ?? new List<string>();
+        }
+
+        public async Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername)
+        {
+            var result = await apiGateway.Post<SuspensionModel, AddUserLinkToSuspensionModel>(
+                new AddUserLinkToSuspensionModel { Username = twitchUsername },
+                "suspensions",
+                routeValues: new string[] { suspensionId.ToString(), "userlink" }).ConfigureAwait(false);
+
+            UpdateState(result);
+        }
+
+        public async Task RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername)
+        {
+            var result = await apiGateway.Delete<SuspensionModel, DeleteUserlinkFromSuspensionModel>(
+                new DeleteUserlinkFromSuspensionModel { Username = twitchUsername },
+                "suspensions",
+                routeValues: new string[] { suspensionId.ToString(), "userlink" }).ConfigureAwait(false);
+
+            UpdateState(result);
         }
 
         public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason)

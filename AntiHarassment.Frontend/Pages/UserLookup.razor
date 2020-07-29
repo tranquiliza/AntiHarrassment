@@ -19,6 +19,7 @@
             <button class="btn btn-primary" @onclick="async () => await SearchFor()">Search</button>
         </div>
     </div>
+    <hr />
     @if (Loading)
     {
         <p>LOADING....</p>
@@ -27,7 +28,13 @@
     {
         <div class="row">
             <div class="col">
-                Username: @model.Username
+                <h5>Associated Accounts</h5>
+                <ul class="list-group bg-dark">
+                    @foreach (var username in model.AssociatedAccounts)
+                    {
+                        <li class="list-group-item list-group-item-dark">@username</li>
+                    }
+                </ul>
             </div>
             <div class="col">
                 <h5>Banned In</h5>
@@ -63,6 +70,7 @@
                 }
             </div>
         </div>
+        <hr />
         <div class="row">
             <div class="col">
                 <h5>Suspensions</h5>
@@ -80,13 +88,27 @@
                             </div>
                             <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
                                 <div class="card-body">
-                                    @foreach (var tag in suspension.Tags)
+                                    @if (suspension.Tags.Count != 0)
                                     {
-                                        <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
-                                            @tag.TagName
-                                        </span>
+                                        @foreach (var tag in suspension.Tags)
+                                        {
+                                            <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
+                                                @tag.TagName
+                                            </span>
+                                        }
+                                        <hr />
                                     }
-                                    <hr />
+                                    @if (suspension.LinkedUsernames.Count != 0)
+                                    {
+                                        <p>
+                                            <b>Linked Usernames</b>
+                                        </p>
+                                        @foreach (var username in suspension.LinkedUsernames)
+                                        {
+                                            <span class="badge badge-danger">@username</span>
+                                        }
+                                        <hr />
+                                    }
                                     @foreach (var message in suspension.Messages)
                                     {
                                         <p><b>@message.LocalTimestamp()</b> @message.Message</p>

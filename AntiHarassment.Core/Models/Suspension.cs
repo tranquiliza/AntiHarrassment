@@ -40,6 +40,12 @@ namespace AntiHarassment.Core.Models
         [JsonIgnore]
         public IReadOnlyList<Tag> Tags => tags.AsReadOnly();
 
+        [JsonProperty]
+        private List<string> linkedUsernames { get; set; } = new List<string>();
+
+        [JsonIgnore]
+        public IReadOnlyList<string> LinkedUsernames => linkedUsernames.AsReadOnly();
+
         /// <summary>
         /// Length of the suspension in Seconds: 0 if permanent
         /// </summary>
@@ -93,6 +99,22 @@ namespace AntiHarassment.Core.Models
                 tags.Remove(existingTag);
 
             AddAuditTrail(context, nameof(tags), tags, timestamp);
+        }
+
+        public void AddUserLink(string twitchUsername, IApplicationContext context, DateTime timestamp)
+        {
+            if (linkedUsernames.Contains(twitchUsername))
+                return;
+
+            linkedUsernames.Add(twitchUsername);
+            AddAuditTrail(context, nameof(linkedUsernames), linkedUsernames, timestamp);
+        }
+
+        public void RemoveUserLink(string twitchUsername, IApplicationContext context, DateTime timestamp)
+        {
+            linkedUsernames.Remove(twitchUsername);
+
+            AddAuditTrail(context, nameof(linkedUsernames), linkedUsernames, timestamp);
         }
 
         public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages)

@@ -7,6 +7,9 @@ namespace AntiHarassment.Frontend.Application
 {
     public interface ISuspensionService
     {
+        List<string> UsersFromChannel { get; }
+        string CurrentSearchTerm { get; set; }
+        SuspensionModel CurrentlySelectedSuspension { get; set; }
         List<SuspensionModel> Suspensions { get; }
         string CurrentlySelectedChannel { get; }
         List<ChannelModel> Channels { get; }
@@ -18,6 +21,8 @@ namespace AntiHarassment.Frontend.Application
         Task UpdateAudited(Guid suspensionId, bool audited);
         Task AddTagToSuspension(Guid suspensionId, Guid tagId);
         Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId);
+        Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername);
         Task Initialize();
+        Task RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername);
     }
 }

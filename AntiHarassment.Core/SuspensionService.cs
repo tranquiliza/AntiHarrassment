@@ -111,7 +111,36 @@ namespace AntiHarassment.Core
                 return Result<Suspension>.Failure("Cannot mark Invalid without a reason");
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
 
+            return Result<Suspension>.Succeeded(suspension);
+        }
+
+        public async Task<IResult<Suspension>> AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context)
+        {
+            var fetch = await RetrieveSuspensionAndCheckAccess(suspensionId, context).ConfigureAwait(false);
+            if (fetch.State != ResultState.Success)
+                return fetch;
+
+            var suspension = fetch.Data;
+            suspension.AddUserLink(twitchUsername, context, datetimeProvider.UtcNow);
+
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
+
+            return Result<Suspension>.Succeeded(suspension);
+        }
+
+        public async Task<IResult<Suspension>> RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context)
+        {
+            var fetch = await RetrieveSuspensionAndCheckAccess(suspensionId, context).ConfigureAwait(false);
+            if (fetch.State != ResultState.Success)
+                return fetch;
+
+            var suspension = fetch.Data;
+            suspension.RemoveUserLink(twitchUsername, context, datetimeProvider.UtcNow);
+
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
 
             return Result<Suspension>.Succeeded(suspension);

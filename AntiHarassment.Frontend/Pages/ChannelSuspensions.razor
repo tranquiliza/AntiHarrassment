@@ -30,8 +30,8 @@
                 <input class="form-control" type="date" @bind-value="selectedDate" />
             </div>
         </div>
+        <hr />
     }
-
     <div class="row">
         <div class="col-12">
             @if (suspensionService.Suspensions == null)
@@ -55,10 +55,10 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-.Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-.GroupBy(x => x.LocalTimeStamp().Date)
-.Select(key => key.Key)
-.ToList())
+                                            .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                                            .GroupBy(x => x.LocalTimeStamp().Date)
+                                            .Select(key => key.Key)
+                                            .ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
                                         <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
@@ -103,6 +103,7 @@
                                                 else
                                                 {
                                                     <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
+                                                    <button @onclick="async _ => await OpenLinkUserModal(suspension.SuspensionId)" class="btn btn-warning btn-sm">Link User</button>
                                                 }
                                                 <a class="btn btn-primary btn-sm" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
                                                 <button class="btn btn-secondary btn-sm" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
@@ -137,7 +138,25 @@
                                         <hr />
                                     }
 
-                                    @if (suspension.InvalidSuspension)
+                                    @if (suspension.LinkedUsernames.Count != 0)
+                                    {
+                                        <p>
+                                            <b>Linked Usernames</b>
+                                        </p>
+                                        @foreach (var username in suspension.LinkedUsernames)
+                                        {
+                                            <span class="badge badge-danger">
+                                                @username
+                                                @if (!suspension.Audited)
+                                                {
+                                                    <button class="btn btn-sm" @onclick="async _ => await suspensionService.RemoveUserLinkFromSuspension(suspension.SuspensionId, username)">x</button>
+                                                }
+                                            </span>
+                                        }
+                                    }
+
+
+                                    @if (suspension.InvalidSuspension && !string.IsNullOrEmpty(suspension.InvalidationReason))
                                     {
                                         <p class="text-danger"><b>Invalid Because:</b> @suspension.InvalidationReason</p>
                                         <hr />
@@ -169,7 +188,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal For InvalidReason -->
 <div class="modal fade" id="invalidReasoningModal" tabindex="-1" role="dialog" aria-labelledby="invalidReasoningModalLabel" aria-hidden="true">
     <div class="modal-dialog bg-dark">
         <div class="modal-content bg-dark">
@@ -189,6 +208,34 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
                 <button @onclick="MarkInvalid" type="button" class="btn btn-success">Mark Invalid</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal For AccountLinking -->
+<div class="modal fade" id="accountLinkingModal" tabindex="-1" role="dialog" aria-labelledby="accountLinkingModalLabel" aria-hidden="true">
+    <div class="modal-dialog bg-dark">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accountLinkingModalLabel">Link another user to this suspension</h5>
+                <button @onclick="CloseLinkUserModal" type="button" class="close" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label for="accountLinkingUserInput">Search For a User</label>
+                <input id="accountLinkingUserInput" class="form-control" type="text" @bind-value="suspensionService.CurrentSearchTerm" />
+                @if (suspensionService.UsersFromChannel != null)
+                {
+                    @foreach (var userName in suspensionService.UsersFromChannel)
+                    {
+                        <button @onclick="async _ => await LinkUserToSuspensions(userName)" class="btn btn-secondary">@userName</button>
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                <button @onclick="CloseLinkUserModal" type="button" class="btn btn-danger">Cancel</button>
             </div>
         </div>
     </div>
@@ -238,7 +285,7 @@
     }
 
     private string InvalidationReason = "";
-    private Guid CurrentlySelectedSuspension = default;
+    private Guid CurrentlySelectedSuspensionForInvalid = default;
 
     private string InvalidReasonErrorMessage = "";
 
@@ -246,7 +293,7 @@
     {
         if (invalidate)
         {
-            CurrentlySelectedSuspension = suspensionId;
+            CurrentlySelectedSuspensionForInvalid = suspensionId;
             InvalidationReason = "";
 
             await jsRuntime.InvokeVoidAsync("OpenModalForInvalidReasoning");
@@ -258,9 +305,9 @@
 
     private async Task MarkInvalid()
     {
-        if (CurrentlySelectedSuspension != default && !string.IsNullOrEmpty(InvalidationReason))
+        if (CurrentlySelectedSuspensionForInvalid != default && !string.IsNullOrEmpty(InvalidationReason))
         {
-            await suspensionService.UpdateSuspensionValidity(CurrentlySelectedSuspension, true, InvalidationReason);
+            await suspensionService.UpdateSuspensionValidity(CurrentlySelectedSuspensionForInvalid, true, InvalidationReason);
             await jsRuntime.InvokeVoidAsync("CloseModalForInvalidReasoning");
             InvalidReasonErrorMessage = "";
         }
@@ -277,12 +324,55 @@
 
     private async Task AddTagToSuspension(Guid suspensionId, Guid tagId)
     {
+        @if (tagId == Guid.Parse("7A1694E6-5418-4FB6-9347-093AEE2AA4A9")) //Yes this is trash code, but not sure how else to do it
+        {
+            await OpenLinkUserModal(suspensionId);
+        }
+
         await suspensionService.AddTagToSuspension(suspensionId, tagId);
     }
 
     private async Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId)
     {
         await suspensionService.RemoveTagFromSuspension(suspensionId, tagId);
+    }
+
+    private Guid CurrentlySelectedSuspensionForUserLinking = default;
+    private async Task LinkUserToSuspensions(string userToLink)
+    {
+        if (CurrentlySelectedSuspensionForUserLinking == default || string.IsNullOrEmpty(userToLink))
+        {
+            return;
+        }
+
+        await suspensionService.AddUserLinkToSuspension(CurrentlySelectedSuspensionForUserLinking, userToLink);
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
+        suspensionService.CurrentSearchTerm = "";
+        suspensionService.CurrentlySelectedSuspension = null;
+        CurrentlySelectedSuspensionForUserLinking = default;
+    }
+
+    private async Task CloseLinkUserModal()
+    {
+        if (CurrentlySelectedSuspensionForUserLinking == default)
+        {
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
+        suspensionService.CurrentSearchTerm = "";
+        suspensionService.CurrentlySelectedSuspension = null;
+        CurrentlySelectedSuspensionForUserLinking = default;
+    }
+
+
+    private async Task OpenLinkUserModal(Guid suspensionId)
+    {
+        suspensionService.CurrentlySelectedSuspension = suspensionService.Suspensions.Find(x => x.SuspensionId == suspensionId);
+        CurrentlySelectedSuspensionForUserLinking = suspensionId;
+
+        await jsRuntime.InvokeVoidAsync("OpenModalForUserLinking");
     }
 
     protected override async Task OnInitializedAsync()

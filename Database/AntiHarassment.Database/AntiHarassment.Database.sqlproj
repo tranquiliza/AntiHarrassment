@@ -93,6 +93,8 @@
     <Build Include="StoredProcedures\Suspensions\GetSuspensionsForUser.sql" />
     <Build Include="StoredProcedures\Tags\DeleteTag.sql" />
     <Build Include="StoredProcedures\ChatMessages\GetChatLogForChannel.sql" />
+    <Build Include="StoredProcedures\ChatMessages\GetUniqueChattersForChannel.sql" />
+    <Build Include="StoredProcedures\Suspensions\GetUniqueUsersFromSuspensions.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

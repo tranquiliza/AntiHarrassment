@@ -118,5 +118,18 @@ namespace AntiHarassment.Core
 
             return Result<List<ChatMessage>>.Succeeded(chatLogs);
         }
+
+        public async Task<IResult<List<string>>> GetChattersForChannel(string channelName, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (!context.HaveAccessTo(channel))
+                return Result<List<string>>.Unauthorized();
+
+            var users = await chatRepository.GetUniqueChattersForChannel(channelName).ConfigureAwait(false);
+            if (users.Count == 0)
+                return Result<List<string>>.NoContentFound();
+
+            return Result<List<string>>.Succeeded(users);
+        }
     }
 }

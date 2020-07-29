@@ -118,5 +118,37 @@ namespace AntiHarassment.WebApi.Controllers
 
             return NoContent();
         }
+
+        [HttpPost("{suspensionId}/userlink")]
+        public async Task<IActionResult> AddUserLinkToSuspension([FromRoute] Guid suspensionId, [FromBody] AddUserLinkToSuspensionModel model)
+        {
+            var result = await suspensionService.AddUserLinkToSuspension(suspensionId, model.Username, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
+        }
+
+        [HttpDelete("{suspensionId}/userlink")]
+        public async Task<IActionResult> DeleteUserLinkFromSuspension([FromRoute] Guid suspensionId, [FromBody] DeleteUserlinkFromSuspensionModel model)
+        {
+            var result = await suspensionService.RemoveUserLinkFromSuspension(suspensionId, model.Username, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
+        }
     }
 }
