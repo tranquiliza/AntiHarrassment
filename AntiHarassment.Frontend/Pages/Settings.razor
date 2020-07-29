@@ -74,13 +74,13 @@ else
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-6">
-                                <label for="earliestTime"></label>
-                                <input class="form-control" @bind-value="earliestTime" id="earliestTime" type="date" />
+                            <div class="col-3">
+                                <label for="earliestTime">From</label>
+                                <input class="form-control" @bind-value="earliestTime" id="earliestTime" type="datetime-local" />
                             </div>
-                            <div class="col-6">
-                                <label for="latestTime"></label>
-                                <input class="form-control" @bind-value="latestTime" id="latestTime" type="date" />
+                            <div class="col-3">
+                                <label for="latestTime">To</label>
+                                <input class="form-control" @bind-value="latestTime" id="latestTime" type="datetime-local" />
                             </div>
                         </div>
                         <div class="row">
@@ -131,8 +131,8 @@ else
 @page "/settings"
 
 @code {
-    private DateTime earliestTime = DateTime.UtcNow.AddDays(-1);
-    private DateTime latestTime = DateTime.UtcNow;
+    private DateTime earliestTime = DateTime.Now.AddDays(-1);
+    private DateTime latestTime = DateTime.Now;
 
     private async Task DownloadLog(bool downloadPlain)
     {
