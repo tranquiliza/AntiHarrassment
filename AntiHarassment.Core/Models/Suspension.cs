@@ -29,6 +29,9 @@ namespace AntiHarassment.Core.Models
         public bool InvalidSuspension { get; private set; }
 
         [JsonProperty]
+        public string InvalidationReason { get; private set; }
+
+        [JsonProperty]
         public bool Audited { get; private set; }
 
         [JsonProperty]
@@ -51,11 +54,18 @@ namespace AntiHarassment.Core.Models
 
         private Suspension() { }
 
-        public void UpdateValidity(bool invalidate, IApplicationContext context, DateTime timestamp)
+        public bool UpdateValidity(bool invalidate, string invalidationReason, IApplicationContext context, DateTime timestamp)
         {
+            if (invalidate && string.IsNullOrEmpty(invalidationReason))
+                return false;
+
             InvalidSuspension = invalidate;
+            InvalidationReason = invalidationReason;
 
             AddAuditTrail(context, nameof(InvalidSuspension), invalidate, timestamp);
+            AddAuditTrail(context, nameof(InvalidSuspension), invalidate, timestamp);
+
+            return true;
         }
 
         public void UpdateAuditedState(bool audited, IApplicationContext context, DateTime timestamp)

@@ -97,10 +97,10 @@ namespace AntiHarassment.Frontend.Application
             CurrentlySelectedChannel = channelName;
         }
 
-        public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate)
+        public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason)
         {
             var result = await apiGateway.Post<SuspensionModel, MarkSuspensionValidityModel>(
-                new MarkSuspensionValidityModel { Invalidate = invalidate },
+                new MarkSuspensionValidityModel { Invalidate = invalidate, InvalidationReason = invalidationReason },
                 "suspensions",
                 routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
 
