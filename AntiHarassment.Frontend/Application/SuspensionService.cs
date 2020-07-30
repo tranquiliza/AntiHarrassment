@@ -19,7 +19,7 @@ namespace AntiHarassment.Frontend.Application
             get
             {
                 return usersFromChannel?.Where(
-                    x => x.StartsWith(string.IsNullOrEmpty(CurrentSearchTerm) ? "" : CurrentSearchTerm, StringComparison.OrdinalIgnoreCase)
+                    x => x.StartsWith(string.IsNullOrEmpty(CurrentSearchTerm) ? "_" : CurrentSearchTerm, StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(x, CurrentlySelectedSuspension?.Username)
                     && CurrentlySelectedSuspension?.LinkedUsernames.Contains(x) == false
                 ).ToList();
