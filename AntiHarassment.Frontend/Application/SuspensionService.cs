@@ -29,6 +29,9 @@ namespace AntiHarassment.Frontend.Application
         public string CurrentSearchTerm { get; set; }
         public SuspensionModel CurrentlySelectedSuspension { get; set; }
 
+        public string CurrentInvalidationReason { get; set; }
+        public SuspensionModel CurrentlySelectedSuspensionForInvalidation { get; set; }
+
         public string CurrentlySelectedChannel { get; private set; }
         public List<SuspensionModel> Suspensions { get; private set; }
 
@@ -114,7 +117,7 @@ namespace AntiHarassment.Frontend.Application
             CurrentlySelectedChannel = channelName;
         }
 
-        private async Task FetchSeenUsersForChannel(string channelName)
+        public async Task FetchSeenUsersForChannel(string channelName)
         {
             usersFromChannel = null;
             var result = await apiGateway.Get<List<string>>("channels", routeValues: new string[] { channelName, "users" }).ConfigureAwait(false);
@@ -141,12 +144,14 @@ namespace AntiHarassment.Frontend.Application
             UpdateState(result);
         }
 
-        public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason)
+        public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason = "")
         {
             var result = await apiGateway.Post<SuspensionModel, MarkSuspensionValidityModel>(
                 new MarkSuspensionValidityModel { Invalidate = invalidate, InvalidationReason = invalidationReason },
                 "suspensions",
                 routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
+
+            CurrentInvalidationReason = "";
 
             UpdateState(result);
         }

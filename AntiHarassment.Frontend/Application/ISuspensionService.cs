@@ -7,17 +7,24 @@ namespace AntiHarassment.Frontend.Application
 {
     public interface ISuspensionService
     {
+        string CurrentlySelectedChannel { get; }
         List<string> UsersFromChannel { get; }
+
+        List<SuspensionModel> Suspensions { get; }
+        List<ChannelModel> Channels { get; }
+
+        SuspensionModel CurrentlySelectedSuspensionForInvalidation { get; set; }
+        string CurrentInvalidationReason { get; set; }
+
         string CurrentSearchTerm { get; set; }
         SuspensionModel CurrentlySelectedSuspension { get; set; }
-        List<SuspensionModel> Suspensions { get; }
-        string CurrentlySelectedChannel { get; }
-        List<ChannelModel> Channels { get; }
+
 
         event Action OnChange;
 
         Task FetchSuspensionForChannel(string channelName);
-        Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason);
+        Task FetchSeenUsersForChannel(string channelName);
+        Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason = "");
         Task UpdateAudited(Guid suspensionId, bool audited);
         Task AddTagToSuspension(Guid suspensionId, Guid tagId);
         Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId);

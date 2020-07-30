@@ -1,0 +1,191 @@
+﻿@inject ISuspensionService suspensionService
+@inject ITagService tagService
+@inject IJSRuntime jsRuntime
+
+<div class="card bg-dark">
+    <div class="card-header">
+        <button class="btn @SelectButtonColor(suspension) btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false">
+            @suspension.LocalTimeStamp().FancyFormat() -
+            <b>@suspension.Username</b>
+            @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+            @suspension.SuspensionType.ToString()
+        </button>
+    </div>
+    <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
+        <div class="card-body" style="min-height:60vh">
+            <div class="btn-group">
+                <div class="row">
+                    <div class="col-12">
+                        @if (suspension.InvalidSuspension)
+                        {
+                            <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-success btn-sm">Mark Valid</button>
+                        }
+                        else
+                        {
+                            <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-danger btn-sm">Mark Invalid</button>
+                        }
+
+                        @if (suspension.Audited)
+                        {
+                            <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn btn-danger btn-sm">Mark as Unaudited</button>
+                        }
+                        else
+                        {
+                            <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
+                            <button @onclick="async _ => await OpenLinkUserModal(suspension.SuspensionId)" class="btn btn-warning btn-sm">Link User</button>
+                        }
+                        <a class="btn btn-primary btn-sm" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
+                        <button class="btn btn-secondary btn-sm" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
+                    </div>
+                </div>
+            </div>
+            <hr />
+            @foreach (var tag in suspension.Tags)
+            {
+                <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
+                    @tag.TagName
+                    @if (!suspension.Audited)
+                    {
+                        <button class="btn btn-sm" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">x</button>
+                    }
+                </span>
+            }
+
+            @if (tagService.Tags != null && !suspension.Audited)
+            {
+                <div class="btn-group">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="@("tagSelectMenu"+counter)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Tags
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="@("#tagSelectMenu"+counter)">
+                        @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
+                        {
+                            <button @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)" class="dropdown-item" type="button" data-placement="right" title="@tag.TagDescription">@tag.TagName</button>
+                        }
+                    </div>
+                </div>
+                <hr />
+            }
+
+            @if (suspension.LinkedUsernames.Count != 0)
+            {
+                <p>
+                    <b>Linked Usernames</b>
+                </p>
+                @foreach (var username in suspension.LinkedUsernames)
+                {
+                    <span class="badge badge-danger">
+                        @username
+                        @if (!suspension.Audited)
+                        {
+                            <button class="btn btn-sm" @onclick="async _ => await suspensionService.RemoveUserLinkFromSuspension(suspension.SuspensionId, username)">x</button>
+                        }
+                    </span>
+                }
+            }
+
+
+            @if (suspension.InvalidSuspension && !string.IsNullOrEmpty(suspension.InvalidationReason))
+            {
+                <p class="text-danger"><b>Invalid Because:</b> @suspension.InvalidationReason</p>
+                <hr />
+            }
+
+            @foreach (var message in suspension.Messages)
+            {
+                @if (message.AutoModded)
+                {
+                    <p class="text-danger"><b>@message.LocalTimestamp()</b> @message.Message</p>
+                }
+                else
+                {
+                    <p><b>@message.LocalTimestamp()</b> @message.Message</p>
+                }
+
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public SuspensionModel suspension { get; set; }
+
+    [Parameter]
+    public int counter { get; set; }
+
+    private string SelectButtonColor(SuspensionModel suspension)
+    {
+        if (suspension.Audited && suspension.InvalidSuspension)
+        {
+            return "btn-secondary";
+        }
+        if (suspension.Audited && !suspension.InvalidSuspension)
+        {
+            return "btn-success";
+        }
+        if (!suspension.Audited && suspension.InvalidSuspension)
+        {
+            return "btn-danger";
+        }
+        if (!suspension.Audited && !suspension.InvalidSuspension)
+        {
+            return "btn-warning";
+        }
+
+        return "btn-secondary";
+    }
+
+    private async Task UpdateValidity(Guid suspensionId, bool invalidate)
+    {
+        if (invalidate)
+        {
+            suspensionService.CurrentlySelectedSuspensionForInvalidation = suspension;
+
+            await jsRuntime.InvokeVoidAsync("OpenModalForInvalidReasoning");
+            return;
+        }
+
+        await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate);
+    }
+
+    private async Task UpdateAudited(Guid suspensionId, bool audited)
+    {
+        await suspensionService.UpdateAudited(suspensionId, audited);
+    }
+
+    private async Task OpenLinkUserModal(Guid suspensionId)
+    {
+        suspensionService.CurrentlySelectedSuspension = suspension;
+
+        await jsRuntime.InvokeVoidAsync("OpenModalForUserLinking");
+    }
+
+    private async Task AddTagToSuspension(Guid suspensionId, Guid tagId)
+    {
+        // Yes this is trash code, but not sure how else to do it
+        if (tagId == Guid.Parse("7A1694E6-5418-4FB6-9347-093AEE2AA4A9"))
+        {
+            await OpenLinkUserModal(suspensionId);
+        }
+
+        await suspensionService.AddTagToSuspension(suspensionId, tagId);
+    }
+
+    private async Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId)
+    {
+        await suspensionService.RemoveTagFromSuspension(suspensionId, tagId);
+    }
+
+    private string CopyUsernameButtonText = "Copy Username";
+
+    private async Task CopyToClipboard(string textToCopy)
+    {
+        CopyUsernameButtonText = "Copied";
+        await jsRuntime.InvokeVoidAsync("CopyTextToClipboard", textToCopy);
+
+        await Task.Delay(800);
+        CopyUsernameButtonText = "Copy Username";
+    }
+}
+
