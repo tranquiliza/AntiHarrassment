@@ -78,3 +78,7 @@ body {
     overflow: auto;
     max-height: 45vh;
 }
+
+.twitch {
+    background-color: #772ce8;
+}

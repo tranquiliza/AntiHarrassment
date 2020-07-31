@@ -27,5 +27,6 @@ namespace AntiHarassment.Frontend.Application
         Task<bool> TryLogout();
         Task<bool> RequestPasswordReset(RequestResetTokenModel model);
         Task<bool> ResetPassword(ResetPasswordModel model);
+        Task<bool> SetTokensAndLoginWithTwitch(string accessToken);
     }
 }

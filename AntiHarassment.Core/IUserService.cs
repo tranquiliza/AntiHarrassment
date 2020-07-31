@@ -13,5 +13,6 @@ namespace AntiHarassment.Core
         Task<IResult> Confirm(string twitchUsername, Guid confirmationToken);
         Task<IResult> SendPasswordResetTokenFor(string twitchUsername);
         Task<IResult> UpdatePasswordFor(string twitchUsername, Guid resetToken, string newPassword);
+        Task<IResult<User>> Authenticate(string accessToken);
     }
 }

@@ -1,4 +1,5 @@
 ﻿@inject IUserService userService
+@inject NavigationManager navigationManager
 @implements IDisposable
 
 @switch (currentState)
@@ -107,6 +108,7 @@
             </div>
 
             <button type="submit" class="btn btn-lg btn-dark btn-block">Sign In</button>
+            <a class="btn btn-lg btn-secondary twitch btn-block" href="https://id.twitch.tv/oauth2/authorize?client_id=640c899uj9yelwofbsv3a7p0p5leeb&redirect_uri=https://antiharassment.azurewebsites.net/&response_type=code&scope=user:read:email">Login with Twitch</a>
             <button @onclick="_ => SetCurrentState(RegistrationState.Registrering)" class="btn btn-lg btn-dark btn-block">Register</button>
         </EditForm>
         <a class="hand-pointer" @onclick="_ => SetCurrentState(RegistrationState.Confirming)">Enter Confirmation</a>
@@ -238,8 +240,17 @@
         SetCurrentState(RegistrationState.Login);
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var uri = navigationManager.ToAbsoluteUri(navigationManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("code", out var accessToken))
+        {
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                await userService.SetTokensAndLoginWithTwitch(accessToken);
+            }
+        }
+
         userService.OnChange += StateHasChanged;
     }
 

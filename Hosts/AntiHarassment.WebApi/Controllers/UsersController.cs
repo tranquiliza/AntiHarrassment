@@ -11,6 +11,7 @@ using AntiHarassment.Contract;
 using AntiHarassment.Core;
 using AntiHarassment.WebApi.Mappers;
 using AntiHarassment.Core.Security;
+using AntiHarassment.Core.Models;
 
 namespace AntiHarassment.WebApi.Controllers
 {
@@ -36,6 +37,26 @@ namespace AntiHarassment.WebApi.Controllers
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
 
+            var bearerToken = GenerateToken(result);
+
+            return Ok(result.Data.Map(bearerToken));
+        }
+
+        [AllowAnonymous]
+        [HttpPost("AuthenticateWithTwitch")]
+        public async Task<IActionResult> AuthenticateWithTwitch([FromBody] AuthenticateWithTwitchModel model)
+        {
+            var result = await userService.Authenticate(model.AccessToken).ConfigureAwait(false);
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            var bearerToken = GenerateToken(result);
+
+            return Ok(result.Data.Map(bearerToken));
+        }
+
+        private string GenerateToken(IResult<User> result)
+        {
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var key = Encoding.ASCII.GetBytes(applicationConfiguration.SecurityKey);
@@ -56,9 +77,7 @@ namespace AntiHarassment.WebApi.Controllers
             tokenDescriptor.Subject.AddClaim(new Claim(CustomClaimTypes.TwitchUsername, result.Data.TwitchUsername));
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            var bearerToken = tokenHandler.WriteToken(token);
-
-            return Ok(result.Data.Map(bearerToken));
+            return tokenHandler.WriteToken(token);
         }
 
         [HttpPost]

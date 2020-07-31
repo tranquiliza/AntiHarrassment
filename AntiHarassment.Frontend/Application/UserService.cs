@@ -72,6 +72,10 @@ namespace AntiHarassment.Frontend.Application
             if (!string.IsNullOrEmpty(currentToken))
             {
                 User = await CreateUserFromJwtToken(currentToken).ConfigureAwait(false);
+
+                if (!IsUserLoggedIn)
+                    await LoginWithTwitchToken().ConfigureAwait(false);
+
                 NotifyStateChanged();
             }
         }
@@ -108,9 +112,7 @@ namespace AntiHarassment.Frontend.Application
                 if (response == null)
                     return false;
 
-                await applicationStateManager.SetJwtToken(response.Token).ConfigureAwait(false);
-                User = await CreateUserFromJwtToken(response.Token).ConfigureAwait(false);
-                NotifyStateChanged();
+                await FinalizeLogin(response).ConfigureAwait(false);
                 return true;
             }
             catch (Exception ex)
@@ -195,6 +197,36 @@ namespace AntiHarassment.Frontend.Application
                 ResetPasswordError = ex.Message;
                 return false;
             }
+        }
+
+        private async Task<bool> LoginWithTwitchToken()
+        {
+            var twitchAccessToken = await applicationStateManager.GetTwitchAccessToken().ConfigureAwait(false);
+            if (twitchAccessToken == null)
+                return false;
+
+            var model = new AuthenticateWithTwitchModel { AccessToken = twitchAccessToken };
+            var response = await apiGateway.Post<UserAuthenticatedModel, AuthenticateWithTwitchModel>(model, "Users", "AuthenticateWithTwitch").ConfigureAwait(false);
+            if (response == null)
+                return false;
+
+            await FinalizeLogin(response).ConfigureAwait(false);
+
+            return true;
+        }
+
+        private async Task FinalizeLogin(UserAuthenticatedModel response)
+        {
+            await applicationStateManager.SetJwtToken(response.Token).ConfigureAwait(false);
+            User = await CreateUserFromJwtToken(response.Token).ConfigureAwait(false);
+            NotifyStateChanged();
+        }
+
+        public async Task<bool> SetTokensAndLoginWithTwitch(string accessToken)
+        {
+            await applicationStateManager.SetTwitchAccessToken(accessToken).ConfigureAwait(false);
+
+            return await LoginWithTwitchToken().ConfigureAwait(false);
         }
     }
 }

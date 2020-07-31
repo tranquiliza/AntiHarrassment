@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.SignalR.Cont
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Core.Tests", "Tests\AntiHarassment.Core.Tests\AntiHarassment.Core.Tests.csproj", "{1B575109-A6CA-45A5-8981-98E4EB6CE72E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.TwitchIntegration", "AntiHarassment.TwitchIntegration\AntiHarassment.TwitchIntegration.csproj", "{D9E88919-07CF-4CD9-B26C-7DF9F3C73C87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +97,10 @@ Global
 		{1B575109-A6CA-45A5-8981-98E4EB6CE72E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B575109-A6CA-45A5-8981-98E4EB6CE72E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B575109-A6CA-45A5-8981-98E4EB6CE72E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9E88919-07CF-4CD9-B26C-7DF9F3C73C87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9E88919-07CF-4CD9-B26C-7DF9F3C73C87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9E88919-07CF-4CD9-B26C-7DF9F3C73C87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9E88919-07CF-4CD9-B26C-7DF9F3C73C87}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

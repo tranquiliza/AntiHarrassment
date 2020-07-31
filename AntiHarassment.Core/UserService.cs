@@ -16,13 +16,20 @@ namespace AntiHarassment.Core
         private readonly ISecurity security;
         private readonly IMessageDispatcher messageDispatcher;
         private readonly IDatetimeProvider datetimeProvider;
+        private readonly ITwitchApiIntegration twitchApi;
 
-        public UserService(IUserRepository userRepository, ISecurity security, IMessageDispatcher messageDispatcher, IDatetimeProvider datetimeProvider)
+        public UserService(
+            IUserRepository userRepository,
+            ISecurity security,
+            IMessageDispatcher messageDispatcher,
+            IDatetimeProvider datetimeProvider,
+            ITwitchApiIntegration twitchApi)
         {
             this.userRepository = userRepository;
             this.security = security;
             this.messageDispatcher = messageDispatcher;
             this.datetimeProvider = datetimeProvider;
+            this.twitchApi = twitchApi;
         }
 
         public async Task<IResult<User>> Authenticate(string twitchUsername, string password)
@@ -42,6 +49,19 @@ namespace AntiHarassment.Core
 
             if (!user.EmailConfirmed)
                 return Result<User>.Failure("Account registration has not been confirmed");
+
+            return Result<User>.Succeeded(user);
+        }
+
+        public async Task<IResult<User>> Authenticate(string accessToken)
+        {
+            var tokenResult = await twitchApi.GetTwitchUsernameFromToken(accessToken).ConfigureAwait(false);
+
+            var user = await userRepository.GetByTwitchUsername(tokenResult.TwitchUsername).ConfigureAwait(false);
+            if (user == null)
+                user = User.CreateNewUser(tokenResult.Email, tokenResult.TwitchUsername);
+            else
+                user.UpdateEmail(tokenResult.Email);
 
             return Result<User>.Succeeded(user);
         }

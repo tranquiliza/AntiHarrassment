@@ -56,6 +56,13 @@ namespace AntiHarassment.Core.Models
             EmailConfirmationToken = Guid.NewGuid();
         }
 
+        private User(string email, string twitchUsername)
+        {
+            Id = Guid.NewGuid();
+            Email = email;
+            TwitchUsername = twitchUsername;
+        }
+
         internal void AddRole(string role)
         {
             if (!roles.Contains(role))
@@ -103,6 +110,12 @@ namespace AntiHarassment.Core.Models
             return true;
         }
 
+        internal void UpdateEmail(string newEmail)
+        {
+            Email = newEmail;
+        }
+
         internal static User CreateNewUser(string email, string twitchUsername, byte[] passwordHash, byte[] passwordSalt) => new User(email, twitchUsername, passwordHash, passwordSalt);
+        internal static User CreateNewUser(string email, string twitchUsername) => new User(email, twitchUsername) { EmailConfirmed = true };
     }
 }
