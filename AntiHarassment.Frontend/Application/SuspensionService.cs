@@ -73,11 +73,7 @@ namespace AntiHarassment.Frontend.Application
 
             var qParam = new QueryParam("suspensionId", args.SuspensionId.ToString());
             var newSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
-            if (newSuspension != null)
-            {
-                Suspensions.Add(newSuspension);
-                NotifyStateChanged();
-            }
+            UpdateState(newSuspension);
         }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
@@ -182,6 +178,15 @@ namespace AntiHarassment.Frontend.Application
                 new DeleteTagFromSuspensionModel { TagId = tagId },
                 "suspensions",
                 routeValues: new string[] { suspensionId.ToString(), "tags" }).ConfigureAwait(false);
+
+            UpdateState(result);
+        }
+
+        public async Task CreateNewSuspension(string username)
+        {
+            var result = await apiGateway.Post<SuspensionModel, CreateSuspensionModel>(
+                new CreateSuspensionModel { TwitchUsername = username, ChannelOfOrigin = CurrentlySelectedChannel },
+                "suspensions").ConfigureAwait(false);
 
             UpdateState(result);
         }

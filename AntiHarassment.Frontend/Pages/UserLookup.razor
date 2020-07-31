@@ -22,7 +22,9 @@
     <hr />
     @if (Loading)
     {
-        <p>LOADING....</p>
+        <div class="spinner-grow" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
     }
     @if (model != null)
     {
@@ -84,6 +86,12 @@
                                     <b>@suspension.Username</b>
                                     @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
                                     @suspension.SuspensionType.ToString()
+                                    @if (suspension.SuspensionSource == SuspensionSourceModel.User)
+                                    {
+                                        <span class="badge badge-warning">
+                                            <b class="text-danger">MANUAL</b>
+                                        </span>
+                                    }
                                 </button>
                             </div>
                             <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">

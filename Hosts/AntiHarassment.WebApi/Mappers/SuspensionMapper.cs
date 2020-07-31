@@ -29,7 +29,8 @@ namespace AntiHarassment.WebApi.Mappers
                 Tags = suspension.Tags.Map(),
                 SuspensionType = suspension.SuspensionType.Map(),
                 Messages = suspension.ChatMessages.Map(),
-                LinkedUsernames = suspension.LinkedUsernames.ToList()
+                LinkedUsernames = suspension.LinkedUsernames.ToList(),
+                SuspensionSource = suspension.SuspensionSource.Map()
             };
         }
 
@@ -40,5 +41,14 @@ namespace AntiHarassment.WebApi.Mappers
                 SuspensionType.Ban => SuspensionTypeModel.Ban,
                 _ => throw new NotImplementedException(),
             };
-    }
+
+        private static SuspensionSourceModel Map(this SuspensionSource suspensionSource)
+            => suspensionSource switch
+            {
+                SuspensionSource.System => SuspensionSourceModel.System,
+                SuspensionSource.User => SuspensionSourceModel.User,
+                _ => throw new NotImplementedException()
+            };
+	}
+
 }

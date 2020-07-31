@@ -7,8 +7,17 @@
         <button class="btn @SelectButtonColor(suspension) btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false">
             @suspension.LocalTimeStamp().FancyFormat() -
             <b>@suspension.Username</b>
-            @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
-            @suspension.SuspensionType.ToString()
+            <span class="badge @SelectColorForText(suspension)">
+                @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+                @suspension.SuspensionType.ToString()
+            </span>
+
+            @if (suspension.SuspensionSource == SuspensionSourceModel.User)
+            {
+                <span class="badge badge-warning">
+                    <b class="text-danger">MANUAL</b>
+                </span>
+            }
         </button>
     </div>
     <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
@@ -134,6 +143,18 @@
         }
 
         return "btn-secondary";
+    }
+
+    private string SelectColorForText(SuspensionModel suspension)
+    {
+        if (suspension.SuspensionType == SuspensionTypeModel.Ban)
+        {
+            return "text-danger";
+        }
+        else
+        {
+            return "text-warning";
+        }
     }
 
     private async Task UpdateValidity(Guid suspensionId, bool invalidate)

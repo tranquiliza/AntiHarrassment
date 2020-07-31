@@ -10,7 +10,9 @@
         <div class="col-12">
             @if (tagService.Tags == null)
             {
-                <p>LOADING</p>
+                <div class="spinner-grow" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
             }
             else
             {

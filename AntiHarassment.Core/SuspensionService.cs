@@ -162,6 +162,20 @@ namespace AntiHarassment.Core
             return Result<Suspension>.Succeeded(suspension);
         }
 
+        public async Task<IResult<Suspension>> CreateManualSuspension(string username, string channelOfOrigin, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelOfOrigin).ConfigureAwait(false);
+            if (!context.HaveAccessTo(channel))
+                return Result<Suspension>.Unauthorized();
+
+            var newSuspension = Suspension.CreateManualBan(username, channelOfOrigin, datetimeProvider.UtcNow, context.User.TwitchUsername);
+            await suspensionRepository.Save(newSuspension).ConfigureAwait(false);
+
+            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = newSuspension.SuspensionId, ChannelOfOrigin = channelOfOrigin }).ConfigureAwait(false);
+
+            return Result<Suspension>.Succeeded(newSuspension);
+        }
+
         private async Task PublishSuspensionUpdatedEvent(Suspension suspension)
         {
             await messageDispatcher.Publish(new SuspensionUpdatedEvent { ChannelOfOrigin = suspension.ChannelOfOrigin, SuspensionId = suspension.SuspensionId }).ConfigureAwait(false);

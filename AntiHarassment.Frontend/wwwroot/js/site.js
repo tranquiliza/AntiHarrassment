@@ -33,3 +33,11 @@ window.OpenModalForUserLinking = function () {
 window.CloseModalForUserLinking = function () {
     $('#accountLinkingModal').modal('hide');
 }
+
+window.OpenModalForCreatingSuspension = function () {
+    $('#createSuspensionModal').modal('show');
+}
+
+window.CloseModalForCreatingSuspension = function () {
+    $('#createSuspensionModal').modal('hide');
+}
