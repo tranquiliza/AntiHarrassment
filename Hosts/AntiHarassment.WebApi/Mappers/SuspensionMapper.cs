@@ -24,10 +24,12 @@ namespace AntiHarassment.WebApi.Mappers
                 Timestamp = suspension.Timestamp,
                 Username = suspension.Username,
                 InvalidSuspension = suspension.InvalidSuspension,
+                InvalidationReason = suspension.InvalidationReason,
                 Audited = suspension.Audited,
                 Tags = suspension.Tags.Map(),
                 SuspensionType = suspension.SuspensionType.Map(),
-                Messages = suspension.ChatMessages.Map()
+                Messages = suspension.ChatMessages.Map(),
+                LinkedUsernames = suspension.LinkedUsernames.ToList()
             };
         }
 

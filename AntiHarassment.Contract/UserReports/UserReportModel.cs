@@ -12,5 +12,6 @@ namespace AntiHarassment.Contract
         public List<TagModel> Tags { get; set; }
         public List<string> BannedFromChannels { get; set; }
         public List<string> TimedoutFromChannels { get; set; }
+        public List<string> AssociatedAccounts { get; set; }
     }
 }

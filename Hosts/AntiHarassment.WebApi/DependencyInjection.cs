@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Core;
 using AntiHarassment.Messaging.NServiceBus;
 using AntiHarassment.Sql;
+using AntiHarassment.TwitchIntegration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.WebApi
@@ -17,6 +19,14 @@ namespace AntiHarassment.WebApi
         public static IServiceCollection RegisterApplicationServices(this IServiceCollection services, IConfiguration configuration, ApplicationConfiguration applicationConfiguration)
         {
             var connstring = configuration["ConnectionStrings:AntiHarassmentDatabase"];
+
+            var applicationSecret = configuration["Twitch:Secret"];
+            var clientId = configuration["Twitch:ClientId"];
+            var redirectionUri = configuration["ApplicationSettings:RedirectUri"];
+
+            var twitchApiConfiguration = new TwitchApiSettings { ClientId = clientId, Secret = applicationSecret, RedirectionUrl = redirectionUri };
+            services.AddSingleton(twitchApiConfiguration);
+            services.AddSingleton(new HttpClient());
 
             services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
 
@@ -36,6 +46,8 @@ namespace AntiHarassment.WebApi
             services.AddSingleton<IChatRepository, ChatRepository>(x => new ChatRepository(connstring, x.GetRequiredService<ILogger<ChatRepository>>()));
 
             services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
+
+            services.AddSingleton<ITwitchApiIntegration, TwitchApiWrapper>();
 
             return services;
         }

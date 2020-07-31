@@ -17,13 +17,20 @@ namespace AntiHarassment.Core
         private readonly IChannelRepository channelRepository;
         private readonly ITagRepository tagRepository;
         private readonly IMessageDispatcher messageDispatcher;
+        private readonly IDatetimeProvider datetimeProvider;
 
-        public SuspensionService(ISuspensionRepository suspensionRepository, IChannelRepository channelRepository, ITagRepository tagRepository, IMessageDispatcher messageDispatcher)
+        public SuspensionService(
+            ISuspensionRepository suspensionRepository,
+            IChannelRepository channelRepository,
+            ITagRepository tagRepository,
+            IMessageDispatcher messageDispatcher,
+            IDatetimeProvider datetimeProvider)
         {
             this.suspensionRepository = suspensionRepository;
             this.channelRepository = channelRepository;
             this.tagRepository = tagRepository;
             this.messageDispatcher = messageDispatcher;
+            this.datetimeProvider = datetimeProvider;
         }
 
         public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context)
@@ -51,7 +58,7 @@ namespace AntiHarassment.Core
             var suspension = fetch.Data;
 
             var tag = await tagRepository.Get(tagId).ConfigureAwait(false);
-            suspension.RemoveTag(tag);
+            suspension.RemoveTag(tag, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
@@ -68,7 +75,7 @@ namespace AntiHarassment.Core
             var suspension = fetch.Data;
             var tag = await tagRepository.Get(tagId).ConfigureAwait(false);
 
-            if (!suspension.TryAddTag(tag))
+            if (!suspension.TryAddTag(tag, context, datetimeProvider.UtcNow))
                 return Result<Suspension>.Failure("Unable to add tag");
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
@@ -85,7 +92,7 @@ namespace AntiHarassment.Core
                 return fetch;
 
             var suspension = fetch.Data;
-            suspension.UpdateAuditedState(audited);
+            suspension.UpdateAuditedState(audited, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
@@ -93,16 +100,47 @@ namespace AntiHarassment.Core
             return Result<Suspension>.Succeeded(suspension);
         }
 
-        public async Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, IApplicationContext context)
+        public async Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, string invalidationReason, IApplicationContext context)
         {
             var fetch = await RetrieveSuspensionAndCheckAccess(suspensionId, context).ConfigureAwait(false);
             if (fetch.State != ResultState.Success)
                 return fetch;
 
             var suspension = fetch.Data;
-            suspension.UpdateValidity(invalidate);
-            await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            if (!suspension.UpdateValidity(invalidate, invalidationReason, context, datetimeProvider.UtcNow))
+                return Result<Suspension>.Failure("Cannot mark Invalid without a reason");
 
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
+
+            return Result<Suspension>.Succeeded(suspension);
+        }
+
+        public async Task<IResult<Suspension>> AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context)
+        {
+            var fetch = await RetrieveSuspensionAndCheckAccess(suspensionId, context).ConfigureAwait(false);
+            if (fetch.State != ResultState.Success)
+                return fetch;
+
+            var suspension = fetch.Data;
+            suspension.AddUserLink(twitchUsername, context, datetimeProvider.UtcNow);
+
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
+
+            return Result<Suspension>.Succeeded(suspension);
+        }
+
+        public async Task<IResult<Suspension>> RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context)
+        {
+            var fetch = await RetrieveSuspensionAndCheckAccess(suspensionId, context).ConfigureAwait(false);
+            if (fetch.State != ResultState.Success)
+                return fetch;
+
+            var suspension = fetch.Data;
+            suspension.RemoveUserLink(twitchUsername, context, datetimeProvider.UtcNow);
+
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
 
             return Result<Suspension>.Succeeded(suspension);

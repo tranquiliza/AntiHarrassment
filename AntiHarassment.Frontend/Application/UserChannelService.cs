@@ -105,10 +105,17 @@ namespace AntiHarassment.Frontend.Application
 
         public async Task DownloadChatLog(DateTime earliestTime, DateTime latestTime, bool downloadPlain)
         {
-            const string dateFormat = "yyyy-MM-dd";
+            var currentUniversalTime = DateTime.UtcNow;
+            var currentLocalTime = DateTime.Now;
+            var difference = currentUniversalTime - currentLocalTime;
 
-            var earliestParam = new QueryParam("earliestTime", earliestTime.ToString(dateFormat));
-            var latestParam = new QueryParam("latestTime", latestTime.ToString(dateFormat));
+            var correctedEarlyTime = earliestTime.Add(difference);
+            var correctedLatestTime = latestTime.Add(difference);
+
+            const string dateFormat = "yyyy-MM-dd HH:mm:ss";
+
+            var earliestParam = new QueryParam("earliestTime", correctedEarlyTime.ToString(dateFormat));
+            var latestParam = new QueryParam("latestTime", correctedLatestTime.ToString(dateFormat));
 
             var chatLogs = await apiGateway.Get<List<ChatMessageModel>>(
                 "channels",

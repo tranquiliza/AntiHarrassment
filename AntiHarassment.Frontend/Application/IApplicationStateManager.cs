@@ -9,5 +9,9 @@ namespace AntiHarassment.Frontend.Application
     {
         Task<string> GetJwtToken();
         Task SetJwtToken(string token);
+        Task<string> GetTwitchAccessToken();
+        Task SetTwitchAccessToken(string accessToken);
+        Task<List<string>> GetTwitchScopes();
+        Task SetTwitchScopes(List<string> scopes);
     }
 }

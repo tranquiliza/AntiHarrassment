@@ -13,9 +13,11 @@ namespace AntiHarassment.Contract
         public DateTime Timestamp { get; set; }
         public int Duration { get; set; }
         public bool InvalidSuspension { get; set; }
+        public string InvalidationReason { get; set; }
         public bool Audited { get; set; }
         public SuspensionTypeModel SuspensionType { get; set; }
         public List<TagModel> Tags { get; set; }
         public List<ChatMessageModel> Messages { get; set; }
+        public List<string> LinkedUsernames { get; set; }
     }
 }

@@ -84,6 +84,44 @@ namespace AntiHarassment.Sql
             }
         }
 
+        public async Task<List<string>> GetUniqueChattersForChannel(string channelOfOrigin)
+        {
+            try
+            {
+                var result = new List<string>();
+                using (var command = sql.CreateStoredProcedure("[Core].[GetUniqueChattersForChannel]"))
+                {
+                    command.WithParameter("channelOfOrigin", channelOfOrigin);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                            result.Add(reader.GetString("Username"));
+                    }
+                }
+
+                using (var command = sql.CreateStoredProcedure("[Core].[GetUniqueUsersFromSuspensions]"))
+                {
+                    command.WithParameter("channelOfOrigin", channelOfOrigin);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            var value = reader.GetString("username");
+                            if (!result.Contains(value))
+                                result.Add(value);
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when fetching distinct users for channel");
+                throw;
+            }
+        }
+
         public async Task SaveChatMessage(string username, string channelOfOrigin, bool autoModded, string message, DateTime timestamp)
         {
             try

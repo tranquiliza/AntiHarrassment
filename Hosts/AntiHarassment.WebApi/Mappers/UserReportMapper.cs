@@ -16,6 +16,7 @@ namespace AntiHarassment.WebApi.Mappers
                 Username = userReport.Username,
                 BannedFromChannels = userReport.BannedFromChannels,
                 TimedoutFromChannels = userReport.TimedOutFromChannels,
+                AssociatedAccounts = userReport.AssociatatedAccounts,
                 Suspensions = userReport.Suspensions.Map(),
                 Tags = userReport.Tags.Map()
             };

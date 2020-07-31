@@ -49,7 +49,7 @@ namespace AntiHarassment.Core
             State = ResultState.NoContent
         };
 
-        public static Result<T> Unauthorized() => new Result<T>
+        new public static Result<T> Unauthorized() => new Result<T>
         {
             State = ResultState.AccessDenied
         };

@@ -44,10 +44,10 @@
 
                         <tr>
                             <td>
-                                <input @onkeyup="PressedEnterNew" placeholder="Tag name" type="text" @bind-value="newTagName" />
+                                <input class="form-control" @onkeyup="PressedEnterNew" placeholder="Tag name" type="text" @bind-value="newTagName" />
                             </td>
                             <td>
-                                <input @onkeyup="PressedEnterNew" placeholder="Description" type="text" @bind-value="newTagDescription" />
+                                <input class="form-control" @onkeyup="PressedEnterNew" placeholder="Description" type="text" @bind-value="newTagDescription" />
                             </td>
                             <td>
                                 <button @onclick="AddNewTag" class="btn btn-success">Add</button>
@@ -57,10 +57,10 @@
                         {
                             <tr>
                                 <td>
-                                    <input @onkeyup="PressedEnterUpdate" placeholder="Tag name" type="text" @bind-value="updateTagName" />
+                                    <input class="form-control" @onkeyup="PressedEnterUpdate" placeholder="Tag name" type="text" @bind-value="updateTagName" />
                                 </td>
                                 <td>
-                                    <input @onkeyup="PressedEnterUpdate" placeholder="Description" type="text" @bind-value="updateTagDescription" />
+                                    <input class="form-control" @onkeyup="PressedEnterUpdate" placeholder="Description" type="text" @bind-value="updateTagDescription" />
                                 </td>
                                 <td>
                                     <div class="btn-group">

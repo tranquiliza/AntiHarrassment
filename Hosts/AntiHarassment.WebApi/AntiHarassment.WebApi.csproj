@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\AntiHarassment.Messaging\AntiHarassment.Messaging.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.SignalR.Contract\AntiHarassment.SignalR.Contract.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Sql\AntiHarassment.Sql.csproj" />
+    <ProjectReference Include="..\..\AntiHarassment.TwitchIntegration\AntiHarassment.TwitchIntegration.csproj" />
   </ItemGroup>
 
 </Project>

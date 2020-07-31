@@ -64,6 +64,20 @@ namespace AntiHarassment.WebApi.Controllers
             return Ok(result.Data.Map());
         }
 
+        [HttpGet("{channelName}/users")]
+        public async Task<IActionResult> GetSeenUsersForChannel([FromRoute] string channelName)
+        {
+            var result = await channelService.GetChattersForChannel(channelName, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.NoContent)
+                return NoContent();
+
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            // No mapping needed, its a list of strings
+            return Ok(result.Data);
+        }
+
         [HttpPost("{channelName}")]
         public async Task<IActionResult> AddModerator([FromRoute] string channelName, [FromBody] AddModeratorModel model)
         {

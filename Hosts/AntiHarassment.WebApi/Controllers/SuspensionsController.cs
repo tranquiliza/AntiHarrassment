@@ -58,7 +58,7 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpPost("{suspensionId}/validity")]
         public async Task<IActionResult> UpdateSuspensionValidity([FromRoute] Guid suspensionId, [FromBody] MarkSuspensionValidityModel model)
         {
-            var result = await suspensionService.UpdateValidity(suspensionId, model.Invalidate, ApplicationContext).ConfigureAwait(false);
+            var result = await suspensionService.UpdateValidity(suspensionId, model.Invalidate, model.InvalidationReason, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
 
@@ -107,6 +107,38 @@ namespace AntiHarassment.WebApi.Controllers
         public async Task<IActionResult> DeleteTagFromSuspension([FromRoute] Guid suspensionId, [FromBody] DeleteTagFromSuspensionModel model)
         {
             var result = await suspensionService.RemoveTagFrom(suspensionId, model.TagId, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
+        }
+
+        [HttpPost("{suspensionId}/userlink")]
+        public async Task<IActionResult> AddUserLinkToSuspension([FromRoute] Guid suspensionId, [FromBody] AddUserLinkToSuspensionModel model)
+        {
+            var result = await suspensionService.AddUserLinkToSuspension(suspensionId, model.Username, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
+        }
+
+        [HttpDelete("{suspensionId}/userlink")]
+        public async Task<IActionResult> DeleteUserLinkFromSuspension([FromRoute] Guid suspensionId, [FromBody] DeleteUserlinkFromSuspensionModel model)
+        {
+            var result = await suspensionService.RemoveUserLinkFromSuspension(suspensionId, model.Username, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
 

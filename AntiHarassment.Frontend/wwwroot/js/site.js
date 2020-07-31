@@ -17,3 +17,19 @@ window.DownloadAsFile = function (content, filename, contentType) {
     a.download = filename;
     a.click();
 }
+
+window.OpenModalForInvalidReasoning = function () {
+    $('#invalidReasoningModal').modal('show');
+}
+
+window.CloseModalForInvalidReasoning = function () {
+    $('#invalidReasoningModal').modal('hide');
+}
+
+window.OpenModalForUserLinking = function () {
+    $('#accountLinkingModal').modal('show');
+}
+
+window.CloseModalForUserLinking = function () {
+    $('#accountLinkingModal').modal('hide');
+}
