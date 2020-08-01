@@ -17,7 +17,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 {
     public class TwitchPubSubClient : IPubSubClient
     {
-        // Need to make sure that pubsub server never exceeds 50 topics. 
+        // TODO Need to make sure that pubsub server never exceeds 50 topics. 
         // When time arrives, refactor to have a collection of pubsubservice, wrapped with information about active topics
         // maximum of 10 per IP.
         private readonly TwitchPubSub pubSubService;

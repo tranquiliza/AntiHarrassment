@@ -38,6 +38,7 @@ namespace AntiHarassment.WebApi
 
             services.AddSingleton<ISecurity, PasswordSecurity>();
             services.AddSingleton<IApplicationConfiguration>(applicationConfiguration);
+            services.AddSingleton<IChannelReportService, ChannelReportService>();
 
             services.AddSingleton<IChannelRepository, ChannelRepository>(x => new ChannelRepository(connstring, x.GetRequiredService<ILogger<ChannelRepository>>()));
             services.AddSingleton<IUserRepository, UserRepository>(x => new UserRepository(connstring, x.GetRequiredService<ILogger<UserRepository>>()));
