@@ -9,6 +9,9 @@ namespace AntiHarassment.WebApi.Mappers
 {
     public static class UserReportMapper
     {
+        public static List<UserReportModel> Map(this List<UserReport> userReports)
+            => userReports.Select(Map).ToList();
+
         public static UserReportModel Map(this UserReport userReport)
         {
             return new UserReportModel

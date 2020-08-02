@@ -18,10 +18,12 @@ namespace AntiHarassment.WebApi.Controllers
     public class ChannelsController : ContextController
     {
         private readonly IChannelService channelService;
+        private readonly IChannelReportService channelReportService;
 
-        public ChannelsController(IChannelService channelService)
+        public ChannelsController(IChannelService channelService, IChannelReportService channelReportService)
         {
             this.channelService = channelService;
+            this.channelReportService = channelReportService;
         }
 
         [HttpGet]
@@ -102,6 +104,19 @@ namespace AntiHarassment.WebApi.Controllers
                 return NoContent();
 
             return Ok(result.Data.Map());
+        }
+
+        [HttpGet("{channelName}/report")]
+        public async Task<IActionResult> GetStatisticsForChannel([FromRoute] string channelName)
+        {
+            var report = await channelReportService.GenerateReportForChannel(channelName, ApplicationContext).ConfigureAwait(false);
+            if (report.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (report.State == ResultState.Success)
+                return Ok(report.Data.Map());
+
+            return NoContent();
         }
 
         [HttpPost]

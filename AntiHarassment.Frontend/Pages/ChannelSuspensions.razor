@@ -29,6 +29,9 @@
             <div class="col-3">
                 <input class="form-control" type="date" @bind-value="selectedDate" />
             </div>
+            <div class="col-3">
+                <button @onclick="OpenModelForCreateSuspension" class="btn btn-success">Create Suspension</button>
+            </div>
         </div>
         <hr />
     }
@@ -38,7 +41,9 @@
             {
                 @if (suspensionService.Channels != null)
                 {
-                    <p>Loading...</p>
+                    <div class="spinner-grow" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
                 }
             }
             else
@@ -55,10 +60,10 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-                                     .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                                     .GroupBy(x => x.LocalTimeStamp().Date)
-                                     .Select(key => key.Key)
-                                     .ToList())
+                             .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                             .GroupBy(x => x.LocalTimeStamp().Date)
+                             .Select(key => key.Key)
+                             .ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
                                         <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
@@ -137,6 +142,28 @@
     </div>
 </div>
 
+<!-- Modal For CreateSuspension -->
+<div class="modal fade" id="createSuspensionModal" tabindex="-1" role="dialog" aria-labelledby="createSuspensionModalLabel" aria-hidden="true">
+    <div class="modal-dialog bg-dark">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createSuspensionModalLabel">Create a suspension</h5>
+                <button type="button" class="close" @onclick="CloseModelForCreateSuspension" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label for="createSuspensionUsernameInput">Twitch Username</label>
+                <input id="createSuspensionUsernameInput" class="form-control" type="text" @bind-value="UsernameForNewSuspension" />
+            </div>
+            <div class="modal-footer">
+                <button @onclick="CloseModelForCreateSuspension" type="button" class="btn btn-danger">Cancel</button>
+                <button @onclick="CreateNewSuspension" type="button" class="btn btn-success">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     private DateTime selectedDate = DateTime.Now.Date;
 
@@ -175,6 +202,31 @@
     }
 
     private string InvalidReasonErrorMessage = "";
+
+    private string UsernameForNewSuspension = "";
+
+    private async Task CloseModelForCreateSuspension()
+    {
+        await jsRuntime.InvokeVoidAsync("CloseModalForCreatingSuspension");
+        UsernameForNewSuspension = "";
+    }
+
+    private async Task OpenModelForCreateSuspension()
+    {
+        await jsRuntime.InvokeVoidAsync("OpenModalForCreatingSuspension");
+    }
+
+    private async Task CreateNewSuspension()
+    {
+        if (string.IsNullOrEmpty(UsernameForNewSuspension))
+        {
+            return;
+        }
+
+        await suspensionService.CreateNewSuspension(UsernameForNewSuspension);
+
+        await CloseModelForCreateSuspension();
+    }
 
     private async Task MarkInvalid()
     {

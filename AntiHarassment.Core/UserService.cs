@@ -63,6 +63,8 @@ namespace AntiHarassment.Core
             else
                 user.UpdateEmail(tokenResult.Email);
 
+            await userRepository.Save(user).ConfigureAwait(false);
+
             return Result<User>.Succeeded(user);
         }
 

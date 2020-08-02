@@ -31,5 +31,6 @@ namespace AntiHarassment.Frontend.Application
         Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername);
         Task Initialize();
         Task RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername);
+        Task CreateNewSuspension(string username);
     }
 }

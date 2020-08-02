@@ -39,6 +39,16 @@ namespace AntiHarassment.WebApi.Controllers
             return NoContent();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateSuspension([FromBody] CreateSuspensionModel model)
+        {
+            var result = await suspensionService.CreateManualSuspension(model.TwitchUsername, model.ChannelOfOrigin, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            return Ok(result.Data.Map());
+        }
+
         [HttpGet("{channelOfOrigin}")]
         public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin)
         {

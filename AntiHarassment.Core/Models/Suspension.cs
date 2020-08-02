@@ -23,6 +23,12 @@ namespace AntiHarassment.Core.Models
         public SuspensionType SuspensionType { get; private set; }
 
         [JsonProperty]
+        public SuspensionSource SuspensionSource { get; private set; }
+
+        [JsonProperty]
+        public string CreatedByUser { get; private set; }
+
+        [JsonProperty]
         public DateTime Timestamp { get; private set; }
 
         [JsonProperty]
@@ -60,6 +66,14 @@ namespace AntiHarassment.Core.Models
 
         private Suspension() { }
 
+        private Suspension(string username, string channelOfOrigin, DateTime timestamp)
+        {
+            SuspensionId = Guid.NewGuid();
+            Username = username;
+            ChannelOfOrigin = channelOfOrigin;
+            Timestamp = timestamp;
+        }
+
         public bool UpdateValidity(bool invalidate, string invalidationReason, IApplicationContext context, DateTime timestamp)
         {
             if (invalidate && string.IsNullOrEmpty(invalidationReason))
@@ -68,7 +82,6 @@ namespace AntiHarassment.Core.Models
             InvalidSuspension = invalidate;
             InvalidationReason = invalidationReason;
 
-            AddAuditTrail(context, nameof(InvalidSuspension), invalidate, timestamp);
             AddAuditTrail(context, nameof(InvalidSuspension), invalidate, timestamp);
 
             return true;
@@ -119,12 +132,10 @@ namespace AntiHarassment.Core.Models
 
         public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages)
         {
-            return new Suspension
+            return new Suspension(username, channelOfOrigin, timestamp)
             {
-                SuspensionId = Guid.NewGuid(),
-                Username = username,
-                ChannelOfOrigin = channelOfOrigin,
                 SuspensionType = SuspensionType.Timeout,
+                SuspensionSource = SuspensionSource.System,
                 Timestamp = timestamp,
                 Duration = duration,
                 ChatMessages = chatMessages
@@ -133,15 +144,25 @@ namespace AntiHarassment.Core.Models
 
         public static Suspension CreateBan(string username, string channelOfOrigin, DateTime timestamp, List<ChatMessage> chatMessages)
         {
-            return new Suspension
+            return new Suspension(username, channelOfOrigin, timestamp)
             {
-                SuspensionId = Guid.NewGuid(),
-                Username = username,
-                ChannelOfOrigin = channelOfOrigin,
                 SuspensionType = SuspensionType.Ban,
+                SuspensionSource = SuspensionSource.System,
                 Timestamp = timestamp,
                 Duration = 0,
                 ChatMessages = chatMessages
+            };
+        }
+
+        public static Suspension CreateManualBan(string username, string channelOfOrigin, DateTime timestamp, string createdBy)
+        {
+            return new Suspension(username, channelOfOrigin, timestamp)
+            {
+                Duration = 0,
+                SuspensionType = SuspensionType.Ban,
+                SuspensionSource = SuspensionSource.User,
+                CreatedByUser = createdBy,
+                ChatMessages = new List<ChatMessage>()
             };
         }
     }

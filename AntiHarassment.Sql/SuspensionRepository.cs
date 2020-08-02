@@ -20,6 +20,24 @@ namespace AntiHarassment.Sql
             this.logger = logger;
         }
 
+        public async Task<List<string>> GetSuspendedUsersForChannel(string channelName)
+        {
+            var result = new List<string>();
+            using (var command = sql.CreateStoredProcedure("[Core].[GetSuspendedUsersForChannel]"))
+            {
+                command.WithParameter("channelOfOrigin", channelName);
+                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        result.Add(reader.GetString("username"));
+                    }
+                }
+            }
+
+            return result;
+        }
+
         public async Task<Suspension> GetSuspension(Guid suspensionId)
         {
             try
@@ -65,6 +83,31 @@ namespace AntiHarassment.Sql
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Error when getting suspensions for Channel {arg}", channelOfOrigin);
+                throw;
+            }
+        }
+
+        public async Task<List<Suspension>> GetAuditedSuspensionsForChannel(string channelOfOrigin, DateTime earliestDate)
+        {
+            try
+            {
+                var result = new List<Suspension>();
+                using (var command = sql.CreateStoredProcedure("[Core].[GetAuditedSuspensionsForChannel]"))
+                {
+                    command.WithParameter("channelOfOrigin", channelOfOrigin);
+                    command.WithParameter("earliestDate", earliestDate);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting audited suspensions for channel {arg}", channelOfOrigin);
                 throw;
             }
         }
