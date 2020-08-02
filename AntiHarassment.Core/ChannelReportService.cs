@@ -11,7 +11,6 @@ namespace AntiHarassment.Core
 {
     public class ChannelReportService : IChannelReportService
     {
-        private readonly IUserReportService userReportService;
         private readonly IChannelRepository channelRepository;
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IChatRepository chatRepository;
@@ -19,14 +18,12 @@ namespace AntiHarassment.Core
         private readonly ILogger<ChannelReportService> logger;
 
         public ChannelReportService(
-            IUserReportService userReportService,
             IChannelRepository channelRepository,
             ISuspensionRepository suspensionRepository,
             IChatRepository chatRepository,
             IDatetimeProvider datetimeProvider,
             ILogger<ChannelReportService> logger)
         {
-            this.userReportService = userReportService;
             this.channelRepository = channelRepository;
             this.suspensionRepository = suspensionRepository;
             this.chatRepository = chatRepository;
@@ -46,15 +43,7 @@ namespace AntiHarassment.Core
 
             var usersForChannel = await chatRepository.GetUniqueChattersForChannel(channelName).ConfigureAwait(false);
 
-            var userReports = new List<UserReport>();
-            foreach (var user in usersForChannel)
-            {
-                var result = await userReportService.GetUserReportFor(user).ConfigureAwait(false);
-                if (result.State == ResultState.Success)
-                    userReports.Add(result.Data);
-            }
-
-            var channelReport = new ChannelReport(channelName, suspensionsForChannel, usersForChannel.Count, userReports);
+            var channelReport = new ChannelReport(channelName, suspensionsForChannel, usersForChannel.Count);
             return Result<ChannelReport>.Succeeded(channelReport);
         }
     }

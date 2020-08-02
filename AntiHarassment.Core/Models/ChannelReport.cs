@@ -11,8 +11,6 @@ namespace AntiHarassment.Core.Models
     {
         public string ChannelName { get; private set; }
         public List<Suspension> Suspensions { get; private set; }
-        public List<UserReport> UserReports { get; private set; }
-
         public List<string> SuspendedUsers => Suspensions.DistinctBy(x => x.Username).Select(x => x.Username).ToList();
 
         public List<string> BannedUsers => Suspensions.DistinctBy(x => x.Username)
@@ -38,7 +36,7 @@ namespace AntiHarassment.Core.Models
         public int UniqueUsersTimeout { get; private set; }
         public int UniqueUsersBan { get; private set; }
 
-        public ChannelReport(string channelName, List<Suspension> suspensions, int uniqueUserCountForChannel, List<UserReport> userReports)
+        public ChannelReport(string channelName, List<Suspension> suspensions, int uniqueUserCountForChannel)
         {
             ChannelName = channelName;
             Suspensions = suspensions;
@@ -65,7 +63,6 @@ namespace AntiHarassment.Core.Models
 
             foreach (var group in suspensions.SelectMany(x => x.Tags).GroupBy(x => x.TagId))
                 TagAppearances.Add(group.First(), group.Count());
-            UserReports = userReports;
         }
     }
 }
