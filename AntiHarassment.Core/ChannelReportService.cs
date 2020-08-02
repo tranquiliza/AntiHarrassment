@@ -3,6 +3,7 @@ using AntiHarassment.Core.Security;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,17 +14,23 @@ namespace AntiHarassment.Core
         private readonly IUserReportService userReportService;
         private readonly IChannelRepository channelRepository;
         private readonly ISuspensionRepository suspensionRepository;
+        private readonly IChatRepository chatRepository;
+        private readonly IDatetimeProvider datetimeProvider;
         private readonly ILogger<ChannelReportService> logger;
 
         public ChannelReportService(
             IUserReportService userReportService,
             IChannelRepository channelRepository,
             ISuspensionRepository suspensionRepository,
+            IChatRepository chatRepository,
+            IDatetimeProvider datetimeProvider,
             ILogger<ChannelReportService> logger)
         {
             this.userReportService = userReportService;
             this.channelRepository = channelRepository;
             this.suspensionRepository = suspensionRepository;
+            this.chatRepository = chatRepository;
+            this.datetimeProvider = datetimeProvider;
             this.logger = logger;
         }
 
@@ -33,25 +40,21 @@ namespace AntiHarassment.Core
             if (!context.HaveAccessTo(channel))
                 return Result<ChannelReport>.Unauthorized();
 
-            var allUsersSuspendedInChannel = await suspensionRepository.GetSuspendedUsersForChannel(channelName).ConfigureAwait(false);
-            if (allUsersSuspendedInChannel.Count == 0)
+            var suspensionsForChannel = await suspensionRepository.GetAuditedSuspensionsForChannel(channelName, datetimeProvider.UtcNow.AddDays(-30)).ConfigureAwait(false);
+            if (suspensionsForChannel.Count == 0)
                 return Result<ChannelReport>.NoContentFound();
 
+            var usersForChannel = await chatRepository.GetUniqueChattersForChannel(channelName).ConfigureAwait(false);
+
             var userReports = new List<UserReport>();
-
-            foreach (var username in allUsersSuspendedInChannel)
+            foreach (var user in usersForChannel)
             {
-                var userReport = await userReportService.GetUserReportFor(username).ConfigureAwait(false);
-                if (userReport.State != ResultState.Success)
-                {
-                    logger.LogWarning("Was unable to generage a user report for {arg}", username);
-                    return Result<ChannelReport>.Failure(userReport.FailureReason);
-                }
-
-                userReports.Add(userReport.Data);
+                var result = await userReportService.GetUserReportFor(user).ConfigureAwait(false);
+                if (result.State == ResultState.Success)
+                    userReports.Add(result.Data);
             }
 
-            var channelReport = new ChannelReport(channelName, userReports);
+            var channelReport = new ChannelReport(channelName, suspensionsForChannel, usersForChannel.Count, userReports);
             return Result<ChannelReport>.Succeeded(channelReport);
         }
     }

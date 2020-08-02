@@ -1,0 +1,119 @@
+﻿@inject IChannelStatisticsService channelStatisticsService
+@inject IUserService userService
+@inject IAdminChannelService adminChannelService
+@inject IJSRuntime jsRuntime
+@implements IDisposable
+
+@page "/channelstatistics"
+
+<div class="container-fluid">
+    @if (userService.IsUserAdmin)
+    {
+        <div class="row">
+            <div class="col-12">
+                @if (adminChannelService.Channels != null)
+                {
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            @(string.IsNullOrEmpty(channelStatisticsService.CurrentlySelectedChannel) ? "Channels" : channelStatisticsService.CurrentlySelectedChannel)
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
+                            @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
+                            {
+                                <button @onclick="async () => await ChangeChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                <p>
+                    ChannelName: @channelStatisticsService.CurrentlySelectedChannel
+                </p>
+            </div>
+        </div>
+    }
+
+    @if (channelStatisticsService.ChannelReportModel == null)
+    {
+        <p>No suspensions yet :)</p>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-9">
+                <canvas id="overallChart"></canvas>
+            </div>
+            <div class="col-3">
+                <h5>User statistics</h5>
+                <ul>
+                    <li>Unique Users Seen: @channelStatisticsService.ChannelReportModel.UniqueUsers</li>
+                    <li>Unique Users Suspended: @channelStatisticsService.ChannelReportModel.UniqueUsersSuspensions</li>
+                    <li>Of which are Bans: @channelStatisticsService.ChannelReportModel.UniqueUsersBan</li>
+                    <li>Of which are Timeouts: @channelStatisticsService.ChannelReportModel.UniqueUsersTimeout</li>
+                </ul>
+                <h5>Suspension Statistics</h5>
+                <ul>
+                    <li>Total Suspensions: @channelStatisticsService.ChannelReportModel.TotalSuspensions</li>
+                    <li>Of which Timeouts: @channelStatisticsService.ChannelReportModel.TotalTimeouts</li>
+                    <li>Of which Bans: @channelStatisticsService.ChannelReportModel.TotalBans</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <canvas id="chartForTags"></canvas>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        channelStatisticsService.OnChange += StateHasChanged;
+        userService.OnChange += StateHasChanged;
+        adminChannelService.OnChange += StateHasChanged;
+
+        await channelStatisticsService.Initialize();
+        await adminChannelService.Initialize();
+        await jsRuntime.InvokeVoidAsync("InitializeStatisticsPage");
+
+        await UpdateData();
+    }
+
+    private async Task ChangeChannel(string channelName)
+    {
+        await channelStatisticsService.ChangeChannel(channelName);
+        await UpdateData();
+    }
+
+    private async Task UpdateData()
+    {
+        if (channelStatisticsService.ChannelReportModel == null)
+        {
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("ClearGraph");
+        var suspensions = channelStatisticsService.ChannelReportModel.SuspensionsPerDay;
+        await jsRuntime.InvokeVoidAsync("AddDataToGraph", suspensions);
+
+        await jsRuntime.InvokeVoidAsync("AddDataToTagsGraph", channelStatisticsService.ChannelReportModel.TagAppearances.OrderByDescending(x => x.Count));
+    }
+
+    public void Dispose()
+    {
+        channelStatisticsService.OnChange -= StateHasChanged;
+        userService.OnChange -= StateHasChanged;
+        adminChannelService.OnChange -= StateHasChanged;
+    }
+}

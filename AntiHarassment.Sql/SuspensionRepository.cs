@@ -87,6 +87,31 @@ namespace AntiHarassment.Sql
             }
         }
 
+        public async Task<List<Suspension>> GetAuditedSuspensionsForChannel(string channelOfOrigin, DateTime earliestDate)
+        {
+            try
+            {
+                var result = new List<Suspension>();
+                using (var command = sql.CreateStoredProcedure("[Core].[GetAuditedSuspensionsForChannel]"))
+                {
+                    command.WithParameter("channelOfOrigin", channelOfOrigin);
+                    command.WithParameter("earliestDate", earliestDate);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting audited suspensions for channel {arg}", channelOfOrigin);
+                throw;
+            }
+        }
+
         public async Task<List<Suspension>> GetSuspensionsForUser(string username)
         {
             try
