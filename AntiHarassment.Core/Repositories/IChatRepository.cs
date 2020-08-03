@@ -12,5 +12,6 @@ namespace AntiHarassment.Core
         Task<List<ChatMessage>> GetMessagesFor(string username, string channelOfOrigin, TimeSpan historySpan, DateTime timeOfSuspension);
         Task<List<ChatMessage>> GetMessagesForChannel(string channelOfOrigin, DateTime earliestTime, DateTime latestTime);
         Task<List<string>> GetUniqueChattersForChannel(string channelOfOrigin);
+        Task<List<string>> GetUniqueChattersForSystem();
     }
 }

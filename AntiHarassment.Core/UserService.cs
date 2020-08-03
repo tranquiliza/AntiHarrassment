@@ -56,6 +56,8 @@ namespace AntiHarassment.Core
         public async Task<IResult<User>> Authenticate(string accessToken)
         {
             var tokenResult = await twitchApi.GetTwitchUsernameFromToken(accessToken).ConfigureAwait(false);
+            if (tokenResult == null)
+                return Result<User>.Failure("Access token expired");
 
             var user = await userRepository.GetByTwitchUsername(tokenResult.TwitchUsername).ConfigureAwait(false);
             if (user == null)

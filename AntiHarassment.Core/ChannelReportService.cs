@@ -15,20 +15,17 @@ namespace AntiHarassment.Core
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IChatRepository chatRepository;
         private readonly IDatetimeProvider datetimeProvider;
-        private readonly ILogger<ChannelReportService> logger;
 
         public ChannelReportService(
             IChannelRepository channelRepository,
             ISuspensionRepository suspensionRepository,
             IChatRepository chatRepository,
-            IDatetimeProvider datetimeProvider,
-            ILogger<ChannelReportService> logger)
+            IDatetimeProvider datetimeProvider)
         {
             this.channelRepository = channelRepository;
             this.suspensionRepository = suspensionRepository;
             this.chatRepository = chatRepository;
             this.datetimeProvider = datetimeProvider;
-            this.logger = logger;
         }
 
         public async Task<IResult<ChannelReport>> GenerateReportForChannel(string channelName, IApplicationContext context)
