@@ -1,0 +1,102 @@
+﻿@inject ISystemReportService systemReportService
+@inject IJSRuntime jsRuntime
+@implements IDisposable
+
+@page "/admin/statistics"
+
+<AdminOnlyComponent></AdminOnlyComponent>
+
+<div class="container-fluid">
+    @if (systemReportService.SystemReportModel == null)
+    {
+        <div class="spinner-grow" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-9">
+                <canvas id="systemOverallChart"></canvas>
+            </div>
+            <div class="col-3">
+                <h5>User statistics</h5>
+                <ul>
+                    <li>Unique Users Seen: @systemReportService.SystemReportModel.UniqueUsers</li>
+                    <li>Unique Users Suspended: @systemReportService.SystemReportModel.ValidUniqueUsersSuspensions</li>
+                    <li>Of which are Bans: @systemReportService.SystemReportModel.ValidUniqueUsersBan</li>
+                    <li>Of which are Timeouts: @systemReportService.SystemReportModel.ValidUniqueUsersTimeout</li>
+                </ul>
+                <h5>Suspension Statistics</h5>
+                <ul>
+                    <li>Total Suspensions: @systemReportService.SystemReportModel.ValidTotalSuspensions</li>
+                    <li>Of which Timeouts: @systemReportService.SystemReportModel.ValidTotalTimeouts</li>
+                    <li>Of which Bans: @systemReportService.SystemReportModel.ValidTotalBans</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-9">
+                <canvas id="systemInvalidOverallChart"></canvas>
+            </div>
+            <div class="col-3">
+                <h5>Invalid User statistics</h5>
+                <ul>
+                    <li>Unique Users wrongly Suspended: @systemReportService.SystemReportModel.InvalidUniqueUsersSuspensions</li>
+                    <li>Of which are Bans: @systemReportService.SystemReportModel.InvalidUniqueUsersBan</li>
+                    <li>Of which are Timeouts: @systemReportService.SystemReportModel.InvalidUniqueUsersTimeout</li>
+                </ul>
+                <h5>Invalid Suspension Statistics</h5>
+                <ul>
+                    <li>Total Invalid Suspensions: @systemReportService.SystemReportModel.InvalidTotalSuspensions</li>
+                    <li>Of which Timeouts: @systemReportService.SystemReportModel.InvalidTotalTimeouts</li>
+                    <li>Of which Bans: @systemReportService.SystemReportModel.InvalidTotalBans</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <canvas id="systemChartForTags"></canvas>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        systemReportService.OnChange += StateHasChanged;
+        await systemReportService.Initialize();
+        await jsRuntime.InvokeVoidAsync("InitializeSystemStatisticsPage");
+
+        await UpdateCharts();
+    }
+
+    private async Task UpdateCharts()
+    {
+        if (systemReportService.SystemReportModel == null)
+        {
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("ClearSystemGraphs");
+        var validSuspensions = systemReportService.SystemReportModel.ValidSuspensionsPerDay;
+        await jsRuntime.InvokeVoidAsync("AddDataToSystemOverallChart", validSuspensions);
+
+
+        var invalidSuspensions = systemReportService.SystemReportModel.InvalidSuspensionsPerDay;
+        await jsRuntime.InvokeVoidAsync("AddDataToSystemInvalidChart", invalidSuspensions);
+
+
+        var tags = systemReportService.SystemReportModel.TagAppearances.OrderByDescending(x => x.Count);
+        await jsRuntime.InvokeVoidAsync("AddDataToSystemTagsGraph", tags);
+    }
+
+    public void Dispose()
+    {
+        systemReportService.OnChange -= StateHasChanged;
+    }
+}

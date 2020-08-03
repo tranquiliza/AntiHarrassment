@@ -29,7 +29,7 @@ namespace AntiHarassment.WebApi.Mappers
             };
         }
 
-        public static List<StatsPerDay> GenerateStatsPerDay(ChannelReport channelReport)
+        private static List<StatsPerDay> GenerateStatsPerDay(ChannelReport channelReport)
         {
             var result = new List<StatsPerDay>();
 

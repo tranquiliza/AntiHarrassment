@@ -114,3 +114,116 @@ window.AddDataToTagsGraph = function (data) {
 
     tagsChart.update();
 }
+
+var systemOverallChart;
+var systemInvalidOverallChart;
+var systemTagsChart;
+
+window.ClearSystemGraphs = function () {
+    systemOverallChart.destroy();
+    systemInvalidOverallChart.destroy();
+    systemTagsChart.destroy();
+
+    window.InitializeSystemStatisticsPage();
+}
+
+window.InitializeSystemStatisticsPage = function () {
+    var systemOverallContext = document.getElementById('systemOverallChart').getContext('2d');
+    systemOverallChart = new Chart(systemOverallContext, {
+        type: 'line',
+
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Timeouts',
+                borderColor: 'rgb(255, 255, 51)',
+                data: []
+            },
+            {
+                label: 'Bans',
+                borderColor: 'rgb(255, 51, 51)',
+                data: []
+            },
+            {
+                label: 'Suspensions',
+                borderColor: 'rgb(255, 51, 255)',
+                data: []
+            }
+            ]
+        },
+
+        options: {}
+    });
+
+    var systemInvalidOverallContext = document.getElementById('systemInvalidOverallChart').getContext('2d');
+    systemInvalidOverallChart = new Chart(systemInvalidOverallContext, {
+        type: 'line',
+
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Timeouts',
+                borderColor: 'rgb(255, 255, 51)',
+                data: []
+            },
+            {
+                label: 'Bans',
+                borderColor: 'rgb(255, 51, 51)',
+                data: []
+            },
+            {
+                label: 'Suspensions',
+                borderColor: 'rgb(255, 51, 255)',
+                data: []
+            }
+            ]
+        },
+
+        options: {}
+    });
+
+    var tagContext = document.getElementById('systemChartForTags').getContext('2d');
+    systemTagsChart = new Chart(tagContext, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'count',
+                backgroundColor: 'rgb(255, 204, 204)',
+                data: []
+            }]
+        },
+        options: {}
+    });
+}
+
+window.AddDataToSystemTagsGraph = function (data) {
+    data.forEach((TagCountModel) => {
+        systemTagsChart.data.labels.push(TagCountModel.tag.tagName);
+        systemTagsChart.data.datasets[0].data.push(TagCountModel.count);
+    });
+
+    systemTagsChart.update();
+}
+
+window.AddDataToSystemOverallChart = function (suspensionsPerDay) {
+    suspensionsPerDay.forEach((valuePair) => {
+        systemOverallChart.data.labels.push(valuePair.date);
+        systemOverallChart.data.datasets[0].data.push(valuePair.timeoutCount);
+        systemOverallChart.data.datasets[1].data.push(valuePair.bansCount);
+        systemOverallChart.data.datasets[2].data.push(valuePair.suspensionsCount);
+    });
+
+    systemOverallChart.update();
+}
+
+window.AddDataToSystemInvalidChart = function (suspensionsPerDay) {
+    suspensionsPerDay.forEach((valuePair) => {
+        systemInvalidOverallChart.data.labels.push(valuePair.date);
+        systemInvalidOverallChart.data.datasets[0].data.push(valuePair.timeoutCount);
+        systemInvalidOverallChart.data.datasets[1].data.push(valuePair.bansCount);
+        systemInvalidOverallChart.data.datasets[2].data.push(valuePair.suspensionsCount);
+    });
+
+    systemInvalidOverallChart.update();
+}
