@@ -42,6 +42,10 @@ window.CloseModalForCreatingSuspension = function () {
     $('#createSuspensionModal').modal('hide');
 }
 
+window.OpenModalForDisplayingImages = function () {
+    $('#suspensionImagesModal').modal('show');
+}
+
 var overallChart;
 var tagsChart;
 

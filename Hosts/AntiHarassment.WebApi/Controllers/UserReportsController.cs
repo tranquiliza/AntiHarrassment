@@ -32,7 +32,7 @@ namespace AntiHarassment.WebApi.Controllers
                 return BadRequest(result.FailureReason);
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
         }

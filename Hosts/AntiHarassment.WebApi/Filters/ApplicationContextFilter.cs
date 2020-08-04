@@ -21,6 +21,8 @@ namespace AntiHarassment.WebApi.Filters
         {
             if (context.Controller is ContextController controller && Guid.TryParse(context.HttpContext?.User?.Identity?.Name, out var userId))
             {
+                controller.CurrentUrl = $"{context.HttpContext.Request.Scheme}://{context.HttpContext.Request.Host}{context.HttpContext.Request.PathBase}";
+
                 var user = await userRepository.GetById(userId).ConfigureAwait(false);
                 controller.ApplicationContext = ApplicationContext.Create(user);
             }

@@ -18,19 +18,22 @@ namespace AntiHarassment.Core
         private readonly ITagRepository tagRepository;
         private readonly IMessageDispatcher messageDispatcher;
         private readonly IDatetimeProvider datetimeProvider;
+        private readonly IFileRepository fileRepository;
 
         public SuspensionService(
             ISuspensionRepository suspensionRepository,
             IChannelRepository channelRepository,
             ITagRepository tagRepository,
             IMessageDispatcher messageDispatcher,
-            IDatetimeProvider datetimeProvider)
+            IDatetimeProvider datetimeProvider,
+            IFileRepository fileRepository)
         {
             this.suspensionRepository = suspensionRepository;
             this.channelRepository = channelRepository;
             this.tagRepository = tagRepository;
             this.messageDispatcher = messageDispatcher;
             this.datetimeProvider = datetimeProvider;
+            this.fileRepository = fileRepository;
         }
 
         public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context)
@@ -195,6 +198,21 @@ namespace AntiHarassment.Core
                 return Result<Suspension>.Unauthorized();
 
             return Result<Suspension>.Succeeded(suspension);
+        }
+
+        public async Task AddImageTo(Guid suspensionId, byte[] imageBytes, string fileExtension, IApplicationContext context)
+        {
+            var suspension = await suspensionRepository.GetSuspension(suspensionId).ConfigureAwait(false);
+            var channel = await channelRepository.GetChannel(suspension.ChannelOfOrigin).ConfigureAwait(false);
+            if (!context.HaveAccessTo(channel))
+                return;
+
+            var imageName = suspension.AddImage(fileExtension, context, datetimeProvider.UtcNow);
+
+            await suspensionRepository.Save(suspension).ConfigureAwait(false);
+            await fileRepository.SaveImage(imageBytes, imageName).ConfigureAwait(false);
+
+            await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
         }
     }
 }

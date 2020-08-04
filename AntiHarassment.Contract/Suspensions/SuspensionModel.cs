@@ -20,5 +20,6 @@ namespace AntiHarassment.Contract
         public List<TagModel> Tags { get; set; }
         public List<ChatMessageModel> Messages { get; set; }
         public List<string> LinkedUsernames { get; set; }
+        public List<string> Images { get; set; }
     }
 }

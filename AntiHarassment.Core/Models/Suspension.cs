@@ -52,6 +52,12 @@ namespace AntiHarassment.Core.Models
         [JsonIgnore]
         public IReadOnlyList<string> LinkedUsernames => linkedUsernames.AsReadOnly();
 
+        [JsonProperty]
+        private List<string> images { get; set; } = new List<string>();
+
+        [JsonIgnore]
+        public IReadOnlyList<string> Images => images.AsReadOnly();
+
         /// <summary>
         /// Length of the suspension in Seconds: 0 if permanent
         /// </summary>
@@ -128,6 +134,15 @@ namespace AntiHarassment.Core.Models
             linkedUsernames.Remove(twitchUsername);
 
             AddAuditTrail(context, nameof(linkedUsernames), linkedUsernames, timestamp);
+        }
+
+        public string AddImage(string fileExtension, IApplicationContext context, DateTime timestamp)
+        {
+            var uniqueName = Guid.NewGuid().ToString("N") + fileExtension;
+            images.Add(uniqueName);
+
+            AddAuditTrail(context, nameof(images), images, timestamp);
+            return uniqueName;
         }
 
         public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages)

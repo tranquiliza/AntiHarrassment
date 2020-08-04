@@ -1,6 +1,5 @@
 ﻿using AntiHarassment.Contract;
 using AntiHarassment.Core.Models;
-using NServiceBus.Persistence.Sql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +10,10 @@ namespace AntiHarassment.WebApi.Mappers
 {
     public static class SuspensionMapper
     {
-        public static List<SuspensionModel> Map(this List<Suspension> suspensions)
-            => suspensions.Select(Map).ToList();
+        public static List<SuspensionModel> Map(this List<Suspension> suspensions, string urlBase)
+            => suspensions.Select(x => x.Map(urlBase)).ToList();
 
-        public static SuspensionModel Map(this Suspension suspension)
+        public static SuspensionModel Map(this Suspension suspension, string urlBase)
         {
             return new SuspensionModel
             {
@@ -30,7 +29,8 @@ namespace AntiHarassment.WebApi.Mappers
                 SuspensionType = suspension.SuspensionType.Map(),
                 Messages = suspension.ChatMessages.Map(),
                 LinkedUsernames = suspension.LinkedUsernames.ToList(),
-                SuspensionSource = suspension.SuspensionSource.Map()
+                SuspensionSource = suspension.SuspensionSource.Map(),
+                Images = suspension.Images.Select(x => urlBase.TrimEnd('/') + "/images/" + x).ToList()
             };
         }
 
@@ -49,6 +49,6 @@ namespace AntiHarassment.WebApi.Mappers
                 SuspensionSource.User => SuspensionSourceModel.User,
                 _ => throw new NotImplementedException()
             };
-	}
+    }
 
 }

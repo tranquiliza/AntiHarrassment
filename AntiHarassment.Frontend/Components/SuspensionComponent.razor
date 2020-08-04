@@ -22,31 +22,44 @@
     </div>
     <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
         <div class="card-body" style="min-height:60vh">
-            <div class="btn-group">
-                <div class="row">
-                    <div class="col-12">
-                        @if (suspension.InvalidSuspension)
-                        {
-                            <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-success btn-sm">Mark Valid</button>
-                        }
-                        else
-                        {
-                            <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-danger btn-sm">Mark Invalid</button>
-                        }
+            <div class="row">
+                <div class="col">
+                    <div class="btn-group">
+                        <div class="col-12">
+                            @if (suspension.InvalidSuspension)
+                            {
+                                <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-success btn-sm">Mark Valid</button>
+                            }
+                            else
+                            {
+                                <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-danger btn-sm">Mark Invalid</button>
+                            }
 
-                        @if (suspension.Audited)
-                        {
-                            <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn btn-danger btn-sm">Mark as Unaudited</button>
-                        }
-                        else
-                        {
-                            <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
-                            <button @onclick="async _ => await OpenLinkUserModal(suspension.SuspensionId)" class="btn btn-warning btn-sm">Link User</button>
-                        }
-                        <a class="btn btn-primary btn-sm" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
-                        <button class="btn btn-secondary btn-sm" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
+                            @if (suspension.Audited)
+                            {
+                                <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn btn-danger btn-sm">Mark as Unaudited</button>
+                            }
+                            else
+                            {
+                                <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
+                                <button @onclick="async _ => await OpenLinkUserModal(suspension.SuspensionId)" class="btn btn-warning btn-sm">Link User</button>
+                            }
+                            <a class="btn btn-primary btn-sm" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
+                            <button class="btn btn-secondary btn-sm" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
+                            @if (suspension.Images.Count > 0)
+                            {
+                                <button class="btn btn-primary btn-sm" @onclick="SelectSuspensionAndShowModal">Show Images</button>
+                            }
+                        </div>
                     </div>
                 </div>
+                @if (!suspension.Audited)
+                {
+                    <div class="col">
+                        <InputFile class="btn btn-secondary btn-sm" multiple OnChange="LoadFileIntoMemory" />
+                        <button class="btn btn-secondary btn-sm" disabled="@uploadDisabled" @onclick="UploadSelectedImages">Upload</button>
+                    </div>
+                }
             </div>
             <hr />
             @foreach (var tag in suspension.Tags)
@@ -93,7 +106,6 @@
                 }
             }
 
-
             @if (suspension.InvalidSuspension && !string.IsNullOrEmpty(suspension.InvalidationReason))
             {
                 <p class="text-danger"><b>Invalid Because:</b> @suspension.InvalidationReason</p>
@@ -122,6 +134,58 @@
 
     [Parameter]
     public int counter { get; set; }
+
+    private bool uploadDisabled = true;
+
+    private System.IO.MemoryStream[] filesToUpload;
+    private string[] fileNames;
+
+    private async Task SelectSuspensionAndShowModal()
+    {
+        suspensionService.SetCurrentlySelectedSuspensionForImages(suspension);
+
+        await jsRuntime.InvokeVoidAsync("OpenModalForDisplayingImages");
+    }
+
+    private async Task LoadFileIntoMemory(IFileListEntry[] files)
+    {
+        filesToUpload = new System.IO.MemoryStream[files.Length];
+        fileNames = new string[files.Length];
+
+        for (int i = 0; i < files.Length; i++)
+        {
+            var currentFile = files[i];
+
+            var stream = new System.IO.MemoryStream();
+            await currentFile.Data.CopyToAsync(stream);
+
+            filesToUpload[i] = stream;
+            fileNames[i] = currentFile.Name;
+        }
+
+        uploadDisabled = false;
+    }
+
+    private async Task UploadSelectedImages()
+    {
+        if (filesToUpload.Length == 0)
+        {
+            return;
+        }
+
+        uploadDisabled = true;
+
+        for (int i = 0; i < filesToUpload.Length; i++)
+        {
+            await suspensionService.UploadImage(suspension.SuspensionId, filesToUpload[i], fileNames[i]);
+        }
+
+        filesToUpload = null;
+        fileNames = null;
+
+        uploadDisabled = false;
+        StateHasChanged();
+    }
 
     private string SelectButtonColor(SuspensionModel suspension)
     {

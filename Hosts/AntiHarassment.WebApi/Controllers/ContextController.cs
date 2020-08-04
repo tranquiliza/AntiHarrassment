@@ -9,6 +9,7 @@ namespace AntiHarassment.WebApi.Controllers
 {
     public class ContextController : ControllerBase
     {
+        public string CurrentUrl { get; set; }
         public IApplicationContext ApplicationContext { get; set; }
     }
 }

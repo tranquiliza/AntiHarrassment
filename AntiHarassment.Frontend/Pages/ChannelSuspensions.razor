@@ -60,10 +60,10 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-                             .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                             .GroupBy(x => x.LocalTimeStamp().Date)
-                             .Select(key => key.Key)
-                             .ToList())
+                           .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                           .GroupBy(x => x.LocalTimeStamp().Date)
+                           .Select(key => key.Key)
+                           .ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
                                         <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
@@ -159,6 +159,32 @@
             <div class="modal-footer">
                 <button @onclick="CloseModelForCreateSuspension" type="button" class="btn btn-danger">Cancel</button>
                 <button @onclick="CreateNewSuspension" type="button" class="btn btn-success">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal For SuspensionImages -->
+<div class="modal fade" id="suspensionImagesModal" tabindex="-1" role="dialog" aria-labelledby="suspensionImagesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl bg-dark text-center">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="suspensionImagesModalLabel">Create a suspension</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if (suspensionService.CurrentlySelectedSuspensionForImages != null)
+                {
+                    foreach (var imageUrl in suspensionService.CurrentlySelectedSuspensionForImages.Images)
+                    {
+                        <img class="img-fluid" src="@imageUrl" />
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" type="button" class="btn btn-danger">Cancel</button>
             </div>
         </div>
     </div>

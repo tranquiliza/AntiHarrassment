@@ -26,8 +26,15 @@ namespace AntiHarassment.Core.Tests
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
             var datetimeProvider = new Mock<IDatetimeProvider>();
+            var fileRepository = new Mock<IFileRepository>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
+            var service = new SuspensionService(
+                suspensionRepositoryMock.Object,
+                channelRepository.Object,
+                tagRepository.Object,
+                messageDispatcher.Object,
+                datetimeProvider.Object,
+                fileRepository.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -56,8 +63,15 @@ namespace AntiHarassment.Core.Tests
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
             var datetimeProvider = new Mock<IDatetimeProvider>();
+            var fileRepository = new Mock<IFileRepository>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
+            var service = new SuspensionService(
+                suspensionRepositoryMock.Object,
+                channelRepository.Object,
+                tagRepository.Object,
+                messageDispatcher.Object,
+                datetimeProvider.Object,
+                fileRepository.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -88,8 +102,15 @@ namespace AntiHarassment.Core.Tests
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
             var datetimeProvider = new Mock<IDatetimeProvider>();
+            var fileRepository = new Mock<IFileRepository>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
+            var service = new SuspensionService(
+                suspensionRepositoryMock.Object,
+                channelRepository.Object,
+                tagRepository.Object,
+                messageDispatcher.Object,
+                datetimeProvider.Object,
+                fileRepository.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
@@ -125,8 +146,15 @@ namespace AntiHarassment.Core.Tests
             var tagRepository = new Mock<ITagRepository>();
             var messageDispatcher = new Mock<IMessageDispatcher>();
             var datetimeProvider = new Mock<IDatetimeProvider>();
+            var fileRepository = new Mock<IFileRepository>();
 
-            var service = new SuspensionService(suspensionRepositoryMock.Object, channelRepository.Object, tagRepository.Object, messageDispatcher.Object, datetimeProvider.Object);
+            var service = new SuspensionService(
+                suspensionRepositoryMock.Object,
+                channelRepository.Object,
+                tagRepository.Object,
+                messageDispatcher.Object,
+                datetimeProvider.Object,
+                fileRepository.Object);
 
             // act
             var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);

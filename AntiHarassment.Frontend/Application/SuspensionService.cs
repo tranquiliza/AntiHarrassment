@@ -5,6 +5,7 @@ using AntiHarassment.SignalR.Contract;
 using AntiHarassment.SignalR.Contract.EventArgs;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -34,6 +35,7 @@ namespace AntiHarassment.Frontend.Application
 
         public string CurrentlySelectedChannel { get; private set; }
         public List<SuspensionModel> Suspensions { get; private set; }
+        public SuspensionModel CurrentlySelectedSuspensionForImages { get; private set; }
 
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
@@ -101,6 +103,12 @@ namespace AntiHarassment.Frontend.Application
                 await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
                 await FetchSeenUsersForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
             }
+        }
+
+        public void SetCurrentlySelectedSuspensionForImages(SuspensionModel suspension)
+        {
+            CurrentlySelectedSuspensionForImages = suspension;
+            NotifyStateChanged();
         }
 
         public async Task FetchSuspensionForChannel(string channelName)
@@ -189,6 +197,11 @@ namespace AntiHarassment.Frontend.Application
                 "suspensions").ConfigureAwait(false);
 
             UpdateState(result);
+        }
+
+        public async Task UploadImage(Guid suspensionId, MemoryStream memoryStream, string filename)
+        {
+            await apiGateway.PostImage(memoryStream, filename, "Suspensions", routeValues: new string[] { suspensionId.ToString(), "image" }).ConfigureAwait(false);
         }
 
         private void UpdateState(SuspensionModel model)
