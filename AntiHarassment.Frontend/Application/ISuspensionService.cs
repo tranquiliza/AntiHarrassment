@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Contract;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Frontend.Application
@@ -13,12 +14,13 @@ namespace AntiHarassment.Frontend.Application
         List<SuspensionModel> Suspensions { get; }
         List<ChannelModel> Channels { get; }
 
+        public SuspensionModel CurrentlySelectedSuspensionForImages { get; }
+
         SuspensionModel CurrentlySelectedSuspensionForInvalidation { get; set; }
         string CurrentInvalidationReason { get; set; }
 
         string CurrentSearchTerm { get; set; }
         SuspensionModel CurrentlySelectedSuspension { get; set; }
-
 
         event Action OnChange;
 
@@ -32,5 +34,7 @@ namespace AntiHarassment.Frontend.Application
         Task Initialize();
         Task RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername);
         Task CreateNewSuspension(string username);
+        Task UploadImage(Guid suspensionId, MemoryStream memoryStream, string filename);
+        void SetCurrentlySelectedSuspensionForImages(SuspensionModel suspension);
     }
 }

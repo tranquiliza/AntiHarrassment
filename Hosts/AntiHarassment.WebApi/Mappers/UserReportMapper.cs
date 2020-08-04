@@ -9,10 +9,10 @@ namespace AntiHarassment.WebApi.Mappers
 {
     public static class UserReportMapper
     {
-        public static List<UserReportModel> Map(this List<UserReport> userReports)
-            => userReports.Select(Map).ToList();
+        public static List<UserReportModel> Map(this List<UserReport> userReports, string baseUrl)
+            => userReports.Select(x => x.Map(baseUrl)).ToList();
 
-        public static UserReportModel Map(this UserReport userReport)
+        public static UserReportModel Map(this UserReport userReport, string baseUrl)
         {
             return new UserReportModel
             {
@@ -20,7 +20,7 @@ namespace AntiHarassment.WebApi.Mappers
                 BannedFromChannels = userReport.BannedFromChannels,
                 TimedoutFromChannels = userReport.TimedOutFromChannels,
                 AssociatedAccounts = userReport.AssociatatedAccounts,
-                Suspensions = userReport.Suspensions.Map(),
+                Suspensions = userReport.Suspensions.Map(baseUrl),
                 Tags = userReport.Tags.Map()
             };
         }

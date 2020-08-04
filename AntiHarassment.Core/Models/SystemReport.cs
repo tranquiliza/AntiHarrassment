@@ -12,6 +12,8 @@ namespace AntiHarassment.Core.Models
         public List<Suspension> AuditedSuspensions { get; private set; }
         public List<Suspension> UnauditedSuspensions { get; private set; }
 
+        public int UnauditedSuspensionsCount => UnauditedSuspensions.Count(x => !x.InvalidSuspension);
+
         public List<string> SuspendedUsers => AuditedSuspensions.DistinctBy(x => x.Username).Select(x => x.Username).ToList();
 
         public List<string> BannedUsers => AuditedSuspensions.DistinctBy(x => x.Username)

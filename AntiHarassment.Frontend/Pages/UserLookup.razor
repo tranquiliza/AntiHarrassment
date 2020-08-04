@@ -1,4 +1,5 @@
 ﻿@inject IUserReportService userReportService
+@inject IJSRuntime jsRuntime
 @implements IDisposable
 
 @page "/userlookup"
@@ -96,6 +97,14 @@
                             </div>
                             <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
                                 <div class="card-body">
+                                    <div class="row">
+                                        <div class="col">
+                                            @if (suspension.Images.Count > 0)
+                                            {
+                                                <button class="btn btn-primary btn-sm" @onclick="async _ => await SelectSuspensionAndShowModal(suspension.SuspensionId)">Show Images</button>
+                                            }
+                                        </div>
+                                    </div>
                                     @if (suspension.Tags.Count != 0)
                                     {
                                         @foreach (var tag in suspension.Tags)
@@ -132,6 +141,32 @@
     }
 </div>
 
+<!-- Modal For SuspensionImages -->
+<div class="modal fade" id="suspensionImagesUserLookupModal" tabindex="-1" role="dialog" aria-labelledby="suspensionImagesUserLookupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl bg-dark text-center">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="suspensionImagesUserLookupModalLabel">Images for suspension</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if (currentlySelected != null)
+                {
+                    foreach (var imageUrl in currentlySelected.Images)
+                    {
+                        <img class="img-fluid" src="@imageUrl" />
+                    }
+                }
+            </div>
+            <div class="modal-footer">
+                <button data-dismiss="modal" type="button" class="btn btn-danger">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @code {
     [Parameter]
     public string Username { get; set; }
@@ -142,6 +177,16 @@
     private string searchTerm = "";
 
     private bool Loading = false;
+
+    private SuspensionModel currentlySelected;
+
+    private async Task SelectSuspensionAndShowModal(Guid suspensionId)
+    {
+        currentlySelected = model.Suspensions.Find(x => x.SuspensionId == suspensionId);
+        await jsRuntime.InvokeVoidAsync("OpenModalForDisplayingImagesUserLookup");
+
+        UpdateUi();
+    }
 
     protected override async Task OnInitializedAsync()
     {

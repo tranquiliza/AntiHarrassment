@@ -6,6 +6,8 @@ namespace AntiHarassment.Contract
 {
     public class SystemReportModel
     {
+        public int UnauditedSuspensionsCount { get; set; }
+
         public List<string> SuspendedUsers { get; set; }
         public List<string> BannedUsers { get; set; }
         public List<string> TimedoutUsers { get; set; }

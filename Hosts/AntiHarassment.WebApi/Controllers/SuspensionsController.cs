@@ -8,6 +8,8 @@ using AntiHarassment.WebApi.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using AntiHarassment.Contract;
 using AntiHarassment.Contract.Suspensions;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace AntiHarassment.WebApi.Controllers
 {
@@ -16,6 +18,7 @@ namespace AntiHarassment.WebApi.Controllers
     [Authorize]
     public class SuspensionsController : ContextController
     {
+
         private readonly ISuspensionService suspensionService;
 
         public SuspensionsController(ISuspensionService suspensionService)
@@ -34,7 +37,7 @@ namespace AntiHarassment.WebApi.Controllers
                 return BadRequest();
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
         }
@@ -46,15 +49,16 @@ namespace AntiHarassment.WebApi.Controllers
             if (result.State == ResultState.AccessDenied)
                 return Unauthorized();
 
-            return Ok(result.Data.Map());
+            return Ok(result.Data.Map(CurrentUrl));
         }
 
         [HttpGet("{channelOfOrigin}")]
         public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin)
         {
+
             var result = await suspensionService.GetAllSuspensionsAsync(channelOfOrigin, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             if (result.State == ResultState.AccessDenied)
                 return Unauthorized();
@@ -76,7 +80,7 @@ namespace AntiHarassment.WebApi.Controllers
                 return Unauthorized();
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
         }
@@ -92,7 +96,7 @@ namespace AntiHarassment.WebApi.Controllers
                 return Unauthorized();
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
         }
@@ -108,7 +112,7 @@ namespace AntiHarassment.WebApi.Controllers
                 return Unauthorized();
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
         }
@@ -124,7 +128,7 @@ namespace AntiHarassment.WebApi.Controllers
                 return Unauthorized();
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
         }
@@ -140,7 +144,7 @@ namespace AntiHarassment.WebApi.Controllers
                 return Unauthorized();
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
         }
@@ -156,9 +160,22 @@ namespace AntiHarassment.WebApi.Controllers
                 return Unauthorized();
 
             if (result.State == ResultState.Success)
-                return Ok(result.Data.Map());
+                return Ok(result.Data.Map(CurrentUrl));
 
             return NoContent();
+        }
+
+        [HttpPost("{suspensionId}/image")]
+        public async Task<IActionResult> UploadImageForSuspension([FromRoute] Guid suspensionId, [FromForm] IFormFile file)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                var stream = file.OpenReadStream();
+                await stream.CopyToAsync(memoryStream).ConfigureAwait(false);
+                await suspensionService.AddImageTo(suspensionId, memoryStream.ToArray(), Path.GetExtension(file.FileName), ApplicationContext).ConfigureAwait(false);
+            }
+
+            return Ok();
         }
     }
 }

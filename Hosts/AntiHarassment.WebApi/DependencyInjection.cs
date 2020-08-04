@@ -1,4 +1,5 @@
 ﻿using AntiHarassment.Core;
+using AntiHarassment.FileSystem;
 using AntiHarassment.Messaging.NServiceBus;
 using AntiHarassment.Sql;
 using AntiHarassment.TwitchIntegration;
@@ -27,8 +28,10 @@ namespace AntiHarassment.WebApi
             var twitchApiConfiguration = new TwitchApiSettings { ClientId = clientId, Secret = applicationSecret, RedirectionUrl = redirectionUri };
             services.AddSingleton(twitchApiConfiguration);
             services.AddSingleton(new HttpClient());
-
             services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
+
+            var fileStoragePath = configuration["ApplicationSettings:FileStoragePath"];
+            services.AddSingleton<IFileRepository, FileRepository>(_ => new FileRepository(fileStoragePath));
 
             services.AddSingleton<IChannelService, ChannelService>();
             services.AddSingleton<IUserService, UserService>();
