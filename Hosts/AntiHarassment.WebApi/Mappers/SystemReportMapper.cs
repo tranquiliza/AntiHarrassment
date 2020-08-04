@@ -13,6 +13,7 @@ namespace AntiHarassment.WebApi.Mappers
         {
             return new SystemReportModel
             {
+                UnauditedSuspensionsCount = systemReport.UnauditedSuspensionsCount,
                 SuspendedUsers = systemReport.SuspendedUsers,
                 BannedUsers = systemReport.BannedUsers,
                 TimedoutUsers = systemReport.TimedoutUsers,
@@ -60,6 +61,7 @@ namespace AntiHarassment.WebApi.Mappers
 
             return result;
         }
+
         private static List<StatsPerDay> MapInvalidSuspensionsStatsPerDay(SystemReport systemReport)
         {
             var result = new List<StatsPerDay>();
