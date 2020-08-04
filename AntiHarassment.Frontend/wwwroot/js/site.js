@@ -46,6 +46,10 @@ window.OpenModalForDisplayingImages = function () {
     $('#suspensionImagesModal').modal('show');
 }
 
+window.OpenModalForDisplayingImagesUserLookup = function () {
+    $('#suspensionImagesUserLookupModal').modal('show');
+}
+
 var overallChart;
 var tagsChart;
 
