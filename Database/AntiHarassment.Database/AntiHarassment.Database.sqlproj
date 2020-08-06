@@ -99,6 +99,7 @@
     <Build Include="StoredProcedures\Suspensions\GetAuditedSuspensionsForChannel.sql" />
     <Build Include="StoredProcedures\ChatMessages\GetUniqueChattersForSystem.sql" />
     <Build Include="StoredProcedures\Suspensions\GetUniqueUsersFromSuspensionsForSystem.sql" />
+    <Build Include="StoredProcedures\ChatMessages\GetLatestMessageTimestamp.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

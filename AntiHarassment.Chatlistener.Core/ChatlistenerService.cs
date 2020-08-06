@@ -81,6 +81,33 @@ namespace AntiHarassment.Chatlistener.Core
             await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
         }
 
+        private bool hasBootedUp = false;
+
+        public async Task<bool> CheckConnectionAndRestartIfNeeded()
+        {
+            if (!hasBootedUp)
+                return false;
+
+            var timeOfLatestMessage = await chatRepository.GetTimeStampForLatestMessage().ConfigureAwait(false);
+            var timeOfCheck = datetimeProvider.UtcNow;
+            logger.LogInformation("time of latest message: {arg}, time of check: {argTwo}", timeOfLatestMessage, timeOfCheck);
+            if (timeOfLatestMessage < timeOfCheck.AddHours(-1))
+            {
+                await pubSubClient.Disconnect().ConfigureAwait(false);
+                await client.Disconnect().ConfigureAwait(false);
+
+                logger.LogInformation("Clients disconnected");
+
+                await ConnectAndJoinChannels().ConfigureAwait(false);
+
+                logger.LogInformation("Clients reconnected");
+
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task ConnectAndJoinChannels()
         {
             logger.LogInformation("Connecting and joining channels");
@@ -100,6 +127,8 @@ namespace AntiHarassment.Chatlistener.Core
                 await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
 
             logger.LogInformation("Connected to channels");
+
+            hasBootedUp = true;
         }
 
         public async Task ListenTo(string channelName, IApplicationContext context)
