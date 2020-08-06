@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Core.Tests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.TwitchIntegration", "AntiHarassment.TwitchIntegration\AntiHarassment.TwitchIntegration.csproj", "{D9E88919-07CF-4CD9-B26C-7DF9F3C73C87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.FileSystem", "AntiHarassment.FileSystem\AntiHarassment.FileSystem.csproj", "{40A4226D-FA7C-4D2A-AB95-780BAD98294A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.FileSystem", "AntiHarassment.FileSystem\AntiHarassment.FileSystem.csproj", "{40A4226D-FA7C-4D2A-AB95-780BAD98294A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
