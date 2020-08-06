@@ -56,6 +56,13 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             return Task.CompletedTask;
         }
 
+        public Task<bool> Disconnect()
+        {
+            pubSubService.Disconnect();
+
+            return Task.FromResult(true);
+        }
+
         public async Task<bool> JoinChannels(List<string> channelNames)
         {
             channelNames.Add(twitchClientSettings.TwitchUsername);

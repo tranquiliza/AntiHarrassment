@@ -13,5 +13,6 @@ namespace AntiHarassment.Core
         Task<List<ChatMessage>> GetMessagesForChannel(string channelOfOrigin, DateTime earliestTime, DateTime latestTime);
         Task<List<string>> GetUniqueChattersForChannel(string channelOfOrigin);
         Task<List<string>> GetUniqueChattersForSystem();
+        Task<DateTime> GetTimeStampForLatestMessage();
     }
 }

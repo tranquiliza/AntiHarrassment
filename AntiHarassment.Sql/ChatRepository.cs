@@ -19,6 +19,18 @@ namespace AntiHarassment.Sql
             this.logger = logger;
         }
 
+        public async Task<DateTime> GetTimeStampForLatestMessage()
+        {
+            using (var command = sql.CreateStoredProcedure("[Core].[GetLatestMessageTimestamp]"))
+            using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+            {
+                if (await reader.ReadAsync().ConfigureAwait(false))
+                    return reader.GetDateTime("Timestamp");
+            }
+
+            return default;
+        }
+
         public async Task<List<ChatMessage>> GetMessagesFor(string username, string channelOfOrigin, TimeSpan chatRecordWindow, DateTime timeOfSuspension)
         {
             try

@@ -11,5 +11,6 @@ namespace AntiHarassment.Chatlistener.Core
         Task ConnectAndJoinChannels();
         Task ListenTo(string channelName, IApplicationContext context);
         Task UnlistenTo(string channelName, IApplicationContext context);
+        Task<bool> CheckConnectionAndRestartIfNeeded();
     }
 }

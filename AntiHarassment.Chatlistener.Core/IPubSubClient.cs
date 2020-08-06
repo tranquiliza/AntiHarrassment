@@ -14,5 +14,6 @@ namespace AntiHarassment.Chatlistener.Core
         Task<bool> JoinChannel(string channelName);
         bool LeaveChannel(string channelName);
         Task Connect();
+        Task<bool> Disconnect();
     }
 }

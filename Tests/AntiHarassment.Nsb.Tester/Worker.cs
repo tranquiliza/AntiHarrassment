@@ -22,7 +22,9 @@ namespace AntiHarassment.Nsb.Tester
         {
             var dispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
-            await dispatcher.Send(new JoinChannelCommand { ChannelName = "theodorastyles" }).ConfigureAwait(false);
+            await dispatcher.Send(new CheckDataFeedCommand()).ConfigureAwait(false);
+
+            //await dispatcher.Send(new JoinChannelCommand { ChannelName = "theodorastyles" }).ConfigureAwait(false);
         }
     }
 }
