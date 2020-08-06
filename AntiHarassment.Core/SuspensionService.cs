@@ -79,7 +79,7 @@ namespace AntiHarassment.Core
             var tag = await tagRepository.Get(tagId).ConfigureAwait(false);
 
             if (!suspension.TryAddTag(tag, context, datetimeProvider.UtcNow))
-                return Result<Suspension>.Failure("Unable to add tag");
+                return Result<Suspension>.Succeeded(suspension);
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 

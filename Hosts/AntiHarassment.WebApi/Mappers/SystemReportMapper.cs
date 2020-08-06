@@ -52,7 +52,7 @@ namespace AntiHarassment.WebApi.Mappers
 
                 result.Add(new StatsPerDay
                 {
-                    Date = suspensionForDate.Key.Date.ShortFancyFormat(),
+                    Date = suspensionForDate.Key,
                     SuspensionsCount = suspensionForDate.Value,
                     BansCount = banForDate.Value,
                     TimeoutCount = timeoutForDate.Value
@@ -78,7 +78,7 @@ namespace AntiHarassment.WebApi.Mappers
 
                 result.Add(new StatsPerDay
                 {
-                    Date = suspensionForDate.Key.Date.ShortFancyFormat(),
+                    Date = suspensionForDate.Key,
                     SuspensionsCount = suspensionForDate.Value,
                     BansCount = banForDate.Value,
                     TimeoutCount = timeoutForDate.Value

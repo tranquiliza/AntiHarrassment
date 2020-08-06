@@ -105,7 +105,10 @@ window.ClearGraph = function () {
 
 window.AddDataToGraph = function (suspensionsPerDay) {
     suspensionsPerDay.forEach((valuePair) => {
-        overallChart.data.labels.push(valuePair.date);
+        let date = Date.parse(valuePair.date);
+        const dateTimeFormat = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'long', day: '2-digit' });
+        const [{ value: month }, , { value: day }, , { value: year }] = dateTimeFormat.formatToParts(date);
+        overallChart.data.labels.push(`${day}-${month}-${year}`);
         overallChart.data.datasets[0].data.push(valuePair.timeoutCount);
         overallChart.data.datasets[1].data.push(valuePair.bansCount);
         overallChart.data.datasets[2].data.push(valuePair.suspensionsCount);
@@ -214,9 +217,14 @@ window.AddDataToSystemTagsGraph = function (data) {
     systemTagsChart.update();
 }
 
+
+
 window.AddDataToSystemOverallChart = function (suspensionsPerDay) {
     suspensionsPerDay.forEach((valuePair) => {
-        systemOverallChart.data.labels.push(valuePair.date);
+        let date = Date.parse(valuePair.date);
+        const dateTimeFormat = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'long', day: '2-digit' });
+        const [{ value: month }, , { value: day }, , { value: year }] = dateTimeFormat.formatToParts(date);
+        systemOverallChart.data.labels.push(`${day}-${month}-${year}`);
         systemOverallChart.data.datasets[0].data.push(valuePair.timeoutCount);
         systemOverallChart.data.datasets[1].data.push(valuePair.bansCount);
         systemOverallChart.data.datasets[2].data.push(valuePair.suspensionsCount);
@@ -227,7 +235,10 @@ window.AddDataToSystemOverallChart = function (suspensionsPerDay) {
 
 window.AddDataToSystemInvalidChart = function (suspensionsPerDay) {
     suspensionsPerDay.forEach((valuePair) => {
-        systemInvalidOverallChart.data.labels.push(valuePair.date);
+        let date = Date.parse(valuePair.date);
+        const dateTimeFormat = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'long', day: '2-digit' });
+        const [{ value: month }, , { value: day }, , { value: year }] = dateTimeFormat.formatToParts(date);
+        systemInvalidOverallChart.data.labels.push(`${day}-${month}-${year}`);
         systemInvalidOverallChart.data.datasets[0].data.push(valuePair.timeoutCount);
         systemInvalidOverallChart.data.datasets[1].data.push(valuePair.bansCount);
         systemInvalidOverallChart.data.datasets[2].data.push(valuePair.suspensionsCount);
