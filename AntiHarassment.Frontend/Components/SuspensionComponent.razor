@@ -116,11 +116,11 @@
             {
                 @if (message.AutoModded)
                 {
-                    <p class="text-danger"><b>@message.LocalTimestamp()</b> @message.Message</p>
+                    <p class="text-danger"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
                 }
                 else
                 {
-                    <p><b>@message.LocalTimestamp()</b> @message.Message</p>
+                    <p><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
                 }
 
             }
