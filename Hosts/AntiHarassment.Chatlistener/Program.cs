@@ -21,6 +21,8 @@ namespace AntiHarassment.Chatlistener
                 .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
+            Log.Information("Starting the chat listener!");
+
             try
             {
                 CreateHostBuilder(args).Build().Run();
