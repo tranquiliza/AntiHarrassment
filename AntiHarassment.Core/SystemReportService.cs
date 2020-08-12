@@ -12,19 +12,21 @@ namespace AntiHarassment.Core
     {
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IChatRepository chatRepository;
+        private readonly IDatetimeProvider datetimeProvider;
 
-        public SystemReportService(ISuspensionRepository suspensionRepository, IChatRepository chatRepository)
+        public SystemReportService(ISuspensionRepository suspensionRepository, IChatRepository chatRepository, IDatetimeProvider datetimeProvider)
         {
             this.suspensionRepository = suspensionRepository;
             this.chatRepository = chatRepository;
+            this.datetimeProvider = datetimeProvider;
         }
 
         public async Task<IResult<SystemReport>> GetSystemReport(IApplicationContext context)
         {
-            //if (!context.User.HasRole(Roles.Admin))
-            //    return Result<SystemReport>.Unauthorized();
+            if (!context.User.HasRole(Roles.Admin))
+                return Result<SystemReport>.Unauthorized();
 
-            var allSuspensions = await suspensionRepository.GetSuspensions().ConfigureAwait(false);
+            var allSuspensions = await suspensionRepository.GetSuspensions(datetimeProvider.UtcNow.AddDays(-30)).ConfigureAwait(false);
 
             var auditedSuspensions = allSuspensions.Where(x => x.Audited).ToList();
             var unauditedSuspensins = allSuspensions.Where(x => !x.Audited).ToList();

@@ -163,18 +163,21 @@ namespace AntiHarassment.Sql
             }
         }
 
-        public async Task<List<Suspension>> GetSuspensions()
+        public async Task<List<Suspension>> GetSuspensions(DateTime earliestDate)
         {
             try
             {
                 var result = new List<Suspension>();
 
                 using (var command = sql.CreateStoredProcedure("[Core].[GetSuspensions]"))
-                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    command.WithParameter("earliestDate", earliestDate);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
-                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                        }
                     }
                 }
 
