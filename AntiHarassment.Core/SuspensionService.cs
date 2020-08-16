@@ -98,9 +98,24 @@ namespace AntiHarassment.Core
             suspension.UpdateAuditedState(audited, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
+            if (suspension.Audited)
+                await PublishSuspensionAuditedEvent(suspension).ConfigureAwait(false);
+
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
 
             return Result<Suspension>.Succeeded(suspension);
+        }
+
+        private async Task PublishSuspensionAuditedEvent(Suspension suspension)
+        {
+            var auditedEvent = new SuspensionAuditedEvent
+            {
+                SuspensionId = suspension.SuspensionId,
+                TwitchUsername = suspension.Username,
+                ChannelOfOrigin = suspension.ChannelOfOrigin
+            };
+
+            await messageDispatcher.Publish(auditedEvent).ConfigureAwait(false);
         }
 
         public async Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, string invalidationReason, IApplicationContext context)
