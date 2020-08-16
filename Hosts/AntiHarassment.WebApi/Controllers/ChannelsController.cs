@@ -80,7 +80,7 @@ namespace AntiHarassment.WebApi.Controllers
             return Ok(result.Data);
         }
 
-        [HttpPost("{channelName}")]
+        [HttpPost("{channelName}/moderators")]
         public async Task<IActionResult> AddModerator([FromRoute] string channelName, [FromBody] AddModeratorModel model)
         {
             var result = await channelService.AddModeratorToChannel(channelName, model.ModeratorTwitchUsername, ApplicationContext).ConfigureAwait(false);
@@ -93,7 +93,7 @@ namespace AntiHarassment.WebApi.Controllers
             return Ok(result.Data.Map());
         }
 
-        [HttpDelete("{channelName}")]
+        [HttpDelete("{channelName}/moderators")]
         public async Task<IActionResult> DeleteModerator([FromRoute] string channelName, [FromBody] DeleteModeratorModel model)
         {
             var result = await channelService.DeleteModeratorFromChannel(channelName, model.ModeratorTwitchUsername, ApplicationContext).ConfigureAwait(false);
@@ -122,9 +122,22 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ChannelModel model)
         {
-            await channelService.UpdateChannel(model.ChannelName, model.ShouldListen, ApplicationContext).ConfigureAwait(false);
+            await channelService.UpdateChannelListenerState(model.ChannelName, model.ShouldListen, ApplicationContext).ConfigureAwait(false);
 
             return Ok();
+        }
+
+        [HttpPost("{channelName}/systemIsModerator")]
+        public async Task<IActionResult> SetSystemIsModeratorStatus([FromRoute] string channelName, [FromBody] UpdateSystemIsModeratorStatusModel model)
+        {
+            var result = await channelService.UpdateChannelSystemIsModeratorState(channelName, model.SystemIsModerator, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return BadRequest();
+
+            return Ok(result.Data.Map());
         }
     }
 }

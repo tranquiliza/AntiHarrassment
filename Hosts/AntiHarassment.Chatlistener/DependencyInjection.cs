@@ -29,6 +29,7 @@ namespace AntiHarassment.Chatlistener
                 services.AddSingleton(chatClientSettings);
                 services.AddSingleton<IChatClient, TwitchChatClient>();
                 services.AddSingleton<IPubSubClient, TwitchPubSubClient>();
+                services.AddSingleton<IAuditActionService, AuditActionService>();
 
                 services.AddSingleton<IChatlistenerService, ChatlistenerService>();
                 services.AddSingleton<IUserNotificationService, UserNotificationService>();

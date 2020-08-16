@@ -3,8 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Permissions;
-using System.Text;
 
 namespace AntiHarassment.Core.Models
 {
@@ -18,6 +16,12 @@ namespace AntiHarassment.Core.Models
 
         [JsonProperty]
         public bool ShouldListen { get; private set; }
+
+        [JsonProperty]
+        public bool ShouldListenForAutoModdedMessages { get; private set; }
+
+        [JsonProperty]
+        public bool SystemIsModerator { get; private set; }
 
         [JsonProperty]
         private List<string> moderators { get; set; }
@@ -62,6 +66,27 @@ namespace AntiHarassment.Core.Models
         {
             moderators.Remove(twitchUsername);
             AddAuditTrail(context, nameof(moderators), moderators, timeStamp);
+        }
+
+        public void UpdateSystemModerationStatus(bool newStatus, IApplicationContext context, DateTime timeStamp)
+        {
+            SystemIsModerator = newStatus;
+
+            AddAuditTrail(context, nameof(SystemIsModerator), newStatus, timeStamp);
+        }
+
+        public void EnableAutoModdedMessageListening(IApplicationContext context, DateTime timeStamp)
+        {
+            ShouldListenForAutoModdedMessages = true;
+
+            AddAuditTrail(context, nameof(ShouldListenForAutoModdedMessages), true, timeStamp);
+        }
+
+        public void DisableAutoModdedMessageListening(IApplicationContext context, DateTime timeStamp)
+        {
+            ShouldListenForAutoModdedMessages = false;
+
+            AddAuditTrail(context, nameof(ShouldListenForAutoModdedMessages), false, timeStamp);
         }
 
         public bool HasModerator(string moderatorUsername)

@@ -90,7 +90,7 @@ namespace AntiHarassment.Frontend.Application
         public async Task AddModerator(string moderatorTwitchUsername)
         {
             var model = new AddModeratorModel { ModeratorTwitchUsername = moderatorTwitchUsername };
-            Channel = await apiGateway.Post<ChannelModel, AddModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName }).ConfigureAwait(false);
+            Channel = await apiGateway.Post<ChannelModel, AddModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "moderators" }).ConfigureAwait(false);
 
             NotifyStateChanged();
         }
@@ -98,7 +98,7 @@ namespace AntiHarassment.Frontend.Application
         public async Task RemoveModerator(string moderatorTwitchUsername)
         {
             var model = new DeleteModeratorModel { ModeratorTwitchUsername = moderatorTwitchUsername };
-            Channel = await apiGateway.Delete<ChannelModel, DeleteModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName }).ConfigureAwait(false);
+            Channel = await apiGateway.Delete<ChannelModel, DeleteModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "moderators" }).ConfigureAwait(false);
 
             NotifyStateChanged();
         }

@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Core.Models;
 using AntiHarassment.Core.Security;
 using AntiHarassment.Messaging.Commands;
+using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
@@ -89,7 +90,7 @@ namespace AntiHarassment.Core
             return Result<List<Channel>>.Succeeded(result);
         }
 
-        public async Task UpdateChannel(string channelName, bool shouldListen, IApplicationContext context)
+        public async Task UpdateChannelListenerState(string channelName, bool shouldListen, IApplicationContext context)
         {
             if (!context.User.HasRole(Roles.Admin) && !string.Equals(context.User.TwitchUsername, channelName, StringComparison.OrdinalIgnoreCase))
                 return;
@@ -104,6 +105,35 @@ namespace AntiHarassment.Core
                 var leaveChannelCommand = new LeaveChannelCommand { ChannelName = channelName, RequestedByUserId = context.UserId };
                 await messageDispatcher.Send(leaveChannelCommand).ConfigureAwait(false);
             }
+        }
+
+        public async Task<IResult<Channel>> UpdateChannelSystemIsModeratorState(string channelName, bool systemIsModerator, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                return Result<Channel>.NoContentFound();
+
+            if (!context.HaveOwnerAccessTo(channel))
+                return Result<Channel>.Unauthorized();
+
+            channel.UpdateSystemModerationStatus(systemIsModerator, context, datetimeProvider.UtcNow);
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
+
+            await PublishChannelModerationChangedEvent(channel, context.UserId).ConfigureAwait(false);
+
+            return Result<Channel>.Succeeded(channel);
+        }
+
+        private async Task PublishChannelModerationChangedEvent(Channel channel, Guid requestedByUserId)
+        {
+            var @event = new ChannelChangedSystemModerationEvent
+            {
+                ChannelName = channel.ChannelName,
+                SystemIsModerator = channel.SystemIsModerator,
+                RequestedByUserId = requestedByUserId
+            };
+
+            await messageDispatcher.Publish(@event).ConfigureAwait(false);
         }
 
         public async Task<IResult<List<ChatMessage>>> GetChatLogs(string channelName, DateTime earliestTime, DateTime latestDate, IApplicationContext context)
