@@ -47,7 +47,10 @@ namespace AntiHarassment.Chatlistener.Core
                         switch (rule.ActionOnTrigger)
                         {
                             case ChannelRuleAction.Ban:
-                                await SendBanCommandFor(@event.TwitchUsername, channel.ChannelName, rule.RuleName).ConfigureAwait(false);
+                                if (channel.SystemIsModerator && channel.ShouldListen)
+                                    await SendBanCommandFor(@event.TwitchUsername, channel.ChannelName, rule.RuleName).ConfigureAwait(false);
+                                else
+                                    logger.LogInformation("Channel Rule triggered ban, but channel does not have moderation / listening enabled for: {arg}", channel.ChannelName);
                                 break;
                             case ChannelRuleAction.None:
                                 logger.LogInformation("Audit event happened, however rule action set to none! Channel: {arg}, Rule: {arg2}", channel.ChannelName, rule.RuleId);
