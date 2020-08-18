@@ -75,10 +75,12 @@ namespace AntiHarassment.Chatlistener.Core
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
-            var latest = suspensionsForUser.OrderByDescending(x => x.Timestamp).FirstOrDefault();
+            var latestForChannel = suspensionsForUser
+                .Where(x => string.Equals(x.ChannelOfOrigin, e.Channel, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(x => x.Timestamp).FirstOrDefault();
 
             var timeOfSuspension = datetimeProvider.UtcNow;
-            if (latest.Timestamp.AddMinutes(3) >= timeOfSuspension)
+            if (latestForChannel.Timestamp.AddMinutes(3) >= timeOfSuspension)
                 return;
 
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
