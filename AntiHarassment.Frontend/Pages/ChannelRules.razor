@@ -57,6 +57,28 @@
                     </div>
                 }
 
+                <div class="card bg-dark">
+                    <div class="card-body">
+                        <h5>What are Channel Rules?</h5>
+                        <p>
+                            Channel rules is a way for you to setup automated actions, based on a users history. <br />
+                            When a user is Suspended (Banned or Timedout), and an admin, moderator or streamer audits these suspensions, 
+                            the system checks them against your rules in order to check if they exceed any. <br />
+                        </p>
+                        <p>
+                            An example could be a Anti Bot Rule: You Choose the Bot Tag, set the thresholds for trigger to your liking, We suggest 0 Timeouts, 1 Ban for bots. <br />
+                            In this example, any time a Bot is Banned from a channel, and it is tagged as a bot, and audited, the system will automatically ban that user in your channel! <br />
+                        </p>
+                        <p>
+                            "We accidentally banned someone, do we risk them automatically getting banned elsewhere?" <br />
+                            No! Because of the nature of the system, everything needs to be reviewed before any automated actions happen! <br />
+                            Accident? Mark the suspension as invalid!
+                        </p>
+                    </div>
+                </div>
+
+                <hr />
+
                 <div class="row">
                     <div class="col">
                         <button @onclick="OpenNewRuleDialog" class="btn btn-success">New Rule</button>

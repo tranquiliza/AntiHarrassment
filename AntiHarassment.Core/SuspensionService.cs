@@ -98,7 +98,7 @@ namespace AntiHarassment.Core
             suspension.UpdateAuditedState(audited, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
-            if (suspension.Audited)
+            if (suspension.Audited && !suspension.InvalidSuspension)
                 await PublishSuspensionAuditedEvent(suspension).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
