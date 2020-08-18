@@ -163,7 +163,7 @@
                                 <select class="form-control" @bind="model.TagId" id="tagIdSelector">
                                     @if (tagService.Tags != null)
                                     {
-                                        @foreach (var tag in tagService.Tags)
+                                        @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
                                         {
                                             <option value="@tag.TagId">@tag.TagName</option>
                                         }
