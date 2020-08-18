@@ -74,7 +74,13 @@ namespace AntiHarassment.Chatlistener.Core
         {
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
+            var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
+            var latest = suspensionsForUser.OrderByDescending(x => x.Timestamp).FirstOrDefault();
+
             var timeOfSuspension = datetimeProvider.UtcNow;
+            if (latest.Timestamp.AddMinutes(3) >= timeOfSuspension)
+                return;
+
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
             var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);

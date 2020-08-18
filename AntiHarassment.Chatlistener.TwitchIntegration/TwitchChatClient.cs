@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
+using TwitchLib.Client.Extensions;
 using TwitchLib.Client.Models;
 
 namespace AntiHarassment.Chatlistener.TwitchIntegration
@@ -116,6 +117,11 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                 client.SendWhisper(username, message);
 
             return Task.CompletedTask;
+        }
+
+        public void BanUser(string username, string channelName, string systemReason)
+        {
+            client.BanUser(channelName, username, systemReason);
         }
 
         private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)

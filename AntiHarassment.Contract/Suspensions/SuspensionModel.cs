@@ -14,6 +14,7 @@ namespace AntiHarassment.Contract
         public int Duration { get; set; }
         public bool InvalidSuspension { get; set; }
         public string InvalidationReason { get; set; }
+        public string SystemReason { get; set; }
         public bool Audited { get; set; }
         public SuspensionTypeModel SuspensionType { get; set; }
         public SuspensionSourceModel SuspensionSource { get; set; }

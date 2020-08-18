@@ -1,0 +1,344 @@
+﻿@inject IUserChannelService channelService
+@inject IJSRuntime jsRuntime
+@inject ITagService tagService
+@inject IUserService userService
+@inject IAdminChannelService adminChannelService
+
+@implements IDisposable
+
+@page "/channelRules"
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @if (channelService.Channel == null)
+            {
+                <div class="spinner-grow" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            }
+            else
+            {
+                @if (userService.IsUserAdmin)
+                {
+                    <div class="row">
+                        <div class="col-12">
+                            @if (adminChannelService.Channels != null)
+                            {
+                                <div class="dropdown">
+                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        @(string.IsNullOrEmpty(channelService.Channel.ChannelName) ? "Channels" : channelService.Channel.ChannelName)
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
+                                        @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
+                                        {
+                                            <button @onclick="async () => await channelService.ChangeChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <hr />
+                }
+
+                @if (!channelService.Channel.SystemIsModerator)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        <h5>BE ADVISED</h5>
+                        <p>
+                            You have not made the AntiHarassment user a moderator on your channel. <br />
+                            If you wish the use features that involve usage of moderator actions like Automated Bans and Listening to AutoModded Messages, the AntiHarassment User will need moderator status in your channel!
+                        </p>
+                        <p>
+                            If you have already granted the AntiHarassment user moderator status, please make sure to click this button!
+                        </p>
+                        <button @onclick="async _ => await channelService.UpdateSystemModeratorState(true)" class="btn btn-success">I have modded the user!</button>
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col">
+                        <button @onclick="OpenNewRuleDialog" class="btn btn-success">New Rule</button>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col">
+                        @if (channelService.Channel.ChannelRules.Count > 0)
+                        {
+                            <table class="table table-dark">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th scope="col">Rule Name</th>
+                                        <th scope="col">Tag Name</th>
+                                        <th scope="col">Timeout Threshold</th>
+                                        <th scope="col">Ban Threshold</th>
+                                        <th scope="col">Action on Trigger</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rule in channelService.Channel.ChannelRules)
+                                    {
+                                        <tr>
+                                            <td>@rule.RuleName</td>
+                                            <td>
+                                                <span class="badge badge-secondary" data-placement="right" title="@rule.Tag.TagDescription">
+                                                    @rule.Tag.TagName
+                                                </span>
+                                            </td>
+                                            <td>@rule.TimeoutsForTrigger</td>
+                                            <td>@rule.BansForTrigger</td>
+                                            <td>@rule.ActionOnTrigger.ToString()</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button @onclick="async _ => await LoadRuleForEdit(rule.RuleId)" class="btn btn-success btn-sm">Edit</button>
+                                                    <button @onclick="async _ => await DeleteRule(rule.RuleId)" class="btn btn-danger btn-sm">Delete</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal For Create Rule -->
+<div class="modal fade" id="createRuleModal" tabindex="-1" role="dialog" aria-labelledby="createRuleModalLabel" aria-hidden="true">
+    <div class="modal-dialog bg-dark">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createRuleModalLabel">Create AutoBan Rule</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@model" OnValidSubmit="CreateNewRule">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="ruleNameInput">Rule name</label>
+                                <input @bind-value="model.RuleName" type="text" class="form-control" id="ruleNameInput">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+
+                            <div class="form-group">
+                                <label for="tagIdSelector">Rule for Tag</label>
+                                <select class="form-control" @bind="model.TagId" id="tagIdSelector">
+                                    @if (tagService.Tags != null)
+                                    {
+                                        @foreach (var tag in tagService.Tags)
+                                        {
+                                            <option value="@tag.TagId">@tag.TagName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="timeoutsTriggerInput">Timeouts for trigger</label>
+                                <input @bind-value="model.TimeoutsForTrigger" min="0" type="number" class="form-control" id="timeoutsTriggerInput">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="bansTriggerInput">Bans for trigger</label>
+                                <input @bind-value="model.BansForTrigger" min="0" type="number" class="form-control" id="bansTriggerInput">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+
+                            <div class="form-group">
+                                <label for="actionSelector">Action on Trigger</label>
+                                <select class="form-control" id="actionSelector" @bind="model.ChannelRuleAction">
+                                    @foreach (var value in (ChannelRuleActionModel[])Enum.GetValues(typeof(ChannelRuleActionModel)))
+                                    {
+                                        <option value="@value">@value</option>
+                                    }
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                <button @onclick="CreateNewRule" type="button" class="btn btn-success">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal For Create Rule -->
+<div class="modal fade" id="editRuleModal" tabindex="-1" role="dialog" aria-labelledby="createRuleModalLabel" aria-hidden="true">
+    <div class="modal-dialog bg-dark">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createRuleModalLabel">Edit AutoBan Rule</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="@updateRuleModel" OnValidSubmit="UpdateRule">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="ruleNameInput">Rule name</label>
+                                <input @bind-value="updateRuleModel.RuleName" type="text" class="form-control" id="ruleNameInput">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="timeoutsTriggerInput">Timeouts for trigger</label>
+                                <input @bind-value="updateRuleModel.TimeOutsForTrigger" min="0" type="number" class="form-control" id="timeoutsTriggerInput">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="bansTriggerInput">Bans for trigger</label>
+                                <input @bind-value="updateRuleModel.BansForTrigger" min="0" type="number" class="form-control" id="bansTriggerInput">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+
+                            <div class="form-group">
+                                <label for="actionSelector">Action on Trigger</label>
+                                <select class="form-control" id="actionSelector" @bind="updateRuleModel.ChannelRuleAction">
+                                    @foreach (var value in (ChannelRuleActionModel[])Enum.GetValues(typeof(ChannelRuleActionModel)))
+                                    {
+                                        <option value="@value">@value</option>
+                                    }
+                                </select>
+                            </div>
+
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                <button @onclick="UpdateRule" type="button" class="btn btn-success">Create</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private AddChannelRuleModel model = new AddChannelRuleModel();
+    private UpdateChannelRuleModel updateRuleModel = new UpdateChannelRuleModel();
+    private Guid currentlyEditingRuleId = default;
+
+    private async Task CreateNewRule()
+    {
+        if (model.TagId == default)
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(model.RuleName))
+        {
+            return;
+        }
+
+        if (model.TimeoutsForTrigger == 0 && model.BansForTrigger == 0)
+        {
+            // cant have both be 0... That would make no sense.
+            return;
+        }
+
+        await channelService.CreateNewChannelRule(model);
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForCreatingNewRule");
+        model = new AddChannelRuleModel();
+    }
+
+    private async Task UpdateRule()
+    {
+        if (string.IsNullOrEmpty(updateRuleModel.RuleName))
+        {
+            return;
+        }
+
+        if (updateRuleModel.TimeOutsForTrigger == 0 && updateRuleModel.BansForTrigger == 0)
+        {
+            return;
+        }
+
+        await channelService.UpdateChannelRule(updateRuleModel, currentlyEditingRuleId);
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForEditRule");
+        updateRuleModel = new UpdateChannelRuleModel();
+        currentlyEditingRuleId = default;
+    }
+
+    private async Task LoadRuleForEdit(Guid ruleId)
+    {
+        var rule = channelService.Channel.ChannelRules.Find(x => x.RuleId == ruleId);
+        currentlyEditingRuleId = ruleId;
+        updateRuleModel = new UpdateChannelRuleModel
+        {
+            BansForTrigger = rule.BansForTrigger,
+            RuleName = rule.RuleName,
+            ChannelRuleAction = rule.ActionOnTrigger,
+            TimeOutsForTrigger = rule.TimeoutsForTrigger
+        };
+
+        await jsRuntime.InvokeVoidAsync("OpenModalForEditRule");
+    }
+
+    private async Task DeleteRule(Guid ruleId)
+    {
+        await channelService.RemoveChannelRule(ruleId);
+    }
+
+    // Select tag ID from a dropdown of tags
+    // Select Action from DropDown with the actions
+
+    private async Task OpenNewRuleDialog()
+    {
+        await jsRuntime.InvokeVoidAsync("OpenModalForCreatingNewRule");
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        channelService.OnChange += StateHasChanged;
+        tagService.OnChange += StateHasChanged;
+        adminChannelService.OnChange += StateHasChanged;
+
+        await channelService.Initialize();
+        await tagService.Initialize();
+        await adminChannelService.Initialize();
+    }
+
+    public void Dispose()
+    {
+        channelService.OnChange -= StateHasChanged;
+        tagService.OnChange -= StateHasChanged;
+        userService.OnChange -= StateHasChanged;
+        adminChannelService.OnChange -= StateHasChanged;
+    }
+}

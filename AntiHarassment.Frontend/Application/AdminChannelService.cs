@@ -26,8 +26,28 @@ namespace AntiHarassment.Frontend.Application
 
             channelsHubSignalRClient.ChannelJoined += async (sender, args) => await ChannelsHubSignalRClient_ChannelJoined(sender, args).ConfigureAwait(false);
             channelsHubSignalRClient.ChannelLeft += ChannelsHubSignalRClient_ChannelLeft;
+            channelsHubSignalRClient.AutoModListenerDisabled += ChannelsHubSignalRClient_AutoModListenerDisabled;
+            channelsHubSignalRClient.AutoModListenerEnabled += ChannelsHubSignalRClient_AutoModListenerEnabled;
 
             userService.OnChange += UserService_OnChange;
+        }
+
+        private void ChannelsHubSignalRClient_AutoModListenerEnabled(object sender, AutoModListenerEnabledEventArgs e)
+        {
+            var channel = Channels.Find(x => x.ChannelName == e.ChannelName);
+            if (channel != null)
+                channel.ShouldListenForAutoModdedMessages = true;
+
+            NotifyStateChanged();
+        }
+
+        private void ChannelsHubSignalRClient_AutoModListenerDisabled(object sender, AutoModListenerDisabledEventArgs e)
+        {
+            var channel = Channels.Find(x => x.ChannelName == e.ChannelName);
+            if (channel != null)
+                channel.ShouldListenForAutoModdedMessages = false;
+
+            NotifyStateChanged();
         }
 
         private async Task ChannelsHubSignalRClient_ChannelJoined(object _, ChannelJoinedEventArgs e)
@@ -77,6 +97,19 @@ namespace AntiHarassment.Frontend.Application
                 isInitialized = true;
                 NotifyStateChanged();
             }
+        }
+
+        public async Task UpdateChannelSystemIsModerator(string channelName, bool systemIsModerator)
+        {
+            var model = new UpdateSystemIsModeratorStatusModel { SystemIsModerator = systemIsModerator };
+            var channel = await apiGateway.Post<ChannelModel, UpdateSystemIsModeratorStatusModel>(model, "channels", routeValues: new string[] { channelName, "systemIsModerator" }).ConfigureAwait(false);
+            var existingChannel = Channels.Find(x => string.Equals(x.ChannelName, channelName, StringComparison.OrdinalIgnoreCase));
+            if (existingChannel != null)
+                Channels.Remove(existingChannel);
+
+            Channels.Add(channel);
+
+            NotifyStateChanged();
         }
 
         private async Task FetchChannels()

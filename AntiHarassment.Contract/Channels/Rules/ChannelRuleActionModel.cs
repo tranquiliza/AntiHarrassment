@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Core.Models
+namespace AntiHarassment.Contract
 {
-    public enum ChannelRuleAction
+    public enum ChannelRuleActionModel
     {
         None = 0,
         Ban = 1

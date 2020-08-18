@@ -6,7 +6,8 @@ namespace AntiHarassment.Core.Models
 {
     public enum SuspensionSource
     {
-        System = 0,
-        User = 1
+        Listener = 0,
+        User = 1,
+        System = 2
     }
 }

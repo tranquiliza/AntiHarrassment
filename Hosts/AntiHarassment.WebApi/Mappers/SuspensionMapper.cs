@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AntiHarassment.WebApi.Mappers;
 
 namespace AntiHarassment.WebApi.Mappers
 {
@@ -30,7 +29,8 @@ namespace AntiHarassment.WebApi.Mappers
                 Messages = suspension.ChatMessages.Map(),
                 LinkedUsernames = suspension.LinkedUsernames.ToList(),
                 SuspensionSource = suspension.SuspensionSource.Map(),
-                Images = suspension.Images.Select(x => urlBase.TrimEnd('/') + "/images/" + x).ToList()
+                Images = suspension.Images.Select(x => urlBase.TrimEnd('/') + "/images/" + x).ToList(),
+                SystemReason = suspension.SystemReason
             };
         }
 
@@ -45,8 +45,9 @@ namespace AntiHarassment.WebApi.Mappers
         private static SuspensionSourceModel Map(this SuspensionSource suspensionSource)
             => suspensionSource switch
             {
-                SuspensionSource.System => SuspensionSourceModel.System,
+                SuspensionSource.Listener => SuspensionSourceModel.Listener,
                 SuspensionSource.User => SuspensionSourceModel.User,
+                SuspensionSource.System => SuspensionSourceModel.System,
                 _ => throw new NotImplementedException()
             };
     }

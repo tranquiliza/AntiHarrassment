@@ -29,6 +29,9 @@ namespace AntiHarassment.Core.Models
         public string CreatedByUser { get; private set; }
 
         [JsonProperty]
+        public string SystemReason { get; private set; }
+
+        [JsonProperty]
         public DateTime Timestamp { get; private set; }
 
         [JsonProperty]
@@ -150,7 +153,7 @@ namespace AntiHarassment.Core.Models
             return new Suspension(username, channelOfOrigin, timestamp)
             {
                 SuspensionType = SuspensionType.Timeout,
-                SuspensionSource = SuspensionSource.System,
+                SuspensionSource = SuspensionSource.Listener,
                 Timestamp = timestamp,
                 Duration = duration,
                 ChatMessages = chatMessages
@@ -162,8 +165,7 @@ namespace AntiHarassment.Core.Models
             return new Suspension(username, channelOfOrigin, timestamp)
             {
                 SuspensionType = SuspensionType.Ban,
-                SuspensionSource = SuspensionSource.System,
-                Timestamp = timestamp,
+                SuspensionSource = SuspensionSource.Listener,
                 Duration = 0,
                 ChatMessages = chatMessages
             };
@@ -177,6 +179,19 @@ namespace AntiHarassment.Core.Models
                 SuspensionType = SuspensionType.Ban,
                 SuspensionSource = SuspensionSource.User,
                 CreatedByUser = createdBy,
+                ChatMessages = new List<ChatMessage>()
+            };
+        }
+
+        public static Suspension CreateSystemBan(string username, string channelOfOrigin, DateTime timestamp, string systemReason)
+        {
+            return new Suspension(username, channelOfOrigin, timestamp)
+            {
+                Audited = true,
+                Duration = 0,
+                SuspensionType = SuspensionType.Ban,
+                SuspensionSource = SuspensionSource.System,
+                SystemReason = systemReason,
                 ChatMessages = new List<ChatMessage>()
             };
         }

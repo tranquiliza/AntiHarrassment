@@ -29,6 +29,12 @@ namespace AntiHarassment.Core.Models
         [JsonIgnore]
         public IReadOnlyList<string> Moderators => moderators.AsReadOnly();
 
+        [JsonProperty]
+        private List<ChannelRule> channelRules { get; set; } = new List<ChannelRule>();
+
+        [JsonIgnore]
+        public IReadOnlyList<ChannelRule> ChannelRules => channelRules.AsReadOnly();
+
         private Channel() { }
 
         public Channel(string channelName, bool shouldListen)
@@ -91,5 +97,38 @@ namespace AntiHarassment.Core.Models
 
         public bool HasModerator(string moderatorUsername)
             => moderators.Any(x => string.Equals(x, moderatorUsername, StringComparison.OrdinalIgnoreCase));
+
+        public void RemoveRule(Guid ruleId)
+        {
+            if (channelRules == null)
+                channelRules = new List<ChannelRule>();
+
+            var lookup = channelRules.Find(x => x.RuleId == ruleId);
+            channelRules.Remove(lookup);
+        }
+
+        public void AddRule(string ruleName, Tag tag, int bansForTrigger, int timeoutsForTrigger, ChannelRuleAction channelRuleAction)
+        {
+            if (channelRules == null)
+                channelRules = new List<ChannelRule>();
+
+            // we might need to add a check if there is an equivelant rule? (No need to have two that does the exact same)
+            var newRule = new ChannelRule(ruleName, tag, bansForTrigger, timeoutsForTrigger, channelRuleAction);
+            channelRules.Add(newRule);
+        }
+
+        internal void UpdateRule(Guid ruleId, string rulename, int bansForTrigger, int timeoutsForTrigger, ChannelRuleAction channelRuleAction)
+        {
+            if (channelRules == null)
+                channelRules = new List<ChannelRule>();
+
+            var existingRule = channelRules.Find(x => x.RuleId == ruleId);
+            if (existingRule != null)
+            {
+                channelRules.Remove(existingRule);
+                existingRule.Update(rulename, bansForTrigger, timeoutsForTrigger, channelRuleAction);
+                channelRules.Add(existingRule);
+            }
+        }
     }
 }

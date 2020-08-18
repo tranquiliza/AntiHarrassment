@@ -21,7 +21,23 @@ namespace AntiHarassment.WebApi.Mappers
                 ChannelId = channel.ChannelId,
                 ChannelName = channel.ChannelName,
                 ShouldListen = channel.ShouldListen,
-                Moderators = channel.Moderators.ToList()
+                SystemIsModerator = channel.SystemIsModerator,
+                ShouldListenForAutoModdedMessages = channel.ShouldListenForAutoModdedMessages,
+                Moderators = channel.Moderators.ToList(),
+                ChannelRules = channel.ChannelRules.Select(Map).ToList()
+            };
+        }
+
+        private static ChannelRuleModel Map(this ChannelRule channelRule)
+        {
+            return new ChannelRuleModel
+            {
+                ActionOnTrigger = channelRule.ActionOnTrigger.Map(),
+                BansForTrigger = channelRule.BansForTrigger,
+                TimeoutsForTrigger = channelRule.TimeoutsForTrigger,
+                RuleId = channelRule.RuleId,
+                RuleName = channelRule.RuleName,
+                Tag = channelRule.Tag.Map()
             };
         }
     }

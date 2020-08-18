@@ -4,10 +4,8 @@ using System.Text;
 
 namespace AntiHarassment.Contract
 {
-    public enum SuspensionSourceModel
+    public class DeleteChannelRuleModel
     {
-        Listener = 0,
-        User = 1,
-        System = 2
+        public Guid RuleId { get; set; }
     }
 }

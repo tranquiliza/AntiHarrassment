@@ -24,7 +24,7 @@ namespace AntiHarassment.Chatlistener.Handlers
         {
             logger.LogInformation("Received audited event on suspension with id {arg}", @event.SuspensionId);
 
-            await auditActionService.ReactTo(@event);
+            await auditActionService.ReactTo(@event).ConfigureAwait(false);
         }
     }
 }

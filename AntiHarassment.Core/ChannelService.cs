@@ -17,17 +17,20 @@ namespace AntiHarassment.Core
         private readonly IMessageDispatcher messageDispatcher;
         private readonly IChatRepository chatRepository;
         private readonly IDatetimeProvider datetimeProvider;
+        private readonly ITagRepository tagRepository;
 
         public ChannelService(
             IChannelRepository channelRepository,
             IMessageDispatcher messageDispatcher,
             IChatRepository chatRepository,
-            IDatetimeProvider datetimeProvider)
+            IDatetimeProvider datetimeProvider,
+            ITagRepository tagRepository)
         {
             this.channelRepository = channelRepository;
             this.messageDispatcher = messageDispatcher;
             this.chatRepository = chatRepository;
             this.datetimeProvider = datetimeProvider;
+            this.tagRepository = tagRepository;
         }
 
         public async Task<IResult<Channel>> AddModeratorToChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context)
@@ -160,6 +163,62 @@ namespace AntiHarassment.Core
                 return Result<List<string>>.NoContentFound();
 
             return Result<List<string>>.Succeeded(users);
+        }
+
+        public async Task<IResult<Channel>> AddRuleToChannel(string channelName, string ruleName, Guid tagId, int bansForTrigger, int timeoutsForTrigger, ChannelRuleAction channelRuleAction, IApplicationContext context)
+        {
+            var fetch = await FetchAndCheckAccess(channelName, context).ConfigureAwait(false);
+            if (fetch.State != ResultState.Success)
+                return fetch;
+
+            var channel = fetch.Data;
+            var tag = await tagRepository.Get(tagId).ConfigureAwait(false);
+
+            channel.AddRule(ruleName, tag, bansForTrigger, timeoutsForTrigger, channelRuleAction);
+
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
+
+            return Result<Channel>.Succeeded(channel);
+        }
+
+        public async Task<IResult<Channel>> RemoveRuleFromChannel(string channelName, Guid ruleId, IApplicationContext context)
+        {
+            var fetch = await FetchAndCheckAccess(channelName, context).ConfigureAwait(false);
+            if (fetch.State != ResultState.Success)
+                return fetch;
+
+            var channel = fetch.Data;
+            channel.RemoveRule(ruleId);
+
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
+
+            return Result<Channel>.Succeeded(channel);
+        }
+
+        public async Task<IResult<Channel>> UpdateRuleForChannel(string channelName, Guid ruleId, string rulename, int bansForTrigger, int timeoutsForTrigger, ChannelRuleAction channelRuleAction, IApplicationContext context)
+        {
+            var fetch = await FetchAndCheckAccess(channelName, context).ConfigureAwait(false);
+            if (fetch.State != ResultState.Success)
+                return fetch;
+
+            var channel = fetch.Data;
+            channel.UpdateRule(ruleId, rulename, bansForTrigger, timeoutsForTrigger, channelRuleAction);
+
+            await channelRepository.Upsert(channel).ConfigureAwait(false);
+
+            return Result<Channel>.Succeeded(channel);
+        }
+
+        private async Task<IResult<Channel>> FetchAndCheckAccess(string channelName, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+                return Result<Channel>.NoContentFound();
+
+            if (!context.HaveOwnerAccessTo(channel))
+                return Result<Channel>.Unauthorized();
+
+            return Result<Channel>.Succeeded(channel);
         }
     }
 }

@@ -8,5 +8,7 @@ namespace AntiHarassment.SignalR.Contract
     {
         public const string CHANNELLEFT = "ChannelLeft";
         public const string CHANNELJOINED = "ChannelJoined";
+        public const string AUTOMODLISTENERENABLED = "AutoModListenerEnabled";
+        public const string AUTOMODLISTENERDISABLED = "AutoModListenerDisabled";
     }
 }

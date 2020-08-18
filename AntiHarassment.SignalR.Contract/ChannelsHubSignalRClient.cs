@@ -32,11 +32,29 @@ namespace AntiHarassment.SignalR.Contract
 
                 hubConnection.On<string>(ChannelsHubMethods.CHANNELJOINED, HandleChannelJoinedEvent);
                 hubConnection.On<string>(ChannelsHubMethods.CHANNELLEFT, HandleChannelLeftEvent);
+                hubConnection.On<string>(ChannelsHubMethods.AUTOMODLISTENERENABLED, HandleAutoModListenerEnabledEvent);
+                hubConnection.On<string>(ChannelsHubMethods.AUTOMODLISTENERDISABLED, HandleAutoModListenerDisabledEvent);
 
                 await hubConnection.StartAsync().ConfigureAwait(false);
 
                 started = true;
             }
+        }
+
+        public delegate void AutoModListenerDisabledEventHandler(object sender, AutoModListenerDisabledEventArgs args);
+        public event EventHandler<AutoModListenerDisabledEventArgs> AutoModListenerDisabled;
+
+        private void HandleAutoModListenerDisabledEvent(string channelName)
+        {
+            AutoModListenerDisabled?.Invoke(this, new AutoModListenerDisabledEventArgs { ChannelName = channelName });
+        }
+
+        public delegate void AutoModListenerEnabledEventHandler(object sender, AutoModListenerEnabledEventArgs args);
+        public event EventHandler<AutoModListenerEnabledEventArgs> AutoModListenerEnabled;
+
+        private void HandleAutoModListenerEnabledEvent(string channelName)
+        {
+            AutoModListenerEnabled?.Invoke(this, new AutoModListenerEnabledEventArgs { ChannelName = channelName });
         }
 
         public delegate void ChannelJoinedEventHandler(object sender, ChannelJoinedEventArgs args);
