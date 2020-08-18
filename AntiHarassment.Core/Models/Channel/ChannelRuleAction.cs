@@ -4,9 +4,9 @@ using System.Text;
 
 namespace AntiHarassment.Core.Models
 {
-    public enum SuspensionSource
+    public enum ChannelRuleAction
     {
-        System = 0,
-        User = 1
+        None = 0,
+        Ban = 1
     }
 }

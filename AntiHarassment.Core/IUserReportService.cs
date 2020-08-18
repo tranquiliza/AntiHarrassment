@@ -9,5 +9,6 @@ namespace AntiHarassment.Core
     public interface IUserReportService
     {
         Task<IResult<UserReport>> GetUserReportFor(string username);
+        Task<IResult<List<string>>> GetUsersMatchedByTag(Guid tagId);
     }
 }

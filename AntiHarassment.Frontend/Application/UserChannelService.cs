@@ -2,6 +2,7 @@
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.SignalR.Contract;
 using AntiHarassment.SignalR.Contract.EventArgs;
+using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
@@ -31,6 +32,26 @@ namespace AntiHarassment.Frontend.Application
 
             channelsHubSignalRClient.ChannelJoined += async (sender, args) => await ChannelsHubSignalRClient_ChannelJoined(sender, args).ConfigureAwait(false);
             channelsHubSignalRClient.ChannelLeft += ChannelsHubSignalRClient_ChannelLeft;
+            channelsHubSignalRClient.AutoModListenerEnabled += ChannelsHubSignalRClient_AutoModListenerEnabled;
+            channelsHubSignalRClient.AutoModListenerDisabled += ChannelsHubSignalRClient_AutoModListenerDisabled;
+        }
+
+        private void ChannelsHubSignalRClient_AutoModListenerDisabled(object sender, AutoModListenerDisabledEventArgs e)
+        {
+            if (string.Equals(e.ChannelName, CurrentlySelectedChannelName, StringComparison.OrdinalIgnoreCase))
+            {
+                Channel.ShouldListenForAutoModdedMessages = false;
+                NotifyStateChanged();
+            }
+        }
+
+        private void ChannelsHubSignalRClient_AutoModListenerEnabled(object sender, AutoModListenerEnabledEventArgs e)
+        {
+            if (string.Equals(e.ChannelName, CurrentlySelectedChannelName, StringComparison.OrdinalIgnoreCase))
+            {
+                Channel.ShouldListenForAutoModdedMessages = true;
+                NotifyStateChanged();
+            }
         }
 
         private async Task ChannelsHubSignalRClient_ChannelJoined(object _, ChannelJoinedEventArgs e)
@@ -90,7 +111,7 @@ namespace AntiHarassment.Frontend.Application
         public async Task AddModerator(string moderatorTwitchUsername)
         {
             var model = new AddModeratorModel { ModeratorTwitchUsername = moderatorTwitchUsername };
-            Channel = await apiGateway.Post<ChannelModel, AddModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName }).ConfigureAwait(false);
+            Channel = await apiGateway.Post<ChannelModel, AddModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "moderators" }).ConfigureAwait(false);
 
             NotifyStateChanged();
         }
@@ -98,11 +119,41 @@ namespace AntiHarassment.Frontend.Application
         public async Task RemoveModerator(string moderatorTwitchUsername)
         {
             var model = new DeleteModeratorModel { ModeratorTwitchUsername = moderatorTwitchUsername };
-            Channel = await apiGateway.Delete<ChannelModel, DeleteModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName }).ConfigureAwait(false);
+            Channel = await apiGateway.Delete<ChannelModel, DeleteModeratorModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "moderators" }).ConfigureAwait(false);
 
             NotifyStateChanged();
         }
 
+        public async Task CreateNewChannelRule(AddChannelRuleModel model)
+        {
+            Channel = await apiGateway.Post<ChannelModel, AddChannelRuleModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "channelRules" }).ConfigureAwait(false);
+
+            NotifyStateChanged();
+        }
+
+        public async Task UpdateChannelRule(UpdateChannelRuleModel model, Guid ruleId)
+        {
+            Channel = await apiGateway.Post<ChannelModel, UpdateChannelRuleModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "channelRules", ruleId.ToString() }).ConfigureAwait(false);
+
+            NotifyStateChanged();
+        }
+
+        public async Task RemoveChannelRule(Guid ruleId)
+        {
+            var model = new DeleteChannelRuleModel { RuleId = ruleId };
+            Channel = await apiGateway.Delete<ChannelModel, DeleteChannelRuleModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "channelRules" }).ConfigureAwait(false);
+
+            NotifyStateChanged();
+        }
+
+        public async Task UpdateSystemModeratorState(bool systemIsModerator)
+        {
+            var model = new UpdateSystemIsModeratorStatusModel { SystemIsModerator = systemIsModerator };
+
+            Channel = await apiGateway.Post<ChannelModel, UpdateSystemIsModeratorStatusModel>(model, "channels", routeValues: new string[] { CurrentlySelectedChannelName, "systemIsModerator" }).ConfigureAwait(false);
+
+            NotifyStateChanged();
+        }
         public async Task DownloadChatLog(DateTime earliestTime, DateTime latestTime, bool downloadPlain)
         {
             var currentUniversalTime = DateTime.UtcNow;

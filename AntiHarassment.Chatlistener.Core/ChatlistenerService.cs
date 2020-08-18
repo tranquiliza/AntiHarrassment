@@ -74,7 +74,13 @@ namespace AntiHarassment.Chatlistener.Core
         {
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
+            var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
+            var latest = suspensionsForUser.OrderByDescending(x => x.Timestamp).FirstOrDefault();
+
             var timeOfSuspension = datetimeProvider.UtcNow;
+            if (latest.Timestamp.AddMinutes(3) >= timeOfSuspension)
+                return;
+
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
             var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
@@ -118,11 +124,8 @@ namespace AntiHarassment.Chatlistener.Core
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
             var enabledChannels = channels.Where(x => x.ShouldListen);
 
-            if (!await pubSubClient.JoinChannels(enabledChannels.Select(x => x.ChannelName).ToList()).ConfigureAwait(false))
-            {
+            if (!await pubSubClient.JoinChannels(enabledChannels.Where(x => x.SystemIsModerator).Select(x => x.ChannelName).ToList()).ConfigureAwait(false))
                 logger.LogWarning("Unable to join all channels. Have we hit the channel cap? {enabledChannels}", enabledChannels.Count());
-                return;
-            }
 
             foreach (var channel in enabledChannels)
                 await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
@@ -140,9 +143,12 @@ namespace AntiHarassment.Chatlistener.Core
 
             channel.EnableListening(context, datetimeProvider.UtcNow);
 
-            if (!await pubSubClient.JoinChannel(channelName).ConfigureAwait(false))
+            if (channel.SystemIsModerator)
             {
-                logger.LogWarning("Unable to join channel {channelName} have we hit the cap?", channelName);
+                if (await pubSubClient.JoinChannel(channelName).ConfigureAwait(false))
+                    channel.EnableAutoModdedMessageListening(context, datetimeProvider.UtcNow);
+                else
+                    logger.LogWarning("Unable to join channel {channelName} have we hit the cap?", channelName);
             }
 
             await client.JoinChannel(channelName).ConfigureAwait(false);
@@ -156,14 +162,56 @@ namespace AntiHarassment.Chatlistener.Core
                 channel = new Channel(channelName, shouldListen: false);
 
             channel.DisableListening(context, datetimeProvider.UtcNow);
+            channel.DisableAutoModdedMessageListening(context, datetimeProvider.UtcNow);
 
             if (!pubSubClient.LeaveChannel(channelName))
-            {
                 logger.LogInformation("Was unable to leave {channelName}", channelName);
-            }
 
             await client.LeaveChannel(channelName).ConfigureAwait(false);
             await channelRepository.Upsert(channel).ConfigureAwait(false);
+        }
+
+        public async Task JoinPubSub(string channelName, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+            {
+                logger.LogWarning("Channel updated moderation state, but we cant find that channel??? {arg}", channelName);
+                return;
+            }
+
+            if (channel.SystemIsModerator)
+            {
+                if (await pubSubClient.JoinChannel(channel.ChannelName).ConfigureAwait(false))
+                {
+                    channel.EnableAutoModdedMessageListening(context, datetimeProvider.UtcNow);
+                    await channelRepository.Upsert(channel).ConfigureAwait(false);
+                }
+                else
+                {
+                    logger.LogWarning("Unable to connect pubsub for {channel}", channelName);
+                }
+            }
+        }
+
+        public async Task LeavePubSub(string channelName, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (channel == null)
+            {
+                logger.LogWarning("Channel updated moderation state, but we cant find that channel??? {arg}", channelName);
+                return;
+            }
+
+            if (pubSubClient.LeaveChannel(channelName))
+            {
+                channel.DisableAutoModdedMessageListening(context, datetimeProvider.UtcNow);
+                await channelRepository.Upsert(channel).ConfigureAwait(false);
+            }
+            else
+            {
+                logger.LogWarning("Unable to leave pubsub for channel {arg}", channelName);
+            }
         }
 
         public void Dispose()

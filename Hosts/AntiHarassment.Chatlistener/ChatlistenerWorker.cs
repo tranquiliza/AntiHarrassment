@@ -24,7 +24,6 @@ namespace AntiHarassment.Chatlistener
 
         public override Task StopAsync(CancellationToken cancellationToken)
         {
-            // TODO Possible stop the chat listener (Disconnect)
             return base.StopAsync(cancellationToken);
         }
 

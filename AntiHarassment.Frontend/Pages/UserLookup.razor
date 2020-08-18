@@ -93,6 +93,13 @@
                                             <b class="text-danger">MANUAL</b>
                                         </span>
                                     }
+                                    @if (suspension.SuspensionSource == SuspensionSourceModel.System)
+                                    {
+                                        <span class="badge badge-danger">
+                                            <b class="text-warning">SYSTEM</b>
+                                        </span>
+                                        @suspension.SystemReason
+                                    }
                                 </button>
                             </div>
                             <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
