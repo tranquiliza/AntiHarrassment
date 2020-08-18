@@ -76,11 +76,10 @@ namespace AntiHarassment.WebApi.Controllers
             if (result.State == ResultState.AccessDenied)
                 return Unauthorized();
 
-            // No mapping needed, its a list of strings
             return Ok(result.Data);
         }
 
-        [HttpPost("{channelName}")]
+        [HttpPost("{channelName}/moderators")]
         public async Task<IActionResult> AddModerator([FromRoute] string channelName, [FromBody] AddModeratorModel model)
         {
             var result = await channelService.AddModeratorToChannel(channelName, model.ModeratorTwitchUsername, ApplicationContext).ConfigureAwait(false);
@@ -93,7 +92,7 @@ namespace AntiHarassment.WebApi.Controllers
             return Ok(result.Data.Map());
         }
 
-        [HttpDelete("{channelName}")]
+        [HttpDelete("{channelName}/moderators")]
         public async Task<IActionResult> DeleteModerator([FromRoute] string channelName, [FromBody] DeleteModeratorModel model)
         {
             var result = await channelService.DeleteModeratorFromChannel(channelName, model.ModeratorTwitchUsername, ApplicationContext).ConfigureAwait(false);
@@ -122,9 +121,64 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ChannelModel model)
         {
-            await channelService.UpdateChannel(model.ChannelName, model.ShouldListen, ApplicationContext).ConfigureAwait(false);
+            await channelService.UpdateChannelListenerState(model.ChannelName, model.ShouldListen, ApplicationContext).ConfigureAwait(false);
 
             return Ok();
+        }
+
+        [HttpPost("{channelName}/systemIsModerator")]
+        public async Task<IActionResult> SetSystemIsModeratorStatus([FromRoute] string channelName, [FromBody] UpdateSystemIsModeratorStatusModel model)
+        {
+            var result = await channelService.UpdateChannelSystemIsModeratorState(channelName, model.SystemIsModerator, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return BadRequest();
+
+            return Ok(result.Data.Map());
+        }
+
+        [HttpPost("{channelName}/channelRules")]
+        public async Task<IActionResult> AddRuleToChannel([FromRoute] string channelName, [FromBody] AddChannelRuleModel model)
+        {
+            var action = model.ChannelRuleAction.Map();
+
+            var result = await channelService.AddRuleToChannel(channelName, model.RuleName, model.TagId, model.BansForTrigger, model.TimeoutsForTrigger, action, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return BadRequest();
+
+            return Ok(result.Data.Map());
+        }
+
+        [HttpDelete("{channelName}/channelRules")]
+        public async Task<IActionResult> RemoveRuleFromChannel([FromRoute] string channelName, [FromBody] DeleteChannelRuleModel model)
+        {
+            var result = await channelService.RemoveRuleFromChannel(channelName, model.RuleId, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return BadRequest();
+
+            return Ok(result.Data.Map());
+        }
+
+        [HttpPost("{channelName}/channelRules/{ruleId}")]
+        public async Task<IActionResult> UpdateRuleOnChannel([FromRoute] string channelName, [FromRoute] Guid ruleId, [FromBody] UpdateChannelRuleModel model)
+        {
+            var action = model.ChannelRuleAction.Map();
+            var result = await channelService.UpdateRuleForChannel(channelName, ruleId, model.RuleName, model.BansForTrigger, model.TimeOutsForTrigger, action, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return BadRequest();
+
+            return Ok(result.Data.Map());
         }
     }
 }

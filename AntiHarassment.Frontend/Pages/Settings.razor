@@ -25,7 +25,7 @@ else
 {
     <div class="container-fluid">
         <div class="row">
-            <div class="col-6">
+            <div class="col-12">
                 @if (userService.IsUserAdmin)
                 {
                     @if (adminChannelService.Channels != null)
@@ -41,28 +41,61 @@ else
                                 }
                             </div>
                         </div>
+                        <hr />
                     }
                 }
-                else
-                {
-                    <p>
-                        ChannelName: @channelService.Channel.ChannelName
-                    </p>
-                }
             </div>
-            <div class="col-6">
-                <p>
+        </div>
+        @if (!channelService.Channel.SystemIsModerator)
+        {
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-danger" role="alert">
+                        <h5>BE ADVISED</h5>
+                        <p>
+                            You have not made the AntiHarassment user a moderator on your channel. <br />
+                            If you wish the use features that involve usage of moderator actions like Automated Bans and Listening to AutoModded Messages, the AntiHarassment User will need moderator status in your channel!
+                        </p>
+                        <p>
+                            If you have already granted the AntiHarassment user moderator status, please make sure to update your moderator list in your Broadcaster Menu Settings!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="row">
+            <div class="col-12">
+                <div class="btn-group">
                     @if (channelService.Channel.ShouldListen)
                     {
-                        <button @onclick="async _ => await UpdateChannelState(false)" class="btn btn-danger">SYSTEM ACTIVE</button>
+                        <button @onclick="async _ => await UpdateChannelState(false)" class="btn btn-success">System Is Active</button>
                     }
                     else
                     {
-                        <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-success">SYSTEM DISABLED</button>
+                        <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-danger">ENABLE SYSTEM</button>
                     }
-                </p>
+                    @if (channelService.Channel.SystemIsModerator)
+                    {
+                        <button @onclick="async _ => await UpdateSystemModStatus(false)" class="btn btn-success">And is Moderator</button>
+                    }
+                    else
+                    {
+                        <button @onclick="async _ => await UpdateSystemModStatus(true)" class="btn btn-danger">I modded the bot</button>
+                    }
+                    @if (channelService.Channel.ShouldListenForAutoModdedMessages)
+                    {
+                        <button disabled="disabled" class="btn btn-success">And is listening for AutoMod Messages</button>
+
+                    }
+                    else
+                    {
+                        <button disabled="disabled" class="btn btn-danger">AutoModded Messages Disabled</button>
+                    }
+                </div>
             </div>
         </div>
+
+        <hr />
 
         <div class="row">
             <div class="col-12">
@@ -172,6 +205,11 @@ else
     private async Task UpdateChannelState(bool shouldListen)
     {
         await channelService.UpdateChannelState(shouldListen);
+    }
+
+    private async Task UpdateSystemModStatus(bool SystemIsModerator)
+    {
+        await channelService.UpdateSystemModeratorState(SystemIsModerator);
     }
 
     public void Dispose()

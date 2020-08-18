@@ -18,8 +18,10 @@ namespace AntiHarassment.Chatlistener
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+                .WriteTo.File(AppDomain.CurrentDomain.BaseDirectory + "/logs/log-.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
+
+            Log.Information("Starting the chat listener!");
 
             try
             {

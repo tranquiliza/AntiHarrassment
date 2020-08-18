@@ -6,7 +6,8 @@ namespace AntiHarassment.Contract
 {
     public enum SuspensionSourceModel
     {
-        System = 0,
-        User = 1
+        Listener = 0,
+        User = 1,
+        System = 2
     }
 }

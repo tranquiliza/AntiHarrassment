@@ -18,6 +18,14 @@
                     <b class="text-danger">MANUAL</b>
                 </span>
             }
+
+            @if (suspension.SuspensionSource == SuspensionSourceModel.System)
+            {
+                <span class="badge badge-danger">
+                    <b class="text-warning">SYSTEM</b>
+                </span>
+                @suspension.SystemReason
+            }
         </button>
     </div>
     <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
@@ -116,11 +124,11 @@
             {
                 @if (message.AutoModded)
                 {
-                    <p class="text-danger"><b>@message.LocalTimestamp()</b> @message.Message</p>
+                    <p class="text-danger"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
                 }
                 else
                 {
-                    <p><b>@message.LocalTimestamp()</b> @message.Message</p>
+                    <p><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
                 }
 
             }

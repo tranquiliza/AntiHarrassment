@@ -22,30 +22,51 @@
                         <tr>
                             <th scope="col">ChannelName</th>
                             <th scope="col">Should Listen</th>
-                            <th scope="col">Action</th>
+                            <th scope="col">Is Modded</th>
+                            <th scope="col">AutoMod Listener Active</th>
                         </tr>
                     </thead>
                     <tbody>
 
                         <tr>
                             <td><input class="form-control" type="text" @bind-value="channelModel.ChannelName" /></td>
-                            <td></td>
                             <td><button @onclick="async () => await AddNewChannel()" class="btn btn-dark">Add</button></td>
+                            <td></td>
+                            <td></td>
                         </tr>
 
                         @foreach (var channel in channelService.Channels.OrderByDescending(x => x.ShouldListen).ThenBy(x => x.ChannelName))
                         {
                             <tr>
                                 <td>@channel.ChannelName</td>
-                                <td>@channel.ShouldListen</td>
                                 <td>
                                     @if (channel.ShouldListen)
                                     {
-                                        <button class="btn btn-danger" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Disable</button>
+                                        <button class="btn btn-success" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Enabled</button>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-success" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Enable</button>
+                                        <button class="btn btn-danger" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Disabled</button>
+                                    }
+                                </td>
+                                <td>
+                                    @if (channel.SystemIsModerator)
+                                    {
+                                        <button class="btn btn-success" @onclick="async () => await channelService.UpdateChannelSystemIsModerator(channel.ChannelName, false)">Is Moderator</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-danger" @onclick="async () => await channelService.UpdateChannelSystemIsModerator(channel.ChannelName, true)">Not Moderator</button>
+                                    }
+                                </td>
+                                <td>
+                                    @if (channel.ShouldListenForAutoModdedMessages)
+                                    {
+                                        <button disabled="disabled" class="btn btn-success">Listening For AutoModded</button>
+                                    }
+                                    else
+                                    {
+                                        <button disabled="disabled" class="btn btn-danger">Not Listening For AutoModded</button>
                                     }
                                 </td>
                             </tr>

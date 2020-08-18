@@ -50,6 +50,22 @@ window.OpenModalForDisplayingImagesUserLookup = function () {
     $('#suspensionImagesUserLookupModal').modal('show');
 }
 
+window.OpenModalForCreatingNewRule = function () {
+    $('#createRuleModal').modal('show');
+}
+
+window.CloseModalForCreatingNewRule = function () {
+    $('#createRuleModal').modal('hide');
+}
+
+window.OpenModalForEditRule = function () {
+    $('#editRuleModal').modal('show');
+}
+
+window.CloseModalForEditRule = function () {
+    $('#editRuleModal').modal('hide');
+}
+
 var overallChart;
 var tagsChart;
 

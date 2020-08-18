@@ -36,5 +36,18 @@ namespace AntiHarassment.WebApi.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("tag")]
+        public async Task<IActionResult> GetUsersByTag([FromQuery] Guid tagId)
+        {
+            var result = await userReportService.GetUsersMatchedByTag(tagId).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data);
+
+            return NoContent();
+        }
     }
 }

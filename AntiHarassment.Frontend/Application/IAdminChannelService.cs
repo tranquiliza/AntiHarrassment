@@ -10,6 +10,7 @@ namespace AntiHarassment.Frontend.Application
     {
         Task Initialize();
         Task UpdateChannel(ChannelModel channelModel);
+        Task UpdateChannelSystemIsModerator(string channelName, bool systemIsModerator);
 
         List<ChannelModel> Channels { get; }
 
