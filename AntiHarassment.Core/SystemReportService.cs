@@ -27,9 +27,10 @@ namespace AntiHarassment.Core
                 return Result<SystemReport>.Unauthorized();
 
             var allSuspensions = await suspensionRepository.GetSuspensions(datetimeProvider.UtcNow.AddDays(-30)).ConfigureAwait(false);
-
-            var auditedSuspensions = allSuspensions.Where(x => x.Audited).ToList();
-            var unauditedSuspensins = allSuspensions.Where(x => !x.Audited).ToList();
+            var allSuspensionsWithoutSystem = allSuspensions.Where(x => x.SuspensionSource != SuspensionSource.System);
+            
+            var auditedSuspensions = allSuspensionsWithoutSystem.Where(x => x.Audited).ToList();
+            var unauditedSuspensins = allSuspensionsWithoutSystem.Where(x => !x.Audited).ToList();
             var uniqueUsersForSystem = await chatRepository.GetUniqueChattersForSystem().ConfigureAwait(false);
 
             var systemReport = new SystemReport(unauditedSuspensins, auditedSuspensions, uniqueUsersForSystem.Count);
