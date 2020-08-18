@@ -41,7 +41,7 @@ namespace AntiHarassment.Core
                 && x.Tags.Any(y => y.TagId == tagId)
             );
 
-            var users = suspensionsWithTag.Select(x => x.Username).OrderBy(x => x);
+            var users = suspensionsWithTag.Select(x => x.Username).Distinct().OrderBy(x => x);
             return Result<List<string>>.Succeeded(users.ToList());
         }
     }
