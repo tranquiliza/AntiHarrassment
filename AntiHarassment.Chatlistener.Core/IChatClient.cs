@@ -19,5 +19,6 @@ namespace AntiHarassment.Chatlistener.Core
         Task LeaveChannel(string channelName);
         Task SendWhisper(string channel, string message);
         void BanUser(string username, string channelName, string systemReason);
+        Task Reconnect();
     }
 }

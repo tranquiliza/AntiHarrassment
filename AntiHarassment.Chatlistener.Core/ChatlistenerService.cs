@@ -101,15 +101,14 @@ namespace AntiHarassment.Chatlistener.Core
             logger.LogInformation("time of latest message: {arg}, time of check: {argTwo}", timeOfLatestMessage, timeOfCheck);
             if (timeOfLatestMessage < timeOfCheck.AddHours(-1))
             {
-                await client.Disconnect().ConfigureAwait(false);
-                logger.LogInformation("Client disconnected");
+                await client.Reconnect().ConfigureAwait(false);
+                logger.LogInformation("Client reconnected");
 
-                await client.Connect().ConfigureAwait(false);
                 var channels = await channelRepository.GetChannels().ConfigureAwait(false);
                 foreach (var channel in channels.Where(x => x.ShouldListen))
                     await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
 
-                logger.LogInformation("Client reconnected");
+                logger.LogInformation("Channels rejoined");
 
                 return true;
             }

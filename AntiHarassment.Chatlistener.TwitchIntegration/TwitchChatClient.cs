@@ -60,6 +60,13 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             return Task.CompletedTask;
         }
 
+        public Task Reconnect()
+        {
+            client.Reconnect();
+
+            return Task.CompletedTask;
+        }
+
         private TaskCompletionSource<bool> joinChannelCompletionTask = new TaskCompletionSource<bool>();
         public async Task JoinChannel(string channelName)
         {
