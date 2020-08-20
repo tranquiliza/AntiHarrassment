@@ -1,0 +1,137 @@
+﻿@inject IUserChannelService channelService
+@inject IAdminChannelService adminChannelService
+@inject IUserService userService
+@implements IDisposable
+
+@page "/chatlogs"
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            @if (userService.IsUserAdmin)
+            {
+                @if (adminChannelService.Channels != null && channelService.Channel != null)
+                {
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            @(string.IsNullOrEmpty(channelService.Channel.ChannelName) ? "Channels" : channelService.Channel.ChannelName)
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
+                            @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
+                            {
+                                <button @onclick="async () => await channelService.ChangeChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
+                            }
+                        </div>
+                    </div>
+                    <hr />
+                }
+            }
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark">
+                <div class="card-body bg-dark">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header">Download Chatlogs</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-3">
+                            <label for="earliestTime">From</label>
+                            <input @onfocusout="DownloadPreview" class="form-control" @bind-value="earliestTime" id="earliestTime" type="datetime-local" />
+                        </div>
+                        <div class="col-3">
+                            <label for="latestTime">To</label>
+                            <input @onfocusout="DownloadPreview" class="form-control" @bind-value="latestTime" id="latestTime" type="datetime-local" />
+                        </div>
+                    </div>
+                    <hr />
+                    <ul class="list-group bg-dark" style="max-height:50vh; overflow:auto;">
+                        @foreach (var message in ChatLogPreview)
+                        {
+                            if (message.AutoModded)
+                            {
+                                <li class="list-group-item text-danger bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
+                            }
+                            else
+                            {
+                                <li class="list-group-item bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
+                            }
+                        }
+                    </ul>
+                    <hr />
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="btn-group">
+                                <button class="btn btn-primary btn-sm" @onclick="async _ => await DownloadLog(true)">Download csv</button>
+                                <button class="btn btn-secondary btn-sm" @onclick="async _ => await DownloadLog(false)">Download json</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private DateTime earliestTime = DateTime.Now.AddDays(-1);
+    private DateTime latestTime = DateTime.Now;
+
+    private List<ChatMessageModel> ChatLogPreview = new List<ChatMessageModel>();
+
+    private DateTime lastFetchEarliest;
+    private DateTime lastFetchLatest;
+
+    private async Task DownloadPreview()
+    {
+        if (earliestTime == lastFetchEarliest && latestTime == lastFetchLatest)
+        {
+            return;
+        }
+
+        lastFetchEarliest = earliestTime;
+        lastFetchLatest = latestTime;
+
+        ChatLogPreview = await channelService.DownloadChatLogsForPreview(earliestTime, latestTime);
+    }
+
+    private async Task DownloadLog(bool downloadPlain)
+    {
+        if (earliestTime == default || latestTime == default)
+        {
+            return;
+        }
+
+        await channelService.DownloadChatLog(earliestTime, latestTime, downloadPlain);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        channelService.OnChange += ChangedChannel;
+        adminChannelService.OnChange += StateHasChanged;
+        userService.OnChange += StateHasChanged;
+        await channelService.Initialize();
+        await adminChannelService.Initialize();
+
+        latestTime = DateTime.Now;
+    }
+
+    private void ChangedChannel()
+    {
+        ChatLogPreview = new List<ChatMessageModel>();
+
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        channelService.OnChange -= ChangedChannel;
+        adminChannelService.OnChange -= StateHasChanged;
+        userService.OnChange -= StateHasChanged;
+    }
+}

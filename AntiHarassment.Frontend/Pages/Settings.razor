@@ -3,6 +3,8 @@
 @inject IUserService userService
 @implements IDisposable
 
+@page "/settings"
+
 @if (channelService.Channel == null)
 {
     <div class="container-fluid">
@@ -99,38 +101,6 @@ else
 
         <div class="row">
             <div class="col-12">
-                <div class="card bg-dark">
-                    <div class="card-body bg-dark">
-                        <div class="row">
-                            <div class="col-12">
-                                <h5 class="card-header">Download Chatlogs</h5>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-3">
-                                <label for="earliestTime">From</label>
-                                <input class="form-control" @bind-value="earliestTime" id="earliestTime" type="datetime-local" />
-                            </div>
-                            <div class="col-3">
-                                <label for="latestTime">To</label>
-                                <input class="form-control" @bind-value="latestTime" id="latestTime" type="datetime-local" />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="btn-group">
-                                    <button class="btn btn-primary btn-sm" @onclick="async _ => await DownloadLog(true)">Download csv</button>
-                                    <button class="btn btn-secondary btn-sm" @onclick="async _ => await DownloadLog(false)">Download json</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
                 <table class="table table-dark">
                     <thead class="thead-dark">
                         <tr>
@@ -161,22 +131,7 @@ else
     </div>
 }
 
-@page "/settings"
-
 @code {
-    private DateTime earliestTime = DateTime.Now.AddDays(-1);
-    private DateTime latestTime = DateTime.Now;
-
-    private async Task DownloadLog(bool downloadPlain)
-    {
-        if (earliestTime == default || latestTime == default)
-        {
-            return;
-        }
-
-        await channelService.DownloadChatLog(earliestTime, latestTime, downloadPlain);
-    }
-
     private string newModeratorName = "";
 
     private string buttonDisable = "";
