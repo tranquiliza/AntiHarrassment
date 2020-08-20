@@ -27,12 +27,22 @@ namespace AntiHarassment.WebApi.Mappers
                 Tags = suspension.Tags.Map(),
                 SuspensionType = suspension.SuspensionType.Map(),
                 Messages = suspension.ChatMessages.Map(),
-                LinkedUsernames = suspension.LinkedUsernames.ToList(),
+                LinkedUsers = suspension.LinkedUsers.Map(),
                 SuspensionSource = suspension.SuspensionSource.Map(),
                 Images = suspension.Images.Select(x => urlBase.TrimEnd('/') + "/images/" + x).ToList(),
                 SystemReason = suspension.SystemReason
             };
         }
+
+        private static List<LinkedUserModel> Map(this IReadOnlyList<LinkedUser> input)
+            => input.Select(Map).ToList();
+
+        private static LinkedUserModel Map(this LinkedUser input)
+            => new LinkedUserModel
+            {
+                Username = input.Username,
+                Reason = input.Reason
+            };
 
         private static SuspensionTypeModel Map(this SuspensionType suspensionType)
             => suspensionType switch

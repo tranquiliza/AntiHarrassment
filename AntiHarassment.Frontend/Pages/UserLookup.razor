@@ -121,14 +121,16 @@
                                         }
                                         <hr />
                                     }
-                                    @if (suspension.LinkedUsernames.Count != 0)
+                                    @if (suspension.LinkedUsers.Count != 0)
                                     {
                                         <p>
                                             <b>Linked Usernames</b>
                                         </p>
-                                        @foreach (var username in suspension.LinkedUsernames)
+                                        @foreach (var linkedUser in suspension.LinkedUsers)
                                         {
-                                            <span class="badge badge-danger">@username</span>
+                                            <span class="badge badge-danger" data-placement="right" title="@linkedUser.Reason">
+                                                @linkedUser.Username
+                                            </span>
                                         }
                                         <hr />
                                     }

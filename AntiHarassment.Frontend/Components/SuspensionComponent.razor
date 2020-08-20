@@ -29,7 +29,7 @@
         </button>
     </div>
     <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
-        <div class="card-body" style="min-height:60vh">
+        <div class="card-body" style="min-height:60vh; overflow:auto;">
             <div class="row">
                 <div class="col">
                     <div class="btn-group">
@@ -79,6 +79,7 @@
                         <button class="btn btn-sm" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">x</button>
                     }
                 </span>
+                <hr />
             }
 
             @if (tagService.Tags != null && !suspension.Audited)
@@ -97,21 +98,20 @@
                 <hr />
             }
 
-            @if (suspension.LinkedUsernames.Count != 0)
+            @if (suspension.LinkedUsers.Count != 0)
             {
-                <p>
-                    <b>Linked Usernames</b>
-                </p>
-                @foreach (var username in suspension.LinkedUsernames)
+                <b>Linked Usernames</b> <br />
+                @foreach (var linkedUser in suspension.LinkedUsers)
                 {
-                    <span class="badge badge-danger">
-                        @username
+                    <span class="badge badge-danger" data-placement="right" title="@linkedUser.Reason">
+                        @linkedUser.Username
                         @if (!suspension.Audited)
                         {
-                            <button class="btn btn-sm" @onclick="async _ => await suspensionService.RemoveUserLinkFromSuspension(suspension.SuspensionId, username)">x</button>
+                            <button class="btn btn-sm" @onclick="async _ => await suspensionService.RemoveUserLinkFromSuspension(suspension.SuspensionId, linkedUser.Username)">x</button>
                         }
                     </span>
                 }
+                <hr />
             }
 
             @if (suspension.InvalidSuspension && !string.IsNullOrEmpty(suspension.InvalidationReason))
@@ -259,6 +259,7 @@
         // Yes this is trash code, but not sure how else to do it
         if (tagId == Guid.Parse("7A1694E6-5418-4FB6-9347-093AEE2AA4A9"))
         {
+            suspensionService.UserLinkReason = "Ban Evasion";
             await OpenLinkUserModal(suspensionId);
         }
 

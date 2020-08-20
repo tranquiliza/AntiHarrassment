@@ -20,13 +20,14 @@ namespace AntiHarassment.Frontend.Application
             get
             {
                 return usersFromChannel?.Where(
-                    x => x.StartsWith(string.IsNullOrEmpty(CurrentSearchTerm) ? "_" : CurrentSearchTerm, StringComparison.OrdinalIgnoreCase)
-                    && !string.Equals(x, CurrentlySelectedSuspension?.Username)
-                    && CurrentlySelectedSuspension?.LinkedUsernames.Contains(x) == false
+                    username => username.StartsWith(string.IsNullOrEmpty(CurrentSearchTerm) ? "_" : CurrentSearchTerm, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(username, CurrentlySelectedSuspension?.Username)
+                    && CurrentlySelectedSuspension?.LinkedUsers.Any(userLink => string.Equals(username, userLink.Username, StringComparison.OrdinalIgnoreCase)) == false
                 ).ToList();
             }
         }
 
+        public string UserLinkReason { get; set; }
         public string CurrentSearchTerm { get; set; }
         public SuspensionModel CurrentlySelectedSuspension { get; set; }
 
@@ -128,10 +129,10 @@ namespace AntiHarassment.Frontend.Application
             usersFromChannel = result ?? new List<string>();
         }
 
-        public async Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername)
+        public async Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, string reasonForLink)
         {
             var result = await apiGateway.Post<SuspensionModel, AddUserLinkToSuspensionModel>(
-                new AddUserLinkToSuspensionModel { Username = twitchUsername },
+                new AddUserLinkToSuspensionModel { Username = twitchUsername, LinkUserReason = reasonForLink },
                 "suspensions",
                 routeValues: new string[] { suspensionId.ToString(), "userlink" }).ConfigureAwait(false);
 

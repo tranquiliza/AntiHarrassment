@@ -4,9 +4,9 @@ using System.Text;
 
 namespace AntiHarassment.Contract
 {
-    public class AddUserLinkToSuspensionModel
+    public class LinkedUserModel
     {
         public string Username { get; set; }
-        public string LinkUserReason { get; set; }
+        public string Reason { get; set; }
     }
 }

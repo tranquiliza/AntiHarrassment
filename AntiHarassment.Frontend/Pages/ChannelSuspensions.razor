@@ -60,10 +60,10 @@
                             <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
                             <ul class="list-group">
                                 @foreach (var unaudited in suspensionService.Suspensions
-                           .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                           .GroupBy(x => x.LocalTimeStamp().Date)
-                           .Select(key => key.Key)
-                           .ToList())
+                         .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                         .GroupBy(x => x.LocalTimeStamp().Date)
+                         .Select(key => key.Key)
+                         .ToList())
                                 {
                                     <li class="list-group-item list-group-item-danger">
                                         <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
@@ -125,6 +125,9 @@
                 </button>
             </div>
             <div class="modal-body">
+                <label for="accountLinkReasoninput">Reason for linking</label>
+                <input class="form-control" id="accountLinkReasoninput" type="text" @bind-value="suspensionService.UserLinkReason" />
+
                 <label for="accountLinkingUserInput">Search For a User</label>
                 <input id="accountLinkingUserInput" class="form-control" type="text" @bind-value="suspensionService.CurrentSearchTerm" />
                 @if (suspensionService.UsersFromChannel != null)
@@ -210,21 +213,25 @@
 
         await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
         suspensionService.CurrentSearchTerm = "";
+        suspensionService.UserLinkReason = "";
         suspensionService.CurrentlySelectedSuspension = null;
     }
 
     private async Task LinkUserToSuspensions(string userToLink)
     {
-        if (suspensionService.CurrentlySelectedSuspension == null || string.IsNullOrEmpty(userToLink))
+        if (suspensionService.CurrentlySelectedSuspension == null
+            || string.IsNullOrEmpty(userToLink)
+            || string.IsNullOrEmpty(suspensionService.UserLinkReason))
         {
             return;
         }
 
-        await suspensionService.AddUserLinkToSuspension(suspensionService.CurrentlySelectedSuspension.SuspensionId, userToLink);
+        await suspensionService.AddUserLinkToSuspension(suspensionService.CurrentlySelectedSuspension.SuspensionId, userToLink, suspensionService.UserLinkReason);
 
         await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
         suspensionService.CurrentSearchTerm = "";
         suspensionService.CurrentlySelectedSuspension = null;
+        suspensionService.UserLinkReason = "";
     }
 
     private string InvalidReasonErrorMessage = "";

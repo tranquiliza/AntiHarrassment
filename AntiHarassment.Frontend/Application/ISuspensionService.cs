@@ -19,6 +19,7 @@ namespace AntiHarassment.Frontend.Application
         SuspensionModel CurrentlySelectedSuspensionForInvalidation { get; set; }
         string CurrentInvalidationReason { get; set; }
 
+        string UserLinkReason { get; set; }
         string CurrentSearchTerm { get; set; }
         SuspensionModel CurrentlySelectedSuspension { get; set; }
 
@@ -30,7 +31,7 @@ namespace AntiHarassment.Frontend.Application
         Task UpdateAudited(Guid suspensionId, bool audited);
         Task AddTagToSuspension(Guid suspensionId, Guid tagId);
         Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId);
-        Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername);
+        Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, string linkReason);
         Task Initialize();
         Task RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername);
         Task CreateNewSuspension(string username);

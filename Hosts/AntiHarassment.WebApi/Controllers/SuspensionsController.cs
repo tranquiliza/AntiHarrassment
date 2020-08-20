@@ -18,7 +18,6 @@ namespace AntiHarassment.WebApi.Controllers
     [Authorize]
     public class SuspensionsController : ContextController
     {
-
         private readonly ISuspensionService suspensionService;
 
         public SuspensionsController(ISuspensionService suspensionService)
@@ -55,7 +54,6 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpGet("{channelOfOrigin}")]
         public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin)
         {
-
             var result = await suspensionService.GetAllSuspensionsAsync(channelOfOrigin, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Success)
                 return Ok(result.Data.Map(CurrentUrl));
@@ -136,7 +134,7 @@ namespace AntiHarassment.WebApi.Controllers
         [HttpPost("{suspensionId}/userlink")]
         public async Task<IActionResult> AddUserLinkToSuspension([FromRoute] Guid suspensionId, [FromBody] AddUserLinkToSuspensionModel model)
         {
-            var result = await suspensionService.AddUserLinkToSuspension(suspensionId, model.Username, ApplicationContext).ConfigureAwait(false);
+            var result = await suspensionService.AddUserLinkToSuspension(suspensionId, model.Username, model.LinkUserReason, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
 

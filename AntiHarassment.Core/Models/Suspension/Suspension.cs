@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace AntiHarassment.Core.Models
@@ -50,10 +51,14 @@ namespace AntiHarassment.Core.Models
         public IReadOnlyList<Tag> Tags => tags.AsReadOnly();
 
         [JsonProperty]
-        private List<string> linkedUsernames { get; set; } = new List<string>();
+        private List<LinkedUser> linkedUsers { get; set; } = new List<LinkedUser>();
 
         [JsonIgnore]
-        public IReadOnlyList<string> LinkedUsernames => linkedUsernames.AsReadOnly();
+        public IReadOnlyList<LinkedUser> LinkedUsers => linkedUsers.AsReadOnly();
+
+        // TODO REMOVE IN V1.7.0
+        [JsonProperty]
+        private List<string> linkedUsernames { get; set; } = new List<string>();
 
         [JsonProperty]
         private List<string> images { get; set; } = new List<string>();
@@ -81,6 +86,15 @@ namespace AntiHarassment.Core.Models
             Username = username;
             ChannelOfOrigin = channelOfOrigin;
             Timestamp = timestamp;
+        }
+
+        // TODO REMOVE IN V1.7.0
+        public void MigrateData()
+        {
+            foreach (var username in linkedUsernames)
+                linkedUsers.Add(new LinkedUser { Username = username, Reason = "" });
+
+            linkedUsernames = new List<string>();
         }
 
         public bool UpdateValidity(bool invalidate, string invalidationReason, IApplicationContext context, DateTime timestamp)
@@ -123,18 +137,20 @@ namespace AntiHarassment.Core.Models
             AddAuditTrail(context, nameof(tags), tags, timestamp);
         }
 
-        public void AddUserLink(string twitchUsername, IApplicationContext context, DateTime timestamp)
+        public void AddUserLink(string twitchUsername, string reason, IApplicationContext context, DateTime timestamp)
         {
-            if (linkedUsernames.Contains(twitchUsername))
+            var existing = linkedUsers.Find(x => string.Equals(x.Username, twitchUsername, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
                 return;
 
-            linkedUsernames.Add(twitchUsername);
+            linkedUsers.Add(new LinkedUser { Username = twitchUsername, Reason = reason });
             AddAuditTrail(context, nameof(linkedUsernames), linkedUsernames, timestamp);
         }
 
         public void RemoveUserLink(string twitchUsername, IApplicationContext context, DateTime timestamp)
         {
-            linkedUsernames.Remove(twitchUsername);
+            var existingEntry = linkedUsers.Find(x => string.Equals(x.Username, twitchUsername, StringComparison.OrdinalIgnoreCase));
+            linkedUsers.Remove(existingEntry);
 
             AddAuditTrail(context, nameof(linkedUsernames), linkedUsernames, timestamp);
         }

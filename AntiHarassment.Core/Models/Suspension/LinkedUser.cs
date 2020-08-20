@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Contract
+namespace AntiHarassment.Core.Models
 {
-    public class AddUserLinkToSuspensionModel
+    public class LinkedUser
     {
         public string Username { get; set; }
-        public string LinkUserReason { get; set; }
+        public string Reason { get; set; }
     }
 }
