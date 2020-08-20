@@ -80,7 +80,7 @@ namespace AntiHarassment.Chatlistener.Core
                 .OrderByDescending(x => x.Timestamp).FirstOrDefault();
 
             var timeOfSuspension = datetimeProvider.UtcNow;
-            if (latestForChannel.Timestamp.AddMinutes(3) >= timeOfSuspension)
+            if (latestForChannel != null && latestForChannel.Timestamp.AddMinutes(3) >= timeOfSuspension)
                 return;
 
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
