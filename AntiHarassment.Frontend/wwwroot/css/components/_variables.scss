@@ -34,7 +34,7 @@
 // 1. Colors
 // ==========================================================================
 
-$primary-color: color("grey", "base") !default;
+$primary-color: color("blue-grey", "darken-3") !default;
 $primary-color-light: lighten($primary-color, 15%) !default;
 $primary-color-dark: darken($primary-color, 15%) !default;
 
@@ -100,7 +100,7 @@ $button-floating-radius: 50% !default;
 // ==========================================================================
 
 $card-padding: 24px !default;
-$card-bg-color: #fff !default;
+$card-bg-color: #37474f !default;
 $card-link-color: color("orange", "accent-2") !default;
 $card-link-color-light: lighten($card-link-color, 20%) !default;
 
@@ -135,7 +135,7 @@ $chip-margin: 5px !default;
 // ==========================================================================
 
 $datepicker-display-font-size: 2.8rem;
-$datepicker-calendar-header-color: #999;
+$datepicker-calendar-header-color: #455a64;
 $datepicker-weekday-color: rgba(0, 0, 0, .87) !default;
 $datepicker-weekday-bg: darken($secondary-color, 7%) !default;
 $datepicker-date-bg: $secondary-color !default;
@@ -147,14 +147,14 @@ $datepicker-day-focus: transparentize(desaturate($secondary-color, 5%), .75) !de
 $datepicker-disabled-day-color: rgba(0, 0, 0, .3) !default;
 
 $timepicker-clock-color: rgba(0, 0, 0, .87) !default;
-$timepicker-clock-plate-bg: #eee !default;
+$timepicker-clock-plate-bg: #37474f !default;
 
 
 // 9. Dropdown
 // ==========================================================================
 
-$dropdown-bg-color: #fff !default;
-$dropdown-hover-bg-color: #eee !default;
+$dropdown-bg-color: #37474f !default;
+$dropdown-hover-bg-color: #455a64 !default;
 $dropdown-color: $secondary-color !default;
 $dropdown-item-height: 50px !default;
 
@@ -166,7 +166,7 @@ $dropdown-item-height: 50px !default;
 $input-height: 3rem !default;
 $input-border-color: color("blue", "base") !default;
 $input-border: 1px solid $input-border-color !default;
-$input-background: #fff !default;
+$input-background: #37474f !default;
 $input-error-color: $error-color !default;
 $input-success-color: $success-color !default;
 $input-focus-color: $secondary-color !default;
@@ -335,10 +335,10 @@ $interval-size: $range / $intervals !default;
 // ==========================================================================
 
 $collection-border-color: #e0e0e0 !default;
-$collection-bg-color: #fff !default;
+$collection-bg-color: #37474f !default;
 $collection-active-bg-color: $secondary-color !default;
 $collection-active-color: lighten($secondary-color, 55%) !default;
-$collection-hover-bg-color: #ddd !default;
+$collection-hover-bg-color: #455a64 !default;
 $collection-link-color: $secondary-color !default;
 $collection-line-height: 1.5rem !default;
 

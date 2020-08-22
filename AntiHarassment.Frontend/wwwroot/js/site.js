@@ -18,6 +18,34 @@ window.DownloadAsFile = function (content, filename, contentType) {
     a.click();
 }
 
+window.InitDropDowns = function () {
+    var elems = document.querySelectorAll('.dropdown-trigger');
+    var instances = M.Dropdown.init(elems, {});
+}
+
+window.InitDatePickers = function () {
+    var elems = document.querySelectorAll('.datepicker');
+    var instances = M.Datepicker.init(elems, {
+    });
+}
+
+window.InitModal = function () {
+    var elems = document.querySelector('#createRuleModal');
+    var instances = M.Modal.init(elems, {
+        dismissible: false
+    });
+
+    var editRuleModal = document.querySelector('#editRuleModal');
+    editModalInstance = M.Modal.init(editRuleModal, {
+        dismissible: false
+    });
+}
+
+window.InitSelectors = function () {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, {});
+}
+
 window.OpenModalForInvalidReasoning = function () {
     $('#invalidReasoningModal').modal('show');
 }
@@ -50,20 +78,15 @@ window.OpenModalForDisplayingImagesUserLookup = function () {
     $('#suspensionImagesUserLookupModal').modal('show');
 }
 
-window.OpenModalForCreatingNewRule = function () {
-    $('#createRuleModal').modal('show');
-}
 
-window.CloseModalForCreatingNewRule = function () {
-    $('#createRuleModal').modal('hide');
-}
+var editModalInstance;
 
 window.OpenModalForEditRule = function () {
-    $('#editRuleModal').modal('show');
+    editModalInstance.open();
 }
 
 window.CloseModalForEditRule = function () {
-    $('#editRuleModal').modal('hide');
+    editModalInstance.close();
 }
 
 var overallChart;

@@ -7,126 +7,108 @@
 
 @if (channelService.Channel == null)
 {
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <p>Hi! Are you also a streamer? Would like to have this system enabled for your channel?</p>
-                <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-danger">ENABLE SYSTEM</button>
-            </div>
+    <div class="row">
+        <div class="col s12">
+            <p>Hi! Are you also a streamer? Would like to have this system enabled for your channel?</p>
+            <button @onclick="async _ => await UpdateChannelState(true)" class="btn">ENABLE SYSTEM</button>
         </div>
-        <div class="row">
-            <div class="col-12">
-                <p>
-                    If you have any questions regarding this system, you can find help at Prometheus Discord: <a target="_blank" href="https://discord.gg/Cb7PQRj">Prometheus Invite</a>
-                </p>
-            </div>
+    </div>
+    <div class="row">
+        <div class="col s12">
+            <p>
+                If you have any questions regarding this system, you can find help at Prometheus Discord: <a target="_blank" href="https://discord.gg/Cb7PQRj">Prometheus Invite</a>
+            </p>
         </div>
     </div>
 }
 else
 {
-    <div class="container-fluid">
+    <AdminChannelChanger adminChannelService="adminChannelService" channelService="channelService" />
+
+    @if (!channelService.Channel.SystemIsModerator)
+    {
         <div class="row">
-            <div class="col-12">
-                @if (userService.IsUserAdmin)
-                {
-                    @if (adminChannelService.Channels != null)
-                    {
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                @(string.IsNullOrEmpty(channelService.Channel.ChannelName) ? "Channels" : channelService.Channel.ChannelName)
-                            </button>
-                            <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
-                                @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
-                                {
-                                    <button @onclick="async () => await channelService.ChangeChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
-                                }
-                            </div>
-                        </div>
-                        <hr />
-                    }
-                }
-            </div>
-        </div>
-        @if (!channelService.Channel.SystemIsModerator)
-        {
-            <div class="row">
-                <div class="col-12">
-                    <div class="alert alert-danger" role="alert">
-                        <h5>BE ADVISED</h5>
+            <div class="col s12">
+                <div class="card red">
+                    <div class="card-content">
+                        <span class="card-title">BE ADVISED</span>
                         <p>
                             You have not made the AntiHarassment user a moderator on your channel. <br />
                             If you wish the use features that involve usage of moderator actions like Automated Bans and Listening to AutoModded Messages, the AntiHarassment User will need moderator status in your channel!
                         </p>
                         <p>
-                            If you have already granted the AntiHarassment user moderator status, please make sure to update your moderator list in your Broadcaster Menu Settings!
+                            If you have already granted the AntiHarassment user moderator status, please make sure to click the "I modded the bot" button!
                         </p>
+                    </div>
+                    <div class="card-action">
+                        <a class="hand-pointer btn" @onclick="async _ => await UpdateSystemModStatus(true)">I Modded the Bot</a>
                     </div>
                 </div>
             </div>
-        }
-        <div class="row">
-            <div class="col-12">
-                <div class="btn-group">
-                    @if (channelService.Channel.ShouldListen)
-                    {
-                        <button @onclick="async _ => await UpdateChannelState(false)" class="btn btn-success">System Is Active</button>
-                    }
-                    else
-                    {
-                        <button @onclick="async _ => await UpdateChannelState(true)" class="btn btn-danger">ENABLE SYSTEM</button>
-                    }
-                    @if (channelService.Channel.SystemIsModerator)
-                    {
-                        <button @onclick="async _ => await UpdateSystemModStatus(false)" class="btn btn-success">And is Moderator</button>
-                    }
-                    else
-                    {
-                        <button @onclick="async _ => await UpdateSystemModStatus(true)" class="btn btn-danger">I modded the bot</button>
-                    }
-                    @if (channelService.Channel.ShouldListenForAutoModdedMessages)
-                    {
-                        <button disabled="disabled" class="btn btn-success">And is listening for AutoMod Messages</button>
-
-                    }
-                    else
-                    {
-                        <button disabled="disabled" class="btn btn-danger">AutoModded Messages Disabled</button>
-                    }
-                </div>
-            </div>
         </div>
+    }
 
-        <hr />
+    <div class="row">
+        <div class="col s12">
+            @if (channelService.Channel.ShouldListen)
+            {
+                <button @onclick="async _ => await UpdateChannelState(false)" class="btn green">System Is Active</button>
+            }
+            else
+            {
+                <button @onclick="async _ => await UpdateChannelState(true)" class="btn red">ENABLE SYSTEM</button>
+            }
+            @if (channelService.Channel.SystemIsModerator)
+            {
+                <button @onclick="async _ => await UpdateSystemModStatus(false)" class="btn green">And is Moderator</button>
+            }
+            else
+            {
+                <button @onclick="async _ => await UpdateSystemModStatus(true)" class="btn red">Bot is not Moderator</button>
+            }
+            @if (channelService.Channel.ShouldListenForAutoModdedMessages)
+            {
+                <button disabled="disabled" class="btn green">And is listening for AutoMod Messages</button>
+            }
+            else
+            {
+                <button disabled="disabled" class="btn red">AutoModded Messages Disabled</button>
+            }
+        </div>
+    </div>
 
-        <div class="row">
-            <div class="col-12">
-                <table class="table table-dark">
-                    <thead class="thead-dark">
+    <div class="row">
+        <div class="col s12">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Moderator Name</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var moderator in channelService.Channel.Moderators)
+                    {
                         <tr>
-                            <th scope="col">Moderator Name</th>
-                            <th scope="col">Action</th>
+                            <td>@moderator</td>
+                            <td>
+                                <button @onclick="async () => await RemoveModerator(moderator)" class="btn red">Remove</button>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    }
 
-                        @foreach (var moderator in channelService.Channel.Moderators)
-                        {
-                            <tr>
-                                <td>@moderator</td>
-                                <td>
-                                    <button @onclick="async () => await RemoveModerator(moderator)" class="btn btn-danger">Remove</button>
-                                </td>
-                            </tr>
-                        }
-
-                        <tr>
-                            <td><input class="form-control" type="text" @bind-value="newModeratorName" /></td>
-                            <td><button @onclick="async () => await AddModerator()" class="btn btn-dark">Add</button></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                    <tr>
+                        <td>
+                            <div class="input-field">
+                                <input id="addModeratorInput" class="form-control" type="text" @bind-value="newModeratorName" />
+                                <label for="addModeratorInput">Moderator Twitch Name</label>
+                            </div>
+                        </td>
+                        <td><button @onclick="async () => await AddModerator()" class="btn green">Add</button></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 }

@@ -1,8 +1,10 @@
-﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
-
-body {
+﻿body {
     background-color: #171a1c;
     color: #d5d9dd;
+}
+
+html, body, app, .valign-wrapper, .container {
+    height: 100%;
 }
 
 #blazor-error-ui {
@@ -81,4 +83,14 @@ body {
 
 .twitch {
     background-color: #772ce8;
+}
+
+header, main, footer {
+    padding-left: 300px;
+}
+
+@media only screen and (max-width : 992px) {
+    header, main, footer {
+        padding-left: 0;
+    }
 }

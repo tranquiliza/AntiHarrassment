@@ -1,68 +1,64 @@
 ﻿@inject IUserService userService
 @implements IDisposable
 
+<ul id="slide-out" class="sidenav sidenav-fixed blue-grey darken-3">
+    <li>
+        <div class="user-view" style="height:150px; margin-top:8px;">
+            <div class="background center-align">
+                <img width="150" height="150" src="/AntiHarassmentLogo.png">
+            </div>
+        </div>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="" Match="NavLinkMatch.All">Home</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="ChannelSuspensions" Match="NavLinkMatch.All">Suspensions</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="userlookup" Match="NavLinkMatch.Prefix">User Lookup</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="taglookup" Match="NavLinkMatch.Prefix">User Lookup by tag</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="resources" Match="NavLinkMatch.Prefix">Resources</NavLink>
+    </li>
 
-<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
-    <div class="sidebar-sticky pt-3">
-        <ul class="nav nav-pills flex-column">
-            <li class="nav-item">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">Home</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="ChannelSuspensions" Match="NavLinkMatch.All">Suspensions</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="userlookup" Match="NavLinkMatch.Prefix">User Lookup</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="taglookup" Match="NavLinkMatch.Prefix">User Lookup by tag</NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="resources" Match="NavLinkMatch.Prefix">Resources</NavLink>
-            </li>
-        </ul>
-
-        @if (userService.IsUserLoggedIn)
-        {
-            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-white">
-                <span>Broadcaster Menu</span>
-            </h6>
-            <ul class="nav nav-pills flex-column mb-2">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="settings" Match="NavLinkMatch.All">Settings</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="chatlogs" Match="NavLinkMatch.All">Chat Logs</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="channelRules" Match="NavLinkMatch.All">Channel Rules</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="channelstatistics" Match="NavLinkMatch.All">Statistics</NavLink>
-                </li>
-            </ul>
-        }
-
-        @if (userService.IsUserAdmin)
-        {
-            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-white">
-                <span>Admin Menu</span>
-            </h6>
-            <ul class="nav nav-pills flex-column mb-2">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="admin/channels" Match="NavLinkMatch.All">Channels</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="admin/tags" Match="NavLinkMatch.All">Tags</NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="admin/statistics" Match="NavLinkMatch.All">System Statistics</NavLink>
-                </li>
-            </ul>
-        }
-
-    </div>
-</nav>
+    @if (userService.IsUserLoggedIn)
+    {
+        <li><div class="divider blue"></div></li>
+        <li><a class="subheader blue-text">Broadcaster Menu</a></li>
+        <li><div class="divider blue"></div></li>
+        <li>
+            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="settings" Match="NavLinkMatch.All">Settings</NavLink>
+        </li>
+        <li>
+            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="chatlogs" Match="NavLinkMatch.All">Chat Logs</NavLink>
+        </li>
+        <li>
+            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="channelRules" Match="NavLinkMatch.All">Channel Rules</NavLink>
+        </li>
+        <li>
+            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="channelstatistics" Match="NavLinkMatch.All">Statistics</NavLink>
+        </li>
+    }
+    @if (userService.IsUserAdmin)
+    {
+        <li><div class="divider blue"></div></li>
+        <li><a class="subheader blue-text">Admin Menu</a></li>
+        <li><div class="divider blue"></div></li>
+        <li>
+            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="admin/channels" Match="NavLinkMatch.All">Channels</NavLink>
+        </li>
+        <li>
+            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="admin/tags" Match="NavLinkMatch.All">Tags</NavLink>
+        </li>
+        <li>
+            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="admin/statistics" Match="NavLinkMatch.All">System Statistics</NavLink>
+        </li>
+    }
+</ul>
 
 @code {
     protected override void OnInitialized()
