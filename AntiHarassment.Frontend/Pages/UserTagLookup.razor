@@ -1,77 +1,81 @@
 ﻿@inject ITagService tagService
+@inject IJSRuntime jsRuntime
 @inject AntiHarassment.Frontend.Infrastructure.IApiGateway apiGateway
 
-    @implements IDisposable
+@implements IDisposable
 
-    @page "/taglookup"
+@page "/taglookup"
 
-    <div class="container-fluid">
-        @if (tagService.Tags != null)
-        {
-            <div class="row">
-                <div class="col">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="tagSelectDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        @if (CurrentlySelectedTag != null)
-                        {
-                            @CurrentlySelectedTag.TagName
-                        }
-                        else
-                        {
-                            <span>Tags</span>
-                        }
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="tagSelectDropdown">
-                        @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
-                        {
-                            <button @onclick="async _ => await SelectTag(tag)" class="dropdown-item" type="button" data-placement="right" title="@tag.TagDescription">@tag.TagName</button>
-                        }
-                    </div>
-                </div>
-            </div>
+@if (tagService.Tags != null)
+{
+    <div class="row">
+        <div class="col s12">
+            <a class="dropdown-trigger btn" data-target="tagSelectDropdown" style="width:200px; margin-top:26px;">
+                @if (CurrentlySelectedTag != null)
+                {
+                    @CurrentlySelectedTag.TagName
+                }
+                else
+                {
+                    <span>Tags</span>
+                }
+            </a>
 
-            <hr />
-        }
-
-        @if (UsernamesMatchedByTag != null)
-        {
-            <div class="row">
-                <div class="col-6">
-                    <ul class="list-group bg-dark">
-                        @foreach (var username in UsernamesMatchedByTag)
-                        {
-                            <li class="list-group-item bg-dark"><a target="_blank" href="/userlookup/@username">@username</a></li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        }
+            <ul id="tagSelectDropdown" class="dropdown-content">
+                @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
+                {
+                    <li class="@(string.IsNullOrEmpty(tag.TagDescription) ? "": "tooltipped")" @onclick="async _ => await SelectTag(tag)" data-position="right" data-tooltip="@tag.TagDescription"><a>@tag.TagName</a></li>
+                }
+            </ul>
+        </div>
     </div>
+}
+
+@if (UsernamesMatchedByTag != null)
+{
+    <div class="row">
+        <div class="col s6">
+            <div class="collection">
+                @foreach (var username in UsernamesMatchedByTag)
+                {
+                    <a class="collection-item" target="_blank" href="/userlookup/@username">@username</a>
+                }
+            </div>
+        </div>
+    </div>
+}
 
 
-    @code {
-        private AntiHarassment.Contract.Tags.TagModel CurrentlySelectedTag = null;
+@code {
+    private AntiHarassment.Contract.Tags.TagModel CurrentlySelectedTag = null;
 
-        private List<string> UsernamesMatchedByTag = null;
+    private List<string> UsernamesMatchedByTag = null;
 
-        private async Task SelectTag(AntiHarassment.Contract.Tags.TagModel tag)
-        {
-            CurrentlySelectedTag = tag;
+    private async Task SelectTag(AntiHarassment.Contract.Tags.TagModel tag)
+    {
+        CurrentlySelectedTag = tag;
 
-            var queryParam = new AntiHarassment.Frontend.Infrastructure.QueryParam("tagId", tag.TagId.ToString());
-            UsernamesMatchedByTag = await apiGateway.Get<List<string>>("UserReports", routeValues: new string[] { "tag" }, queryParams: new Infrastructure.QueryParam[] { queryParam });
+        var queryParam = new AntiHarassment.Frontend.Infrastructure.QueryParam("tagId", tag.TagId.ToString());
+        UsernamesMatchedByTag = await apiGateway.Get<List<string>>("UserReports", routeValues: new string[] { "tag" }, queryParams: new Infrastructure.QueryParam[] { queryParam });
 
-            StateHasChanged();
-        }
-
-        protected override async Task OnInitializedAsync()
-        {
-            tagService.OnChange += StateHasChanged;
-
-            await tagService.Initialize();
-        }
-
-        public void Dispose()
-        {
-            tagService.OnChange -= StateHasChanged;
-        }
+        StateHasChanged();
     }
+
+    protected override async Task OnInitializedAsync()
+    {
+        tagService.OnChange += StateHasChanged;
+
+        await tagService.Initialize();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("InitTooltips");
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+    }
+
+    public void Dispose()
+    {
+        tagService.OnChange -= StateHasChanged;
+    }
+}

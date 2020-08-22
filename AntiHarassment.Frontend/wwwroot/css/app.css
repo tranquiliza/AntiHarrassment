@@ -7,6 +7,18 @@ html, body, app, .valign-wrapper, .container {
     height: 100%;
 }
 
+input {
+    color: #fff;
+}
+
+.chip .xclose {
+    cursor: pointer;
+    float: right;
+    font-size: 16px;
+    line-height: 32px;
+    padding-left: 8px;
+}
+
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;

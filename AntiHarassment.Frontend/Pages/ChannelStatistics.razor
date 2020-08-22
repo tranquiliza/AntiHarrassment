@@ -10,14 +10,14 @@
 {
     <div class="row">
         <div class="col s12">
-            <a class="dropdown-trigger btn" data-target="channelSelectDropDown" style="width:200px;">
+            <a class="dropdown-trigger btn" data-target="channelSelectDropDown" style="width:200px;margin-top:26px;">
                 @(string.IsNullOrEmpty(channelStatisticsService.CurrentlySelectedChannel) ? "Channels" : channelStatisticsService.CurrentlySelectedChannel)
             </a>
 
             <ul id="channelSelectDropDown" class="dropdown-content">
                 @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
                 {
-                    <li @onclick="async () => await ChangeChannel(channel.ChannelName)"><a> @channel.ChannelName</a></li>
+                    <li @onclick="async () => await ChangeChannel(channel.ChannelName)"><a>@channel.ChannelName</a></li>
                 }
             </ul>
         </div>

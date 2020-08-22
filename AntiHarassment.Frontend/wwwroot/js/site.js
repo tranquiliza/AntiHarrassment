@@ -46,41 +46,64 @@ window.InitSelectors = function () {
     var instances = M.FormSelect.init(elems, {});
 }
 
+window.InitCollapsibles = function () {
+    var elems = document.querySelectorAll('.collapsible');
+    var instances = M.Collapsible.init(elems, {});
+}
+
+var invalidReasonModalInstance;
 window.OpenModalForInvalidReasoning = function () {
-    $('#invalidReasoningModal').modal('show');
+    var elems = document.querySelector('#invalidReasoningModal');
+    invalidReasonModalInstance = M.Modal.init(elems, {});
+    invalidReasonModalInstance.open();
 }
 
 window.CloseModalForInvalidReasoning = function () {
-    $('#invalidReasoningModal').modal('hide');
+    invalidReasonModalInstance.close();
 }
 
+var modelForUserLinkingInstance;
 window.OpenModalForUserLinking = function () {
-    $('#accountLinkingModal').modal('show');
+    var elems = document.querySelector('#accountLinkingModal');
+    modelForUserLinkingInstance = M.Modal.init(elems, {});
+    modelForUserLinkingInstance.open();
 }
 
 window.CloseModalForUserLinking = function () {
-    $('#accountLinkingModal').modal('hide');
+    modelForUserLinkingInstance.close();
 }
 
+var modelForCreatingSuspensionInstance;
 window.OpenModalForCreatingSuspension = function () {
-    $('#createSuspensionModal').modal('show');
+    var elems = document.querySelector('#createSuspensionModal');
+    modelForCreatingSuspensionInstance = M.Modal.init(elems, {});
+    modelForCreatingSuspensionInstance.open();
 }
 
 window.CloseModalForCreatingSuspension = function () {
-    $('#createSuspensionModal').modal('hide');
+    modelForCreatingSuspensionInstance.close();
 }
 
+var modelForDisplayImageInstance;
 window.OpenModalForDisplayingImages = function () {
-    $('#suspensionImagesModal').modal('show');
+    var elems = document.querySelector('#suspensionImagesModal');
+    modelForDisplayImageInstance = M.Modal.init(elems, {});
+    modelForDisplayImageInstance.open();
 }
 
+var modalForDisplayUserLookupImageInstance;
 window.OpenModalForDisplayingImagesUserLookup = function () {
-    $('#suspensionImagesUserLookupModal').modal('show');
+    var elems = document.querySelector('#suspensionImagesUserLookupModal');
+    modalForDisplayUserLookupImageInstance = M.Modal.init(elems, {});
+    modalForDisplayUserLookupImageInstance.open();
 }
 
+window.InitTooltips = function () {
+    var elems = document.querySelectorAll('.tooltipped');
+    var instances = M.Tooltip.init(elems, {});
+}
 
 var editModalInstance;
-
 window.OpenModalForEditRule = function () {
     editModalInstance.open();
 }

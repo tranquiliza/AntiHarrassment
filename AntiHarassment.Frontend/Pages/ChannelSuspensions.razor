@@ -5,191 +5,167 @@
 
 @page "/ChannelSuspensions"
 
-<div class="container-fluid">
-    @if (suspensionService.Channels == null)
-    {
-        <p>You don't have access to any channels</p>
-    }
-    else
-    {
-        <div class="row">
-            <div class="col-3">
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
-                        @foreach (var channel in suspensionService.Channels.OrderBy(x => x.ChannelName))
-                        {
-                            <button @onclick="async () => await SelectChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
-                        }
-                    </div>
-                </div>
-            </div>
-            <div class="col-3">
-                <input class="form-control" type="date" @bind-value="selectedDate" />
-            </div>
-            <div class="col-3">
-                <button @onclick="OpenModelForCreateSuspension" class="btn btn-success">Create Suspension</button>
+@if (suspensionService.Channels == null)
+{
+    <p>You don't have access to any channels. Go to settings and ensure you have enabled the system!</p>
+}
+else
+{
+    <div class="row">
+        <div class="col s3">
+            <div style="margin-top:26px;" class="dropdown">
+                <a class="dropdown-trigger btn" data-target="channelSelectDropDown" style="width:200px;">
+                    @(string.IsNullOrEmpty(suspensionService.CurrentlySelectedChannel) ? "Channels" : suspensionService.CurrentlySelectedChannel)
+                </a>
+                <ul id="channelSelectDropDown" class="dropdown-content">
+                    @foreach (var channel in suspensionService.Channels.OrderBy(x => x.ChannelName))
+                    {
+                        <li @onclick="async () => await SelectChannel(channel.ChannelName)"><a> @channel.ChannelName</a></li>
+                    }
+                </ul>
             </div>
         </div>
-        <hr />
-    }
-    <div class="row">
-        <div class="col-12">
-            @if (suspensionService.Suspensions == null)
-            {
-                @if (suspensionService.Channels != null)
-                {
-                    <div class="spinner-grow" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                }
-            }
-            else
-            {
-                if (suspensionService.Suspensions.Count == 0)
-                {
-                    <p>No suspensions yet</p>
-                }
+        <div class="col s3">
+            <div class="input-field">
+                <input class="white-text" type="date" @bind-value="selectedDate" />
+            </div>
+        </div>
+        <div class="col s3">
+            <button style="margin-top:26px;" @onclick="OpenModelForCreateSuspension" class="btn green">Create Suspension</button>
+        </div>
+    </div>
+}
 
-                @if (suspensionService.Suspensions.Any(x => x.LocalTimeStamp().Date != selectedDate.Date && !x.Audited))
-                {
-                    <div class="card bg-danger">
-                        <div class="card-body">
-                            <h5>UNAUDITED SUSPENSIONS DETECTED</h5>
-                            <ul class="list-group">
-                                @foreach (var unaudited in suspensionService.Suspensions
-                         .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                         .GroupBy(x => x.LocalTimeStamp().Date)
-                         .Select(key => key.Key)
-                         .ToList())
-                                {
-                                    <li class="list-group-item list-group-item-danger">
-                                        <button class="btn btn-primary" @onclick="() => selectedDate = unaudited.Date">@unaudited.Date.ShortFancyFormat()</button>
-                                    </li>
-                                }
-                            </ul>
+<div class="row">
+    <div class="col s12">
+        @if (suspensionService.Suspensions == null)
+        {
+            @if (suspensionService.Channels != null)
+            {
+                <Spinner />
+            }
+        }
+        else
+        {
+            if (suspensionService.Suspensions.Count == 0)
+            {
+                <p>No suspensions yet</p>
+            }
+
+            @if (suspensionService.Suspensions.Any(x => x.LocalTimeStamp().Date != selectedDate.Date && !x.Audited))
+            {
+                <div class="card red darken-3">
+                    <div class="card-content">
+                        <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
+                        <div class="collection with-header">
+                            @foreach (var unaudited in suspensionService.Suspensions
+                          .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                          .GroupBy(x => x.LocalTimeStamp().Date)
+                          .Select(key => key.Key)
+                          .ToList())
+                            {
+                                <a @onclick="() => selectedDate = unaudited.Date" class="hand-pointer collection-item">
+                                    @unaudited.Date.ShortFancyFormat()
+                                </a>
+                            }
                         </div>
                     </div>
-                }
-
-                <div class="accordion" id="suspensionsAccordion">
-                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.LocalTimeStamp().Date == selectedDate.Date).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
-                    {
-                        <SuspensionComponent suspension="suspension" counter="counter" />
-
-                        {
-                            counter++;
-                        }
-                    }
                 </div>
+
             }
-        </div>
+
+            <ul class="collapsible">
+                @foreach (var suspension in suspensionService.Suspensions.Where(x => x.LocalTimeStamp().Date == selectedDate.Date).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
+                {
+                    <SuspensionComponent suspension="suspension" counter="counter" />
+
+                    {
+                        counter++;
+                    }
+                }
+            </ul>
+        }
     </div>
 </div>
 
 <!-- Modal For InvalidReason -->
-<div class="modal fade" id="invalidReasoningModal" tabindex="-1" role="dialog" aria-labelledby="invalidReasoningModalLabel" aria-hidden="true">
-    <div class="modal-dialog bg-dark">
-        <div class="modal-content bg-dark">
-            <div class="modal-header">
-                <h5 class="modal-title" id="invalidReasoningModalLabel">Why is this Suspension Invalid?</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                @if (!string.IsNullOrEmpty(InvalidReasonErrorMessage))
-                {
-                    <p class="text-danger">@InvalidReasonErrorMessage</p>
-                }
-                <input class="form-control" type="text" @bind-value="suspensionService.CurrentInvalidationReason" />
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                <button @onclick="MarkInvalid" type="button" class="btn btn-success">Mark Invalid</button>
-            </div>
+<div class="modal" id="invalidReasoningModal">
+    <div class="modal-content">
+        <span class="modal-title">
+            Why is this Suspension Invalid?
+        </span>
+        @if (!string.IsNullOrEmpty(InvalidReasonErrorMessage))
+        {
+            <p class="text-danger">@InvalidReasonErrorMessage</p>
+        }
+        <div class="input-field">
+            <input type="text" @bind-value="suspensionService.CurrentInvalidationReason" />
         </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn red modal-close">Cancel</button>
+        <button @onclick="MarkInvalid" class="btn green">Mark Invalid</button>
     </div>
 </div>
 
 <!-- Modal For AccountLinking -->
-<div class="modal fade" id="accountLinkingModal" tabindex="-1" role="dialog" aria-labelledby="accountLinkingModalLabel" aria-hidden="true">
-    <div class="modal-dialog bg-dark">
-        <div class="modal-content bg-dark">
-            <div class="modal-header">
-                <h5 class="modal-title" id="accountLinkingModalLabel">Link another user to this suspension</h5>
-                <button @onclick="CloseLinkUserModal" type="button" class="close" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <label for="accountLinkReasoninput">Reason for linking</label>
-                <input class="form-control" id="accountLinkReasoninput" type="text" @bind-value="suspensionService.UserLinkReason" />
-
-                <label for="accountLinkingUserInput">Search For a User</label>
-                <input id="accountLinkingUserInput" class="form-control" type="text" @bind-value="suspensionService.CurrentSearchTerm" />
-                @if (suspensionService.UsersFromChannel != null)
-                {
-                    @foreach (var userName in suspensionService.UsersFromChannel)
-                    {
-                        <button @onclick="async _ => await LinkUserToSuspensions(userName)" class="btn btn-secondary">@userName</button>
-                    }
-                }
-            </div>
-            <div class="modal-footer">
-                <button @onclick="CloseLinkUserModal" type="button" class="btn btn-danger">Cancel</button>
-            </div>
+<div class="modal" id="accountLinkingModal">
+    <div class="modal-content">
+        <span class="modal-title">Link another user to this suspension</span>
+        <div class="input-field">
+            <input id="accountLinkReasoninput" type="text" @bind-value="suspensionService.UserLinkReason" />
+            <label for="accountLinkReasoninput">Reason for linking</label>
         </div>
+        <div class="input-field">
+            <input id="accountLinkingUserInput" type="text" @bind-value="suspensionService.CurrentSearchTerm" />
+            <label for="accountLinkingUserInput">Search For a User</label>
+        </div>
+        @if (suspensionService.UsersFromChannel != null)
+        {
+            @foreach (var userName in suspensionService.UsersFromChannel)
+            {
+                <button @onclick="async _ => await LinkUserToSuspensions(userName)" class="btn grey darken-3">@userName</button>
+            }
+        }
+    </div>
+    <div class="modal-footer">
+        <button @onclick="CloseLinkUserModal" class="btn red modal-close">Cancel</button>
     </div>
 </div>
 
 <!-- Modal For CreateSuspension -->
-<div class="modal fade" id="createSuspensionModal" tabindex="-1" role="dialog" aria-labelledby="createSuspensionModalLabel" aria-hidden="true">
-    <div class="modal-dialog bg-dark">
-        <div class="modal-content bg-dark">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createSuspensionModalLabel">Create a suspension</h5>
-                <button type="button" class="close" @onclick="CloseModelForCreateSuspension" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <label for="createSuspensionUsernameInput">Twitch Username</label>
-                <input id="createSuspensionUsernameInput" class="form-control" type="text" @bind-value="UsernameForNewSuspension" />
-            </div>
-            <div class="modal-footer">
-                <button @onclick="CloseModelForCreateSuspension" type="button" class="btn btn-danger">Cancel</button>
-                <button @onclick="CreateNewSuspension" type="button" class="btn btn-success">Create</button>
-            </div>
+<div class="modal" id="createSuspensionModal">
+    <div class="modal-content">
+        <span class="modal-title">Create a suspension</span>
+
+        <div class="input-field">
+            <label for="createSuspensionUsernameInput">Twitch Username</label>
+            <input id="createSuspensionUsernameInput" type="text" @bind-value="UsernameForNewSuspension" />
         </div>
+    </div>
+    <div class="modal-footer">
+        <button @onclick="CloseModelForCreateSuspension" class="btn red modal-close">Cancel</button>
+        <button @onclick="CreateNewSuspension" class="btn green">Create</button>
     </div>
 </div>
 
+
 <!-- Modal For SuspensionImages -->
-<div class="modal fade" id="suspensionImagesModal" tabindex="-1" role="dialog" aria-labelledby="suspensionImagesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl bg-dark text-center">
-        <div class="modal-content bg-dark">
-            <div class="modal-header">
-                <h5 class="modal-title" id="suspensionImagesModalLabel">Images for suspension</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                @if (suspensionService.CurrentlySelectedSuspensionForImages != null)
+<div class="modal" id="suspensionImagesModal">
+    <div class="modal-content">
+        <span class="modal-header">Images for suspension</span>
+        <div class="modal-body">
+            @if (suspensionService.CurrentlySelectedSuspensionForImages != null)
+            {
+                foreach (var imageUrl in suspensionService.CurrentlySelectedSuspensionForImages.Images)
                 {
-                    foreach (var imageUrl in suspensionService.CurrentlySelectedSuspensionForImages.Images)
-                    {
-                        <img class="img-fluid" src="@imageUrl" />
-                    }
+                    <img src="@imageUrl" />
                 }
-            </div>
-            <div class="modal-footer">
-                <button data-dismiss="modal" type="button" class="btn btn-danger">Cancel</button>
-            </div>
+            }
         </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn red modal-close">Cancel</button>
     </div>
 </div>
 
@@ -282,6 +258,13 @@
         tagService.OnChange += UpdateUi;
         await tagService.Initialize();
         await suspensionService.Initialize();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+        await jsRuntime.InvokeVoidAsync("InitCollapsibles");
+        await jsRuntime.InvokeVoidAsync("InitTooltips");
     }
 
     private void UpdateUi()
