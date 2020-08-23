@@ -5,77 +5,83 @@
 
 <AdminOnlyComponent></AdminOnlyComponent>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            @if (tagService.Tags == null)
-            {
-                <div class="spinner-grow" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-            }
-            else
-            {
-                <table class="table table-dark">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">Tags</th>
-                            <th scope="col">Description</th>
-                            <th scope="col">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
-                        {
-                            <tr>
-                                <td>
-                                    @tag.TagName
-                                </td>
-                                <td>
-                                    @tag.TagDescription
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button class="btn btn-primary" @onclick="_ => PrimeForEdit(tag.TagId)">Edit</button>
-                                        <button class="btn btn-danger btn-sm" @onclick="async _ => await tagService.DeleteTag(tag.TagId)">Delete</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-
+<div class="row">
+    <div class="col-12">
+        @if (tagService.Tags == null)
+        {
+            <Spinner />
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Tags</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (updateTagId != default)
+                    {
                         <tr>
                             <td>
-                                <input class="form-control" @onkeyup="PressedEnterNew" placeholder="Tag name" type="text" @bind-value="newTagName" />
+                                <div class="input-field">
+                                    <input id="tagNameUpdate" class="white-text" @onkeyup="PressedEnterUpdate" type="text" @bind-value="updateTagName" />
+                                    <label for="tagNameUpdate">Tag Name</label>
+                                </div>
                             </td>
                             <td>
-                                <input class="form-control" @onkeyup="PressedEnterNew" placeholder="Description" type="text" @bind-value="newTagDescription" />
+                                <div class="input-field">
+                                    <input id="tagDescriptionUpdate" class="white-text" @onkeyup="PressedEnterUpdate" type="text" @bind-value="updateTagDescription" />
+                                    <label for="tagDescriptionUpdate">Description</label>
+                                </div>
                             </td>
                             <td>
-                                <button @onclick="AddNewTag" class="btn btn-success">Add</button>
+                                <div class="btn-group">
+                                    <button @onclick="UpdateTag" class="waves-effect waves-light btn green">Update</button>
+                                    <button @onclick="CancelUpdate" class="waves-effect waves-light btn red">Cancel</button>
+                                </div>
                             </td>
                         </tr>
-                        @if (updateTagId != default)
-                        {
-                            <tr>
-                                <td>
-                                    <input class="form-control" @onkeyup="PressedEnterUpdate" placeholder="Tag name" type="text" @bind-value="updateTagName" />
-                                </td>
-                                <td>
-                                    <input class="form-control" @onkeyup="PressedEnterUpdate" placeholder="Description" type="text" @bind-value="updateTagDescription" />
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button @onclick="UpdateTag" class="btn btn-primary">Update</button>
-                                        <button @onclick="CancelUpdate" class="btn btn-danger">Cancel</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-        </div>
+                    }
+                    <tr>
+                        <td>
+                            <div class="input-field">
+                                <input id="tagNameCreate" @onkeyup="PressedEnterNew" type="text" @bind-value="newTagName" />
+                                <label for="tagNameCreate">Tag Name</label>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-field">
+                                <input id="tagDescriptionCreate" @onkeyup="PressedEnterNew" type="text" @bind-value="newTagDescription" />
+                                <label for="tagDescriptionCreate">Description</label>
+                            </div>
+                        </td>
+                        <td>
+                            <button @onclick="AddNewTag" class="waves-effect waves-light btn green">Add</button>
+                        </td>
+                    </tr>
+                    @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
+                    {
+                        <tr>
+                            <td>
+                                @tag.TagName
+                            </td>
+                            <td>
+                                @tag.TagDescription
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="waves-effect waves-light btn" @onclick="_ => PrimeForEdit(tag.TagId)">Edit</button>
+                                    <button class="waves-effect waves-light btn red" @onclick="async _ => await tagService.DeleteTag(tag.TagId)">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     </div>
 </div>
 

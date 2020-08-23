@@ -1,0 +1,54 @@
+﻿@inject IUserService userService
+@inject IJSRuntime jsRuntime
+@implements IDisposable
+
+@if (userService.IsUserAdmin && adminChannelService.Channels != null && channelService.Channel != null)
+{
+    <div class="row">
+        <div class="col s12">
+            <a class="dropdown-trigger btn" data-target="channelSelectDropDown" style="width:200px;margin-top:26px;">
+                @(string.IsNullOrEmpty(channelService.Channel.ChannelName) ? "Channels" : channelService.Channel.ChannelName)
+            </a>
+
+            <ul id="channelSelectDropDown" class="dropdown-content">
+                @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
+                {
+                    <li @onclick="async () => await channelService.ChangeChannel(channel.ChannelName)"><a> @channel.ChannelName</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public IAdminChannelService adminChannelService { get; set; }
+
+    [Parameter]
+    public IUserChannelService channelService { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        channelService.OnChange += async () => await UpdateView();
+        adminChannelService.OnChange += async () => await UpdateView();
+        userService.OnChange += async () => await UpdateView();
+
+
+        await channelService.Initialize();
+        await adminChannelService.Initialize();
+    }
+
+    private async Task UpdateView()
+    {
+        StateHasChanged();
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+    }
+
+    public void Dispose()
+    {
+        channelService.OnChange -= async () => await UpdateView();
+        adminChannelService.OnChange -= async () => await UpdateView();
+        userService.OnChange -= async () => await UpdateView();
+    }
+
+}

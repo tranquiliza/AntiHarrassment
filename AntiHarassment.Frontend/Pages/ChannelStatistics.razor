@@ -6,82 +6,75 @@
 
 @page "/channelstatistics"
 
-<div class="container-fluid">
-    @if (userService.IsUserAdmin)
-    {
-        <div class="row">
-            <div class="col-12">
-                @if (adminChannelService.Channels != null)
+@if (userService.IsUserAdmin && adminChannelService.Channels != null)
+{
+    <div class="row">
+        <div class="col s12">
+            <a class="dropdown-trigger btn" data-target="channelSelectDropDown" style="width:200px;margin-top:26px;">
+                @(string.IsNullOrEmpty(channelStatisticsService.CurrentlySelectedChannel) ? "Channels" : channelStatisticsService.CurrentlySelectedChannel)
+            </a>
+
+            <ul id="channelSelectDropDown" class="dropdown-content">
+                @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
                 {
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            @(string.IsNullOrEmpty(channelStatisticsService.CurrentlySelectedChannel) ? "Channels" : channelStatisticsService.CurrentlySelectedChannel)
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
-                            @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
-                            {
-                                <button @onclick="async () => await ChangeChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
-                            }
-                        </div>
-                    </div>
+                    <li @onclick="async () => await ChangeChannel(channel.ChannelName)"><a>@channel.ChannelName</a></li>
                 }
+            </ul>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-12">
+            <p>
+                ChannelName: @channelStatisticsService.CurrentlySelectedChannel
+            </p>
+        </div>
+    </div>
+}
 
-            </div>
+@if (channelStatisticsService.ChannelReportModel == null)
+{
+    <p>No suspensions yet :)</p>
+}
+else
+{
+    <div class="row">
+        <div class="col s9">
+            <canvas id="overallChart"></canvas>
         </div>
-    }
-    else
-    {
-        <div class="row">
-            <div class="col-12">
-                <p>
-                    ChannelName: @channelStatisticsService.CurrentlySelectedChannel
-                </p>
-            </div>
+        <div class="col s3">
+            <h5>User statistics</h5>
+            <ul>
+                <li>Unique Users Seen: @channelStatisticsService.ChannelReportModel.UniqueUsers</li>
+                <li>Unique Users Suspended: @channelStatisticsService.ChannelReportModel.UniqueUsersSuspensions</li>
+                <li>Of which are Bans: @channelStatisticsService.ChannelReportModel.UniqueUsersBan</li>
+                <li>Of which are Timeouts: @channelStatisticsService.ChannelReportModel.UniqueUsersTimeout</li>
+            </ul>
+            <h5>Suspension Statistics</h5>
+            <ul>
+                <li>Total Suspensions: @channelStatisticsService.ChannelReportModel.TotalSuspensions</li>
+                <li>Of which Bans: @channelStatisticsService.ChannelReportModel.TotalBans</li>
+                <li>Of which Timeouts: @channelStatisticsService.ChannelReportModel.TotalTimeouts</li>
+            </ul>
         </div>
-    }
+    </div>
 
-    @if (channelStatisticsService.ChannelReportModel == null)
-    {
-        <p>No suspensions yet :)</p>
-    }
-    else
-    {
-        <div class="row">
-            <div class="col-9">
-                <canvas id="overallChart"></canvas>
-            </div>
-            <div class="col-3">
-                <h5>User statistics</h5>
-                <ul>
-                    <li>Unique Users Seen: @channelStatisticsService.ChannelReportModel.UniqueUsers</li>
-                    <li>Unique Users Suspended: @channelStatisticsService.ChannelReportModel.UniqueUsersSuspensions</li>
-                    <li>Of which are Bans: @channelStatisticsService.ChannelReportModel.UniqueUsersBan</li>
-                    <li>Of which are Timeouts: @channelStatisticsService.ChannelReportModel.UniqueUsersTimeout</li>
-                </ul>
-                <h5>Suspension Statistics</h5>
-                <ul>
-                    <li>Total Suspensions: @channelStatisticsService.ChannelReportModel.TotalSuspensions</li>
-                    <li>Of which Bans: @channelStatisticsService.ChannelReportModel.TotalBans</li>
-                    <li>Of which Timeouts: @channelStatisticsService.ChannelReportModel.TotalTimeouts</li>
-                </ul>
-            </div>
+    <div class="row">
+        <div class="col s12">
+            <canvas id="chartForTags"></canvas>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <canvas id="chartForTags"></canvas>
-            </div>
-        </div>
-    }
-</div>
+    </div>
+}
 
 
 @code {
     protected override async Task OnInitializedAsync()
     {
-        channelStatisticsService.OnChange += StateHasChanged;
-        userService.OnChange += StateHasChanged;
-        adminChannelService.OnChange += StateHasChanged;
+        channelStatisticsService.OnChange += async () => await UpdateView();
+        userService.OnChange += async () => await UpdateView();
+        adminChannelService.OnChange += async () => await UpdateView();
 
         await channelStatisticsService.Initialize();
         await adminChannelService.Initialize();
@@ -110,10 +103,16 @@
         await jsRuntime.InvokeVoidAsync("AddDataToTagsGraph", channelStatisticsService.ChannelReportModel.TagAppearances.OrderByDescending(x => x.Count));
     }
 
+    private async Task UpdateView()
+    {
+        StateHasChanged();
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+    }
+
     public void Dispose()
     {
-        channelStatisticsService.OnChange -= StateHasChanged;
-        userService.OnChange -= StateHasChanged;
-        adminChannelService.OnChange -= StateHasChanged;
+        channelStatisticsService.OnChange -= async () => await UpdateView();
+        userService.OnChange -= async () => await UpdateView();
+        adminChannelService.OnChange -= async () => await UpdateView();
     }
 }

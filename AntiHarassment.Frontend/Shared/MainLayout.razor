@@ -4,32 +4,28 @@
 
 @if (userService.IsUserLoggedIn)
 {
-    <NavMenu />
+    <main>
+        <NavMenu />
 
-    <div class="container-fluid">
-        <div class="row">
-
-            <SideMenu />
-
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    @Body
-                </div>
-            </main>
+        <div style="margin-left:32px;">
+            @Body
         </div>
-    </div>
+
+    </main>
+    <SideMenu />
 }
 else
 {
-    <div class="container">
-        <div class="row">
-            <div class="col-6 offset-3 text-center">
-                <img width="400" height="400" src="/AntiHarassmentLogo.png" />
-                <h1>ANTI HARASSMENT SYSTEM</h1>
+    <div class="section no-pad-bot">
+        <div class="container">
+            <br />
+            <div class="row">
+                <div class="center">
+                    <img class="center-align" width="350" height="350" src="/AntiHarassmentLogo.png" />
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-6 offset-3">
+            <h2 class="header center blue-text">ANTI HARASSMENT SYSTEM</h2>
+            <div class="row">
                 <LoginComponent></LoginComponent>
             </div>
         </div>
@@ -41,6 +37,7 @@ else
     {
         userService.OnChange += StateHasChanged;
         await userService.Initialize();
+
     }
 
     public void Dispose()

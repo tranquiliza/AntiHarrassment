@@ -1,78 +1,51 @@
 ﻿@inject IUserChannelService channelService
 @inject IAdminChannelService adminChannelService
 @inject IUserService userService
+@inject IJSRuntime jsRuntime
 @implements IDisposable
 
 @page "/chatlogs"
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            @if (userService.IsUserAdmin)
-            {
-                @if (adminChannelService.Channels != null && channelService.Channel != null)
-                {
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="channelSelectMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            @(string.IsNullOrEmpty(channelService.Channel.ChannelName) ? "Channels" : channelService.Channel.ChannelName)
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="channelSelectMenu">
-                            @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
-                            {
-                                <button @onclick="async () => await channelService.ChangeChannel(channel.ChannelName)" class="dropdown-item" type="button">@channel.ChannelName</button>
-                            }
-                        </div>
-                    </div>
-                    <hr />
-                }
-            }
-        </div>
-    </div>
+<AdminChannelChanger adminChannelService="adminChannelService" channelService="channelService" />
 
-
-    <div class="row">
-        <div class="col-12">
-            <div class="card bg-dark">
-                <div class="card-body bg-dark">
-                    <div class="row">
-                        <div class="col-12">
-                            <h5 class="card-header">Download Chatlogs</h5>
+<div class="row">
+    <div class="col s12">
+        <div class="card grey darken-3">
+            <div class="card-content">
+                <span class="card-title">Download Chatlogs</span>
+                <div class="row">
+                    <div class="col s3">
+                        <div class="input-field">
+                            <input class="white-text datepicker" @bind-value="earliestTime" id="earliestTime" type="text" />
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-3">
-                            <label for="earliestTime">From</label>
-                            <input @onfocusout="DownloadPreview" class="form-control" @bind-value="earliestTime" id="earliestTime" type="datetime-local" />
-                        </div>
-                        <div class="col-3">
-                            <label for="latestTime">To</label>
-                            <input @onfocusout="DownloadPreview" class="form-control" @bind-value="latestTime" id="latestTime" type="datetime-local" />
+                    <div class="col s3">
+                        <div class="input-field">
+                            <input class="white-text datepicker" @bind-value="latestTime" id="latestTime" type="text" />
                         </div>
                     </div>
-                    <hr />
-                    <ul class="list-group bg-dark" style="max-height:50vh; overflow:auto;">
-                        @foreach (var message in ChatLogPreview)
-                        {
-                            if (message.AutoModded)
-                            {
-                                <li class="list-group-item text-danger bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
-                            }
-                            else
-                            {
-                                <li class="list-group-item bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
-                            }
-                        }
-                    </ul>
-                    <hr />
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="btn-group">
-                                <button class="btn btn-primary btn-sm" @onclick="async _ => await DownloadLog(true)">Download csv</button>
-                                <button class="btn btn-secondary btn-sm" @onclick="async _ => await DownloadLog(false)">Download json</button>
-                            </div>
-                        </div>
+                    <div class="col s3">
+                        <button class="btn" @onclick="DownloadPreview">Download Preview</button>
                     </div>
                 </div>
+                <hr />
+                <ul style="max-height:50vh; overflow:auto;">
+                    @foreach (var message in ChatLogPreview)
+                    {
+                        if (message.AutoModded)
+                        {
+                            <li class="list-group-item text-danger bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
+                        }
+                        else
+                        {
+                            <li class="list-group-item bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
+                        }
+                    }
+                </ul>
+            </div>
+            <div class="card-action">
+                <button class="btn" @onclick="async _ => await DownloadLog(true)">Download csv</button>
+                <button class="btn grey darken-3" @onclick="async _ => await DownloadLog(false)">Download json</button>
             </div>
         </div>
     </div>
@@ -112,7 +85,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        channelService.OnChange += ChangedChannel;
+        channelService.OnChange += async () => await ChangedChannel();
         adminChannelService.OnChange += StateHasChanged;
         userService.OnChange += StateHasChanged;
         await channelService.Initialize();
@@ -121,16 +94,20 @@
         latestTime = DateTime.Now;
     }
 
-    private void ChangedChannel()
+    private async Task ChangedChannel()
     {
         ChatLogPreview = new List<ChatMessageModel>();
 
+        earliestTime = DateTime.Now.AddDays(-1);
+        latestTime = DateTime.Now;
+
+        await jsRuntime.InvokeVoidAsync("InitDatePickers");
         StateHasChanged();
     }
 
     public void Dispose()
     {
-        channelService.OnChange -= ChangedChannel;
+        channelService.OnChange -= async () => await ChangedChannel();
         adminChannelService.OnChange -= StateHasChanged;
         userService.OnChange -= StateHasChanged;
     }
