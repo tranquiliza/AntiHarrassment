@@ -189,5 +189,16 @@ namespace AntiHarassment.Sql
                 throw;
             }
         }
+
+        // TODO Remove In V1.7.0
+        public async Task MigrateSuspensionsToNewDataModel()
+        {
+            var allSuspensions = await GetSuspensions(DateTime.UtcNow.AddYears(-1)).ConfigureAwait(false);
+            foreach (var sus in allSuspensions)
+            {
+                sus.MigrateData();
+                await Save(sus).ConfigureAwait(false);
+            }
+        }
     }
 }

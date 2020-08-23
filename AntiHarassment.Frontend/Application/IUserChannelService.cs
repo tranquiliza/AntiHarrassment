@@ -21,5 +21,6 @@ namespace AntiHarassment.Frontend.Application
         Task RemoveChannelRule(Guid ruleId);
         Task UpdateChannelRule(UpdateChannelRuleModel model, Guid ruleId);
         Task UpdateSystemModeratorState(bool systemIsModerator);
+        Task<List<ChatMessageModel>> DownloadChatLogsForPreview(DateTime earliestTime, DateTime latestTime);
     }
 }

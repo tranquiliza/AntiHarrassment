@@ -134,14 +134,14 @@ namespace AntiHarassment.Core
             return Result<Suspension>.Succeeded(suspension);
         }
 
-        public async Task<IResult<Suspension>> AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context)
+        public async Task<IResult<Suspension>> AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, string userLinkReason, IApplicationContext context)
         {
             var fetch = await RetrieveSuspensionAndCheckAccess(suspensionId, context).ConfigureAwait(false);
             if (fetch.State != ResultState.Success)
                 return fetch;
 
             var suspension = fetch.Data;
-            suspension.AddUserLink(twitchUsername, context, datetimeProvider.UtcNow);
+            suspension.AddUserLink(twitchUsername, userLinkReason, context, datetimeProvider.UtcNow);
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);

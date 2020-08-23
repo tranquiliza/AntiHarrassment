@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AntiHarassment.Chatlistener.Core;
+using AntiHarassment.Core;
 using Microsoft.Extensions.Hosting;
 
 namespace AntiHarassment.Chatlistener
@@ -11,24 +12,18 @@ namespace AntiHarassment.Chatlistener
     public class ChatlistenerWorker : BackgroundService
     {
         private readonly IChatlistenerService chatlistenerService;
+        private readonly ISuspensionRepository suspensionRepository;
 
-        public ChatlistenerWorker(IChatlistenerService chatlistenerService)
+        public ChatlistenerWorker(IChatlistenerService chatlistenerService, ISuspensionRepository suspensionRepository)
         {
             this.chatlistenerService = chatlistenerService;
-        }
-
-        public override Task StartAsync(CancellationToken cancellationToken)
-        {
-            return base.StartAsync(cancellationToken);
-        }
-
-        public override Task StopAsync(CancellationToken cancellationToken)
-        {
-            return base.StopAsync(cancellationToken);
+            this.suspensionRepository = suspensionRepository;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // TODO Remove in Version 1.7.0
+            await suspensionRepository.MigrateSuspensionsToNewDataModel().ConfigureAwait(false);
             await chatlistenerService.ConnectAndJoinChannels().ConfigureAwait(false);
         }
     }

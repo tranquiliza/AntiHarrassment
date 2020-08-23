@@ -2,139 +2,137 @@
 @inject ITagService tagService
 @inject IJSRuntime jsRuntime
 
-<div class="card bg-dark">
-    <div class="card-header">
-        <button class="btn @SelectButtonColor(suspension) btn-block text-left collapsed text-light" type="button" data-toggle="collapse" data-target="@("#suspension"+counter)" aria-expanded="false">
-            @suspension.LocalTimeStamp().FancyFormat() -
-            <b>@suspension.Username</b>
-            <span class="badge @SelectColorForText(suspension)">
-                @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
-                @suspension.SuspensionType.ToString()
-            </span>
+<li>
+    <div style="padding:0; padding-left:6px;" class="collapsible-header @SelectButtonColor(suspension)">
+        <p>
+            @suspension.LocalTimeStamp().FancyFormat() - <b>@suspension.Username</b>
+        </p>
+        <div style="margin-top:12px; margin-left:8px;" class="chip @SelectColorForText(suspension)">
+            @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+            @suspension.SuspensionType.ToString()
+        </div>
 
-            @if (suspension.SuspensionSource == SuspensionSourceModel.User)
-            {
-                <span class="badge badge-warning">
-                    <b class="text-danger">MANUAL</b>
-                </span>
-            }
+        @switch (suspension.SuspensionSource)
+        {
+            case SuspensionSourceModel.User:
 
-            @if (suspension.SuspensionSource == SuspensionSourceModel.System)
-            {
-                <span class="badge badge-danger">
-                    <b class="text-warning">SYSTEM</b>
-                </span>
-                @suspension.SystemReason
-            }
-        </button>
-    </div>
-    <div id="@("suspension"+counter)" class="collapse" data-parent="#suspensionsAccordion">
-        <div class="card-body" style="min-height:60vh">
-            <div class="row">
-                <div class="col">
-                    <div class="btn-group">
-                        <div class="col-12">
-                            @if (suspension.InvalidSuspension)
-                            {
-                                <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn btn-success btn-sm">Mark Valid</button>
-                            }
-                            else
-                            {
-                                <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn btn-danger btn-sm">Mark Invalid</button>
-                            }
-
-                            @if (suspension.Audited)
-                            {
-                                <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn btn-danger btn-sm">Mark as Unaudited</button>
-                            }
-                            else
-                            {
-                                <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn btn-success btn-sm">Mark as Audited</button>
-                                <button @onclick="async _ => await OpenLinkUserModal(suspension.SuspensionId)" class="btn btn-warning btn-sm">Link User</button>
-                            }
-                            <a class="btn btn-primary btn-sm" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
-                            <button class="btn btn-secondary btn-sm" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
-                            @if (suspension.Images.Count > 0)
-                            {
-                                <button class="btn btn-primary btn-sm" @onclick="SelectSuspensionAndShowModal">Show Images</button>
-                            }
-                        </div>
-                    </div>
+                <div style="margin-top:12px;" class="chip yellow">
+                    MANUAL
                 </div>
-                @if (!suspension.Audited)
-                {
-                    <div class="col">
-                        <InputFile class="btn btn-secondary btn-sm" multiple OnChange="LoadFileIntoMemory" />
-                        <button class="btn btn-secondary btn-sm" disabled="@uploadDisabled" @onclick="UploadSelectedImages">Upload</button>
-                    </div>
-                }
-            </div>
-            <hr />
-            @foreach (var tag in suspension.Tags)
-            {
-                <span class="badge badge-secondary" data-placement="right" title="@tag.TagDescription">
-                    @tag.TagName
-                    @if (!suspension.Audited)
-                    {
-                        <button class="btn btn-sm" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">x</button>
-                    }
-                </span>
-            }
-
-            @if (tagService.Tags != null && !suspension.Audited)
-            {
-                <div class="btn-group">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="@("tagSelectMenu"+counter)" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Tags
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="@("#tagSelectMenu"+counter)">
-                        @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
-                        {
-                            <button @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)" class="dropdown-item" type="button" data-placement="right" title="@tag.TagDescription">@tag.TagName</button>
-                        }
-                    </div>
+                break;
+            case SuspensionSourceModel.System:
+                <div style="margin-top:12px;" class="chip red yellow-text">
+                    SYSTEM
                 </div>
-                <hr />
-            }
-
-            @if (suspension.LinkedUsernames.Count != 0)
-            {
                 <p>
-                    <b>Linked Usernames</b>
+                    @suspension.SystemReason
                 </p>
-                @foreach (var username in suspension.LinkedUsernames)
-                {
-                    <span class="badge badge-danger">
-                        @username
-                        @if (!suspension.Audited)
-                        {
-                            <button class="btn btn-sm" @onclick="async _ => await suspensionService.RemoveUserLinkFromSuspension(suspension.SuspensionId, username)">x</button>
-                        }
-                    </span>
-                }
-            }
+                break;
 
-            @if (suspension.InvalidSuspension && !string.IsNullOrEmpty(suspension.InvalidationReason))
-            {
-                <p class="text-danger"><b>Invalid Because:</b> @suspension.InvalidationReason</p>
-                <hr />
-            }
+            case SuspensionSourceModel.Listener:
+            default:
+                break;
+        }
+    </div>
 
-            @foreach (var message in suspension.Messages)
-            {
-                @if (message.AutoModded)
+    <div class="collapsible-body">
+        <div class="row">
+            <div class="col s8">
+                @if (suspension.InvalidSuspension)
                 {
-                    <p class="text-danger"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn green">Mark Valid</button>
                 }
                 else
                 {
-                    <p><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn red">Mark Invalid</button>
                 }
 
+                @if (suspension.Audited)
+                {
+                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn red">Mark as Unaudited</button>
+                }
+                else
+                {
+                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn green">Mark as Audited</button>
+                    <button @onclick="async _ => await OpenLinkUserModal(suspension.SuspensionId)" class="btn yellow grey-text text-darken-3">Link User</button>
+                }
+                <a class="btn" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
+                <button class="btn grey darken-3" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
+                @if (suspension.Images.Count > 0)
+                {
+                    <button class="btn" @onclick="SelectSuspensionAndShowModal">Show Images</button>
+                }
+            </div>
+            @if (!suspension.Audited)
+            {
+                <div class="col s4">
+                    <InputFile multiple OnChange="LoadFileIntoMemory" />
+                    <button class="btn grey darken-3" disabled="@uploadDisabled" @onclick="UploadSelectedImages">Upload</button>
+                </div>
             }
         </div>
+        <div class="row">
+            @foreach (var tag in suspension.Tags)
+            {
+                <div class="chip @(string.IsNullOrEmpty(tag.TagDescription) ? "" : "tooltipped")" data-position="bottom" data-tooltip="@tag.TagDescription">
+                    @tag.TagName
+                    @if (!suspension.Audited)
+                    {
+                        <i class="xclose material-icons" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">close</i>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (tagService.Tags != null && !suspension.Audited)
+        {
+            <a class="dropdown-trigger btn" data-target="@("tagSelectMenu"+counter)" style="width:200px;">Tags</a>
+            <ul class='dropdown-content' id="@("tagSelectMenu"+counter)">
+                @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
+                {
+                    <li class="@(string.IsNullOrEmpty(tag.TagDescription) ? "": "tooltipped")" data-position="right" data-tooltip="@tag.TagDescription" @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)"><a>@tag.TagName</a></li>
+                }
+            </ul>
+        }
+
+        @if (suspension.LinkedUsers.Count != 0)
+        {
+            <div class="row">
+                <p>Linked Usernames:</p>
+                @foreach (var linkedUser in suspension.LinkedUsers)
+                {
+                    <div class="chip red tooltipped" data-position="bottom" data-tooltip="@linkedUser.Reason">
+                        @linkedUser.Username
+                        @if (!suspension.Audited)
+                        {
+                            <i class="xclose material-icons" @onclick="async _ => await suspensionService.RemoveUserLinkFromSuspension(suspension.SuspensionId, linkedUser.Username)">close</i>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @if (suspension.InvalidSuspension && !string.IsNullOrEmpty(suspension.InvalidationReason))
+        {
+            <p class="red-text"><b>Invalid Because:</b> @suspension.InvalidationReason</p>
+        }
+
+        @foreach (var message in suspension.Messages)
+        {
+            @if (message.AutoModded)
+            {
+                <p class="red-text"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+            }
+            else
+            {
+                <p><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+            }
+
+        }
     </div>
-</div>
+</li>
+
+
 
 @code {
     [Parameter]
@@ -199,33 +197,33 @@
     {
         if (suspension.Audited && suspension.InvalidSuspension)
         {
-            return "btn-secondary";
+            return "grey darken-3";
         }
         if (suspension.Audited && !suspension.InvalidSuspension)
         {
-            return "btn-success";
+            return "green";
         }
         if (!suspension.Audited && suspension.InvalidSuspension)
         {
-            return "btn-danger";
+            return "red darken-3";
         }
         if (!suspension.Audited && !suspension.InvalidSuspension)
         {
-            return "btn-warning";
+            return "orange grey-text text-darken-3";
         }
 
-        return "btn-secondary";
+        return "grey darken-3";
     }
 
     private string SelectColorForText(SuspensionModel suspension)
     {
         if (suspension.SuspensionType == SuspensionTypeModel.Ban)
         {
-            return "text-danger";
+            return "red-text";
         }
         else
         {
-            return "text-primary";
+            return "blue-text";
         }
     }
 
@@ -259,6 +257,7 @@
         // Yes this is trash code, but not sure how else to do it
         if (tagId == Guid.Parse("7A1694E6-5418-4FB6-9347-093AEE2AA4A9"))
         {
+            suspensionService.UserLinkReason = "Ban Evasion";
             await OpenLinkUserModal(suspensionId);
         }
 
@@ -279,6 +278,11 @@
 
         await Task.Delay(800);
         CopyUsernameButtonText = "Copy Username";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
     }
 }
 

@@ -6,65 +6,60 @@
 
 <AdminOnlyComponent></AdminOnlyComponent>
 
-<div class="container-fluid">
-    @if (systemReportService.SystemReportModel == null)
-    {
-        <div class="spinner-grow" role="status">
-            <span class="sr-only">Loading...</span>
+@if (systemReportService.SystemReportModel == null)
+{
+    <Spinner />
+}
+else
+{
+    <div class="row">
+        <div class="col s9">
+            <canvas id="systemOverallChart"></canvas>
         </div>
-    }
-    else
-    {
-        <div class="row">
-            <div class="col-9">
-                <canvas id="systemOverallChart"></canvas>
-            </div>
-            <div class="col-3">
-                <h5>User statistics</h5>
-                <ul>
-                    <li>Unique Users Seen: @systemReportService.SystemReportModel.UniqueUsers</li>
-                    <li>Unique Users Suspended: @systemReportService.SystemReportModel.ValidUniqueUsersSuspensions</li>
-                    <li>Of which are Bans: @systemReportService.SystemReportModel.ValidUniqueUsersBan</li>
-                    <li>Of which are Timeouts: @systemReportService.SystemReportModel.ValidUniqueUsersTimeout</li>
-                </ul>
-                <h5>Suspension Statistics</h5>
-                <ul>
-                    <li>Unaudited Suspensions: @systemReportService.SystemReportModel.UnauditedSuspensionsCount</li>
-                    <li>Total Suspensions: @systemReportService.SystemReportModel.ValidTotalSuspensions</li>
-                    <li>Of which Bans: @systemReportService.SystemReportModel.ValidTotalBans</li>
-                    <li>Of which Timeouts: @systemReportService.SystemReportModel.ValidTotalTimeouts</li>
-                </ul>
-            </div>
+        <div class="col s3">
+            <h5>User statistics</h5>
+            <ul>
+                <li>Unique Users Seen: @systemReportService.SystemReportModel.UniqueUsers</li>
+                <li>Unique Users Suspended: @systemReportService.SystemReportModel.ValidUniqueUsersSuspensions</li>
+                <li>Of which are Bans: @systemReportService.SystemReportModel.ValidUniqueUsersBan</li>
+                <li>Of which are Timeouts: @systemReportService.SystemReportModel.ValidUniqueUsersTimeout</li>
+            </ul>
+            <h5>Suspension Statistics</h5>
+            <ul>
+                <li>Unaudited Suspensions: @systemReportService.SystemReportModel.UnauditedSuspensionsCount</li>
+                <li>Total Suspensions: @systemReportService.SystemReportModel.ValidTotalSuspensions</li>
+                <li>Of which Bans: @systemReportService.SystemReportModel.ValidTotalBans</li>
+                <li>Of which Timeouts: @systemReportService.SystemReportModel.ValidTotalTimeouts</li>
+            </ul>
         </div>
+    </div>
 
-        <div class="row">
-            <div class="col-9">
-                <canvas id="systemInvalidOverallChart"></canvas>
-            </div>
-            <div class="col-3">
-                <h5>Invalid User statistics</h5>
-                <ul>
-                    <li>Unique Users wrongly Suspended: @systemReportService.SystemReportModel.InvalidUniqueUsersSuspensions</li>
-                    <li>Of which are Bans: @systemReportService.SystemReportModel.InvalidUniqueUsersBan</li>
-                    <li>Of which are Timeouts: @systemReportService.SystemReportModel.InvalidUniqueUsersTimeout</li>
-                </ul>
-                <h5>Invalid Suspension Statistics</h5>
-                <ul>
-                    <li>Total Invalid Suspensions: @systemReportService.SystemReportModel.InvalidTotalSuspensions</li>
-                    <li>Of which Bans: @systemReportService.SystemReportModel.InvalidTotalBans</li>
-                    <li>Of which Timeouts: @systemReportService.SystemReportModel.InvalidTotalTimeouts</li>
-                </ul>
-            </div>
+    <div class="row">
+        <div class="col s9">
+            <canvas id="systemInvalidOverallChart"></canvas>
         </div>
-
-        <div class="row">
-            <div class="col-12">
-                <canvas id="systemChartForTags"></canvas>
-            </div>
+        <div class="col s3">
+            <h5>Invalid User statistics</h5>
+            <ul>
+                <li>Unique Users wrongly Suspended: @systemReportService.SystemReportModel.InvalidUniqueUsersSuspensions</li>
+                <li>Of which are Bans: @systemReportService.SystemReportModel.InvalidUniqueUsersBan</li>
+                <li>Of which are Timeouts: @systemReportService.SystemReportModel.InvalidUniqueUsersTimeout</li>
+            </ul>
+            <h5>Invalid Suspension Statistics</h5>
+            <ul>
+                <li>Total Invalid Suspensions: @systemReportService.SystemReportModel.InvalidTotalSuspensions</li>
+                <li>Of which Bans: @systemReportService.SystemReportModel.InvalidTotalBans</li>
+                <li>Of which Timeouts: @systemReportService.SystemReportModel.InvalidTotalTimeouts</li>
+            </ul>
         </div>
-    }
-</div>
+    </div>
 
+    <div class="row">
+        <div class="col s12">
+            <canvas id="systemChartForTags"></canvas>
+        </div>
+    </div>
+}
 
 @code {
     protected override async Task OnInitializedAsync()

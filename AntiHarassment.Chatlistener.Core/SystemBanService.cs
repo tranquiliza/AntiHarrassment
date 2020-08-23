@@ -4,6 +4,7 @@ using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,6 +27,15 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task IssueBanFor(string username, string channelToBanFrom, string systemReason)
         {
+            var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(username).ConfigureAwait(false);
+            var suspensionsForUserInChannel = suspensionsForUser.Where(x => string.Equals(x.ChannelOfOrigin, username, StringComparison.OrdinalIgnoreCase));
+
+            if (suspensionsForUserInChannel.Any(x => x.SuspensionType == SuspensionType.Ban))
+            {
+                // User has already been banned. Lets just ignore.
+                return;
+            }
+
             var suspension = Suspension.CreateSystemBan(username, channelToBanFrom, datetimeProvider.UtcNow, systemReason);
             client.BanUser(username, channelToBanFrom, systemReason);
 

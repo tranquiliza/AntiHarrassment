@@ -1,0 +1,114 @@
+﻿@inject IUserChannelService channelService
+@inject IAdminChannelService adminChannelService
+@inject IUserService userService
+@inject IJSRuntime jsRuntime
+@implements IDisposable
+
+@page "/chatlogs"
+
+<AdminChannelChanger adminChannelService="adminChannelService" channelService="channelService" />
+
+<div class="row">
+    <div class="col s12">
+        <div class="card grey darken-3">
+            <div class="card-content">
+                <span class="card-title">Download Chatlogs</span>
+                <div class="row">
+                    <div class="col s3">
+                        <div class="input-field">
+                            <input class="white-text datepicker" @bind-value="earliestTime" id="earliestTime" type="text" />
+                        </div>
+                    </div>
+                    <div class="col s3">
+                        <div class="input-field">
+                            <input class="white-text datepicker" @bind-value="latestTime" id="latestTime" type="text" />
+                        </div>
+                    </div>
+                    <div class="col s3">
+                        <button class="btn" @onclick="DownloadPreview">Download Preview</button>
+                    </div>
+                </div>
+                <hr />
+                <ul style="max-height:50vh; overflow:auto;">
+                    @foreach (var message in ChatLogPreview)
+                    {
+                        if (message.AutoModded)
+                        {
+                            <li class="list-group-item text-danger bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
+                        }
+                        else
+                        {
+                            <li class="list-group-item bg-dark">@message.LocalTimestamp() <b>@message.Username:</b> @message.Message</li>
+                        }
+                    }
+                </ul>
+            </div>
+            <div class="card-action">
+                <button class="btn" @onclick="async _ => await DownloadLog(true)">Download csv</button>
+                <button class="btn grey darken-3" @onclick="async _ => await DownloadLog(false)">Download json</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private DateTime earliestTime = DateTime.Now.AddDays(-1);
+    private DateTime latestTime = DateTime.Now;
+
+    private List<ChatMessageModel> ChatLogPreview = new List<ChatMessageModel>();
+
+    private DateTime lastFetchEarliest;
+    private DateTime lastFetchLatest;
+
+    private async Task DownloadPreview()
+    {
+        if (earliestTime == lastFetchEarliest && latestTime == lastFetchLatest)
+        {
+            return;
+        }
+
+        lastFetchEarliest = earliestTime;
+        lastFetchLatest = latestTime;
+
+        ChatLogPreview = await channelService.DownloadChatLogsForPreview(earliestTime, latestTime);
+    }
+
+    private async Task DownloadLog(bool downloadPlain)
+    {
+        if (earliestTime == default || latestTime == default)
+        {
+            return;
+        }
+
+        await channelService.DownloadChatLog(earliestTime, latestTime, downloadPlain);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        channelService.OnChange += async () => await ChangedChannel();
+        adminChannelService.OnChange += StateHasChanged;
+        userService.OnChange += StateHasChanged;
+        await channelService.Initialize();
+        await adminChannelService.Initialize();
+
+        latestTime = DateTime.Now;
+    }
+
+    private async Task ChangedChannel()
+    {
+        ChatLogPreview = new List<ChatMessageModel>();
+
+        earliestTime = DateTime.Now.AddDays(-1);
+        latestTime = DateTime.Now;
+
+        await jsRuntime.InvokeVoidAsync("InitDatePickers");
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        channelService.OnChange -= async () => await ChangedChannel();
+        adminChannelService.OnChange -= StateHasChanged;
+        userService.OnChange -= StateHasChanged;
+    }
+}

@@ -2,20 +2,14 @@
 @implements IDisposable
 
 
-<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-md-3 col-lg-2 mr-0 px-3" href="">Anti Harassment System</a>
-    <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse"
-            data-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <ul class="navbar-nav px-3">
-        <li class="nav-item text-nowrap">
-            <a @onclick="LogOut" class="nav-link hand-pointer">Sign out</a>
-        </li>
-        <li class="nav-item text-nowrap">
-            version 1.6.0
-        </li>
-    </ul>
+<nav>
+    <div class="nav-wrapper">
+        <a style="margin-left:32px;" class="brand-logo">Anti Harassment System</a>
+        <ul id="nav-mobile" class="right hide-on-small-and-down">
+            <li><a class="hand-pointer waves-effect waves-light">Version 1.6.1</a></li>
+            <li><a @onclick="LogOut" class="hand-pointer waves-effect waves-light">Sign out<i class="material-icons right">exit_to_app</i></a></li>
+        </ul>
+    </div>
 </nav>
 
 @code {

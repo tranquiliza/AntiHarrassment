@@ -20,7 +20,7 @@ namespace AntiHarassment.Contract
         public SuspensionSourceModel SuspensionSource { get; set; }
         public List<TagModel> Tags { get; set; }
         public List<ChatMessageModel> Messages { get; set; }
-        public List<string> LinkedUsernames { get; set; }
+        public List<LinkedUserModel> LinkedUsers { get; set; }
         public List<string> Images { get; set; }
     }
 }

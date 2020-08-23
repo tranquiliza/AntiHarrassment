@@ -53,7 +53,7 @@ namespace AntiHarassment.Core.Models
             return false;
         }
 
-        public List<string> AssociatatedAccounts => Suspensions.SelectMany(x => x.LinkedUsernames).Distinct().ToList();
+        public List<string> AssociatatedAccounts => Suspensions.SelectMany(x => x.LinkedUsers.Select(y => y.Username)).Distinct().ToList();
 
         public UserReport(string username, List<Suspension> suspensions)
         {

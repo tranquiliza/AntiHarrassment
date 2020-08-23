@@ -75,10 +75,12 @@ namespace AntiHarassment.Chatlistener.Core
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
-            var latest = suspensionsForUser.OrderByDescending(x => x.Timestamp).FirstOrDefault();
+            var latestForChannel = suspensionsForUser
+                .Where(x => string.Equals(x.ChannelOfOrigin, e.Channel, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(x => x.Timestamp).FirstOrDefault();
 
             var timeOfSuspension = datetimeProvider.UtcNow;
-            if (latest.Timestamp.AddMinutes(3) >= timeOfSuspension)
+            if (latestForChannel != null && latestForChannel.Timestamp.AddMinutes(3) >= timeOfSuspension)
                 return;
 
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
@@ -97,17 +99,19 @@ namespace AntiHarassment.Chatlistener.Core
             var timeOfLatestMessage = await chatRepository.GetTimeStampForLatestMessage().ConfigureAwait(false);
             var timeOfCheck = datetimeProvider.UtcNow;
             logger.LogInformation("time of latest message: {arg}, time of check: {argTwo}", timeOfLatestMessage, timeOfCheck);
-            if (timeOfLatestMessage < timeOfCheck.AddHours(-1))
+            if (timeOfLatestMessage < timeOfCheck.AddMinutes(-15))
             {
                 await client.Disconnect().ConfigureAwait(false);
-                logger.LogInformation("Client disconnected");
+                logger.LogInformation("Client Disconnected");
+
+                await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
 
                 await client.Connect().ConfigureAwait(false);
                 var channels = await channelRepository.GetChannels().ConfigureAwait(false);
                 foreach (var channel in channels.Where(x => x.ShouldListen))
                     await client.JoinChannel(channel.ChannelName).ConfigureAwait(false);
 
-                logger.LogInformation("Client reconnected");
+                logger.LogInformation("Client Reconnected and Joined");
 
                 return true;
             }

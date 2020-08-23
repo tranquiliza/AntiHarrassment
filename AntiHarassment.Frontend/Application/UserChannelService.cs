@@ -2,7 +2,6 @@
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.SignalR.Contract;
 using AntiHarassment.SignalR.Contract.EventArgs;
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
@@ -101,6 +100,8 @@ namespace AntiHarassment.Frontend.Application
             Channel = null;
             CurrentlySelectedChannelName = channelName;
             await FetchChannel().ConfigureAwait(false);
+
+            NotifyStateChanged();
         }
 
         public async Task UpdateChannelState(bool shouldListen)
@@ -154,7 +155,16 @@ namespace AntiHarassment.Frontend.Application
 
             NotifyStateChanged();
         }
-        public async Task DownloadChatLog(DateTime earliestTime, DateTime latestTime, bool downloadPlain)
+
+        public async Task<List<ChatMessageModel>> DownloadChatLogsForPreview(DateTime earliestTime, DateTime latestTime)
+        {
+            var chatlogs = await DownloadMessages(earliestTime, latestTime).ConfigureAwait(false);
+            return chatlogs ?? new List<ChatMessageModel>();
+        }
+
+        private const string dateFormat = "yyyy-MM-dd HH:mm:ss";
+
+        private async Task<List<ChatMessageModel>> DownloadMessages(DateTime earliestTime, DateTime latestTime)
         {
             var currentUniversalTime = DateTime.UtcNow;
             var currentLocalTime = DateTime.Now;
@@ -163,20 +173,22 @@ namespace AntiHarassment.Frontend.Application
             var correctedEarlyTime = earliestTime.Add(difference);
             var correctedLatestTime = latestTime.Add(difference);
 
-            const string dateFormat = "yyyy-MM-dd HH:mm:ss";
-
             var earliestParam = new QueryParam("earliestTime", correctedEarlyTime.ToString(dateFormat));
             var latestParam = new QueryParam("latestTime", correctedLatestTime.ToString(dateFormat));
 
-            var chatLogs = await apiGateway.Get<List<ChatMessageModel>>(
+            return await apiGateway.Get<List<ChatMessageModel>>(
                 "channels",
                 routeValues: new string[] { Channel.ChannelName, "chatlogs" },
                 queryParams: new QueryParam[] { earliestParam, latestParam }).ConfigureAwait(false);
+        }
 
+        public async Task DownloadChatLog(DateTime earliestTime, DateTime latestTime, bool downloadPlain)
+        {
+            var chatLogs = await DownloadMessages(earliestTime, latestTime).ConfigureAwait(false);
             if (chatLogs == null)
                 return;
 
-            var fileName = $"CHATLOG_{earliestParam.Value}_{latestParam.Value}";
+            var fileName = $"CHATLOG_{earliestTime.ToString(dateFormat)}_{latestTime.ToString(dateFormat)}";
 
             if (downloadPlain)
                 await DownloadAsCsv(chatLogs, fileName).ConfigureAwait(false);
