@@ -7,6 +7,14 @@
     case RegistrationState.Login:
     default:
         <div class="row">
+            <div class="center">
+                <img class="center-align" width="350" height="350" src="/AntiHarassmentLogo.png" />
+            </div>
+        </div>
+        <h2 class="header center blue-text">ANTI HARASSMENT SYSTEM</h2>
+
+        <div class="row">
+
             <EditForm Model="@model" OnValidSubmit="@AttemptLogin">
                 <DataAnnotationsValidator />
 
@@ -31,9 +39,28 @@
                 <div class="row">
                     <a class="waves-effect waves-light btn twitch col s6 offset-s3" href="https://id.twitch.tv/oauth2/authorize?client_id=640c899uj9yelwofbsv3a7p0p5leeb&redirect_uri=https://antiharassment.azurewebsites.net/&response_type=code&scope=user:read:email">Login with Twitch</a>
                 </div>
+                <div class="row">
+                    <a @onclick="() => SetCurrentState(RegistrationState.Information)" class="waves-effect waves-light btn grey darken-3 col s6 offset-s3">What is this?</a>
+                </div>
             </EditForm>
         </div>
 
+        break;
+    case RegistrationState.Information:
+        <div class="row">
+            <div class="center">
+                <img class="center-align" width="150" height="150" src="/AntiHarassmentLogo.png" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12 center-align">
+                <iframe width="1120" height="630" src="https://www.youtube.com/embed/SMHhfN3ZFC8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <div class="row">
+            <a @onclick="() => SetCurrentState(RegistrationState.Login)" class="waves-effect waves-light btn grey darken-3 col s6 offset-s3">Go to Login</a>
+        </div>
         break;
 }
 
@@ -45,7 +72,8 @@
         Confirming,
         Login,
         RequestReset,
-        ResetPassword
+        ResetPassword,
+        Information
     }
 
     private string ErrorMessage = "";
@@ -169,6 +197,14 @@
             if (!string.IsNullOrEmpty(accessToken))
             {
                 await userService.SetTokensAndLoginWithTwitch(accessToken);
+            }
+        }
+
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("state", out var state))
+        {
+            if (Enum.TryParse(typeof(RegistrationState), state, out var selectedState))
+            {
+                SetCurrentState((RegistrationState)selectedState);
             }
         }
 
