@@ -26,7 +26,7 @@ namespace AntiHarassment.Chatlistener.Handlers
                 logger.LogWarning("Connection problems had been detected, connection has been attempted reset");
 
             var options = new SendOptions();
-            options.DelayDeliveryWith(TimeSpan.FromMinutes(5));
+            options.DelayDeliveryWith(TimeSpan.FromMinutes(30));
             options.RouteToThisEndpoint();
 
             await context.Send(new CheckDataFeedCommand(), options).ConfigureAwait(false);

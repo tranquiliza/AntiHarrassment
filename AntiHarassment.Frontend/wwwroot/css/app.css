@@ -11,6 +11,10 @@ input {
     color: #fff;
 }
 
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
 .chip .xclose {
     cursor: pointer;
     float: right;
