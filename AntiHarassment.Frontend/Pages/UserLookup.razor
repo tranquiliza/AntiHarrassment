@@ -169,15 +169,15 @@
 <!-- Modal For SuspensionImages -->
 <div class="modal" id="suspensionImagesUserLookupModal">
     <div class="modal-content">
-        <span class="modal-title">
+        <h4>
             Images for suspension
-        </span>
+        </h4>
         <div class="row">
             @if (currentlySelected != null)
             {
                 foreach (var imageUrl in currentlySelected.Images)
                 {
-                    <img src="@imageUrl" />
+                    <img style="max-width:100%" src="@imageUrl" />
                 }
             }
         </div>
