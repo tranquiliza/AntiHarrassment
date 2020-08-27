@@ -29,16 +29,27 @@ window.InitDatePickers = function () {
     });
 }
 
+var createRuleModelInstance;
+var editModalInstance;
+
 window.InitModal = function () {
     var elems = document.querySelector('#createRuleModal');
-    var instances = M.Modal.init(elems, {
-        dismissible: false
-    });
+    createRuleModelInstance = M.Modal.init(elems, {});
 
     var editRuleModal = document.querySelector('#editRuleModal');
-    editModalInstance = M.Modal.init(editRuleModal, {
-        dismissible: false
-    });
+    editModalInstance = M.Modal.init(editRuleModal, {});
+}
+
+window.OpenModalForEditRule = function () {
+    editModalInstance.open();
+}
+
+window.CloseModalForEditRule = function () {
+    editModalInstance.close();
+}
+
+window.CloseModalForCreateRule = function () {
+    createRuleModelInstance.close();
 }
 
 window.InitSelectors = function () {
@@ -101,15 +112,6 @@ window.OpenModalForDisplayingImagesUserLookup = function () {
 window.InitTooltips = function () {
     var elems = document.querySelectorAll('.tooltipped');
     var instances = M.Tooltip.init(elems, {});
-}
-
-var editModalInstance;
-window.OpenModalForEditRule = function () {
-    editModalInstance.open();
-}
-
-window.CloseModalForEditRule = function () {
-    editModalInstance.close();
 }
 
 var overallChart;

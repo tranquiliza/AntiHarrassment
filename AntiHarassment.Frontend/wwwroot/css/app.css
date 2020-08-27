@@ -10,7 +10,9 @@ html, body, app, .valign-wrapper, .container {
 input {
     color: #fff;
 }
-
+.modal {
+    overflow: visible
+}
 ::-webkit-calendar-picker-indicator {
     filter: invert(1);
 }

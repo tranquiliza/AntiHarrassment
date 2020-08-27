@@ -210,15 +210,15 @@
             <div class="row">
                 <div class="col s12">
                     @*<div class="input-field white-text">
-                        <select @bind="updateRuleModel.ChannelRuleAction">
-                            <option value="" disabled selected>Select Action</option>
-                            @foreach (var value in (ChannelRuleActionModel[])Enum.GetValues(typeof(ChannelRuleActionModel)))
-                            {
-                                <option value="@value">@value</option>
-                            }
-                        </select>
-                        <label>Action on Trigger</label>
-                    </div>*@
+                            <select @bind="updateRuleModel.ChannelRuleAction">
+                                <option value="" disabled selected>Select Action</option>
+                                @foreach (var value in (ChannelRuleActionModel[])Enum.GetValues(typeof(ChannelRuleActionModel)))
+                                {
+                                    <option value="@value">@value</option>
+                                }
+                            </select>
+                            <label>Action on Trigger</label>
+                        </div>*@
 
                     <label>Select Action</label>
                     <select @bind="updateRuleModel.ChannelRuleAction" class="browser-default">
@@ -261,6 +261,7 @@
             return;
         }
 
+        await jsRuntime.InvokeVoidAsync("CloseModalForCreateRule");
         await channelService.CreateNewChannelRule(model);
 
         model = new AddChannelRuleModel();
