@@ -37,8 +37,7 @@ namespace AntiHarassment.Chatlistener.Core
             var userReport = new UserReport(@event.TwitchUsername, suspensionsForUser);
 
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
-            foreach (var channel in channels.Where(x => x.ChannelRules.Count > 0
-            && !string.Equals(x.ChannelName, @event.ChannelOfOrigin, StringComparison.OrdinalIgnoreCase)))
+            foreach (var channel in channels.Where(x => x.ChannelRules.Count > 0))
             {
                 foreach (var rule in channel.ChannelRules)
                 {
