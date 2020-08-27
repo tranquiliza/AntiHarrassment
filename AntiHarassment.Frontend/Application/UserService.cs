@@ -73,9 +73,6 @@ namespace AntiHarassment.Frontend.Application
             {
                 User = await CreateUserFromJwtToken(currentToken).ConfigureAwait(false);
 
-                if (!IsUserLoggedIn)
-                    await LoginWithTwitchToken().ConfigureAwait(false);
-
                 NotifyStateChanged();
             }
         }
