@@ -10,24 +10,24 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Handlers
 {
-    public class RuleCheckFromAuditCommandHandler
-        : IHandleMessages<RuleCheckFromAuditCommand>,
+    public class RuleExceedCheckommandHandler
+        : IHandleMessages<RuleExceedCheckCommand>,
         IHandleMessages<UserEnteredChannelEvent>
     {
         private readonly IRuleCheckService auditActionService;
-        private readonly ILogger<RuleCheckFromAuditCommandHandler> logger;
+        private readonly ILogger<RuleExceedCheckommandHandler> logger;
 
-        public RuleCheckFromAuditCommandHandler(IRuleCheckService auditActionService, ILogger<RuleCheckFromAuditCommandHandler> logger)
+        public RuleExceedCheckommandHandler(IRuleCheckService auditActionService, ILogger<RuleExceedCheckommandHandler> logger)
         {
             this.auditActionService = auditActionService;
             this.logger = logger;
         }
 
-        public async Task Handle(RuleCheckFromAuditCommand command, IMessageHandlerContext context)
+        public async Task Handle(RuleExceedCheckCommand command, IMessageHandlerContext context)
         {
             logger.LogInformation("Received Rule check command from audit for user: {arg}, from channel {arg2}", command.TwitchUsername, command.ChannelOfOrigin);
 
-            await auditActionService.ReactTo(command).ConfigureAwait(false);
+            await auditActionService.CheckBanAction(command).ConfigureAwait(false);
         }
 
         public async Task Handle(UserEnteredChannelEvent message, IMessageHandlerContext context)

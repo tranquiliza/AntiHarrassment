@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AntiHarassment.Messaging.Commands
 {
-    public class RuleCheckFromAuditCommand
+    public class RuleExceedCheckCommand
     {
         public string TwitchUsername { get; set; }
         public string ChannelOfOrigin { get; set; }

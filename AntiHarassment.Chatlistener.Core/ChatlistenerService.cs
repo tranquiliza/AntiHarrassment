@@ -57,8 +57,10 @@ namespace AntiHarassment.Chatlistener.Core
         {
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
             var userEnteredChannelEvent = new UserEnteredChannelEvent { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
+            var checkBanRulesCommand = new RuleExceedCheckCommand { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
 
             await messageDispatcher.Publish(userEnteredChannelEvent).ConfigureAwait(false);
+            await messageDispatcher.SendLocal(checkBanRulesCommand);
         }
 
         private async Task OnMessageReceived(object _, MessageReceivedEvent e)

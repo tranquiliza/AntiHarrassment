@@ -125,6 +125,12 @@ window.SendToast = function (textToDisplay) {
     audio.play();
 }
 
+$(document).on('click', '#toast-container .toast', function () {
+    $(this).fadeOut(function () {
+        $(this).remove();
+    });
+});
+
 var overallChart;
 var tagsChart;
 

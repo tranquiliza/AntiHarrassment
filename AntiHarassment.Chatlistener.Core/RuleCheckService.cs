@@ -29,14 +29,13 @@ namespace AntiHarassment.Chatlistener.Core
             this.logger = logger;
         }
 
-        public async Task ReactTo(RuleCheckFromAuditCommand command)
+        public async Task CheckBanAction(RuleExceedCheckCommand command)
         {
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(command.TwitchUsername).ConfigureAwait(false);
             if (suspensionsForUser.Count == 0)
                 return;
 
             var userReport = new UserReport(command.TwitchUsername, suspensionsForUser);
-
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
             foreach (var channel in channels.Where(x => x.ChannelRules.Count > 0))
             {

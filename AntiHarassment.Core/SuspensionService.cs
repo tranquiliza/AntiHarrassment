@@ -109,7 +109,7 @@ namespace AntiHarassment.Core
 
         private async Task PublishSuspensionAuditedEvent(Suspension suspension)
         {
-            var ruleCheckCommand = new RuleCheckFromAuditCommand
+            var ruleCheckCommand = new RuleExceedCheckCommand
             {
                 TwitchUsername = suspension.Username,
                 ChannelOfOrigin = suspension.ChannelOfOrigin
