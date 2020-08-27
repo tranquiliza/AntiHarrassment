@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AntiHarassment.Core\AntiHarassment.Core.csproj" />
+    <ProjectReference Include="..\AntiHarassment.Messaging\AntiHarassment.Messaging.csproj" />
   </ItemGroup>
 
 </Project>

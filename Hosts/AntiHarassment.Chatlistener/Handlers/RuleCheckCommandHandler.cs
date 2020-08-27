@@ -20,11 +20,11 @@ namespace AntiHarassment.Chatlistener.Handlers
             this.logger = logger;
         }
 
-        public async Task Handle(RuleCheckCommand @event, IMessageHandlerContext context)
+        public async Task Handle(RuleCheckCommand command, IMessageHandlerContext context)
         {
-            logger.LogInformation("Received Rule check command for user: {arg}", @event.TwitchUsername);
+            logger.LogInformation("Received Rule check command for user: {arg}, from channel {arg2}", command.TwitchUsername, command.ChannelOfOrigin);
 
-            await auditActionService.ReactTo(@event).ConfigureAwait(false);
+            await auditActionService.ReactTo(command).ConfigureAwait(false);
         }
     }
 }
