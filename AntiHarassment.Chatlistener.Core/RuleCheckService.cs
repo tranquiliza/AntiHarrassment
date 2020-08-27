@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Core
 {
-    public class AuditActionService : IAuditActionService
+    public class RuleCheckService : IRuleCheckService
     {
         private readonly IChannelRepository channelRepository;
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IMessageDispatcher messageDispatcher;
-        private readonly ILogger<AuditActionService> logger;
+        private readonly ILogger<RuleCheckService> logger;
 
-        public AuditActionService(IChannelRepository channelRepository, ISuspensionRepository suspensionRepository, IMessageDispatcher messageDispatcher, ILogger<AuditActionService> logger)
+        public RuleCheckService(IChannelRepository channelRepository, ISuspensionRepository suspensionRepository, IMessageDispatcher messageDispatcher, ILogger<RuleCheckService> logger)
         {
             this.channelRepository = channelRepository;
             this.suspensionRepository = suspensionRepository;
@@ -28,7 +28,7 @@ namespace AntiHarassment.Chatlistener.Core
             this.logger = logger;
         }
 
-        public async Task ReactTo(SuspensionAuditedEvent @event)
+        public async Task ReactTo(RuleCheckCommand @event)
         {
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(@event.TwitchUsername).ConfigureAwait(false);
             if (suspensionsForUser.Count == 0)
