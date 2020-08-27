@@ -56,9 +56,9 @@ namespace AntiHarassment.Chatlistener.Core
         private async Task Client_OnUserJoined(object _, UserJoinedEvent e)
         {
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
-            var checkRulesCommand = new RuleCheckCommand { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
+            var userEnteredChannelEvent = new UserEnteredChannelEvent { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
 
-            await messageDispatcher.SendLocal(checkRulesCommand).ConfigureAwait(false);
+            await messageDispatcher.Publish(userEnteredChannelEvent).ConfigureAwait(false);
         }
 
         private async Task OnMessageReceived(object _, MessageReceivedEvent e)

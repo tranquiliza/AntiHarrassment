@@ -119,6 +119,12 @@ window.InitImageBoxes = function () {
     var instances = M.Materialbox.init(elems, {});
 }
 
+window.SendToast = function (textToDisplay) {
+    M.toast({ html: textToDisplay, displayLength: 30000 });
+    var audio = new Audio('quack.mp3'); // should probably remove it
+    audio.play();
+}
+
 var overallChart;
 var tagsChart;
 

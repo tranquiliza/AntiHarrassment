@@ -1,6 +1,8 @@
 ﻿using AntiHarassment.Contract;
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.SignalR.Contract;
+using AntiHarassment.SignalR.Contract.EventArgs;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -31,12 +33,15 @@ namespace AntiHarassment.Frontend.Application
         private readonly IApplicationStateManager applicationStateManager;
         private readonly ChannelsHubSignalRClient channelsHubSignalRClient;
         private readonly SuspensionsHubSignalRClient suspensionsHubSignalRClient;
+        private readonly NotificationHubSignalRClient notificationHubSignalRClient;
+        private readonly IJSRuntime jSRuntime;
 
         public UserInformation User { get; private set; }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
         public event Action OnChange;
 
+        // TODO FIX THE SIGNALR Clients so they disconnect once the login expires.
         public bool IsUserLoggedIn
         {
             get
@@ -46,6 +51,7 @@ namespace AntiHarassment.Frontend.Application
 
                 channelsHubSignalRClient.DisposeAsync();
                 suspensionsHubSignalRClient.DisposeAsync();
+                notificationHubSignalRClient.DisposeAsync();
 
                 return false;
             }
@@ -58,12 +64,24 @@ namespace AntiHarassment.Frontend.Application
             IApiGateway apiGateway,
             IApplicationStateManager applicationStateManager,
             ChannelsHubSignalRClient channelsHubSignalRClient,
-            SuspensionsHubSignalRClient suspensionsHubSignalRClient)
+            SuspensionsHubSignalRClient suspensionsHubSignalRClient,
+            NotificationHubSignalRClient notificationHubSignalRClient,
+            IJSRuntime jSRuntime)
         {
             this.apiGateway = apiGateway;
             this.applicationStateManager = applicationStateManager;
             this.channelsHubSignalRClient = channelsHubSignalRClient;
             this.suspensionsHubSignalRClient = suspensionsHubSignalRClient;
+            this.notificationHubSignalRClient = notificationHubSignalRClient;
+            this.jSRuntime = jSRuntime;
+
+            notificationHubSignalRClient.NotificationReceived += NotificationHubSignalRClient_NotificationReceived;
+        }
+
+        private void NotificationHubSignalRClient_NotificationReceived(object _, NotificationEventArgs e)
+        {
+            var textToDisplay = $"{e.Username} showed up in {e.ChannelOfOrigin} - They broke rule: {e.RuleName}";
+            jSRuntime.InvokeVoidAsync("SendToast", textToDisplay);
         }
 
         public async Task Initialize()
@@ -72,6 +90,8 @@ namespace AntiHarassment.Frontend.Application
             if (!string.IsNullOrEmpty(currentToken))
             {
                 User = await CreateUserFromJwtToken(currentToken).ConfigureAwait(false);
+                if (User != null)
+                    await notificationHubSignalRClient.StartAsync(User.TwitchUsername).ConfigureAwait(false);
 
                 NotifyStateChanged();
             }
@@ -110,6 +130,7 @@ namespace AntiHarassment.Frontend.Application
                     return false;
 
                 await FinalizeLogin(response).ConfigureAwait(false);
+                await notificationHubSignalRClient.StartAsync(User.TwitchUsername).ConfigureAwait(false);
                 return true;
             }
             catch (Exception ex)

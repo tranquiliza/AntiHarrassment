@@ -109,13 +109,13 @@ namespace AntiHarassment.Core
 
         private async Task PublishSuspensionAuditedEvent(Suspension suspension)
         {
-            var auditedEvent = new RuleCheckCommand
+            var ruleCheckCommand = new RuleCheckFromAuditCommand
             {
                 TwitchUsername = suspension.Username,
                 ChannelOfOrigin = suspension.ChannelOfOrigin
             };
 
-            await messageDispatcher.Publish(auditedEvent).ConfigureAwait(false);
+            await messageDispatcher.Send(ruleCheckCommand).ConfigureAwait(false);
         }
 
         public async Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, string invalidationReason, IApplicationContext context)
