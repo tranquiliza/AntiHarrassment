@@ -59,10 +59,10 @@ else
                         <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
                         <div class="collection with-header">
                             @foreach (var unaudited in suspensionService.Suspensions
-                          .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                          .GroupBy(x => x.LocalTimeStamp().Date)
-                          .Select(key => key.Key)
-                          .ToList())
+                                .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                                .GroupBy(x => x.LocalTimeStamp().Date)
+                                .Select(key => key.Key)
+                                .ToList())
                             {
                                 <a @onclick="() => selectedDate = unaudited.Date" class="hand-pointer collection-item">
                                     @unaudited.Date.ShortFancyFormat()
@@ -159,7 +159,7 @@ else
             {
                 foreach (var imageUrl in suspensionService.CurrentlySelectedSuspensionForImages.Images)
                 {
-                    <img src="@imageUrl" />
+                    <img class="materialboxed" style="max-width:100%;" src="@imageUrl" />
                 }
             }
         </div>
@@ -265,6 +265,7 @@ else
         await jsRuntime.InvokeVoidAsync("InitDropDowns");
         await jsRuntime.InvokeVoidAsync("InitCollapsibles");
         await jsRuntime.InvokeVoidAsync("InitTooltips");
+        await jsRuntime.InvokeVoidAsync("InitImageBoxes");
     }
 
     private void UpdateUi()

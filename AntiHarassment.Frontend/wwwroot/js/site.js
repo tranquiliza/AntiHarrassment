@@ -114,6 +114,11 @@ window.InitTooltips = function () {
     var instances = M.Tooltip.init(elems, {});
 }
 
+window.InitImageBoxes = function () {
+    var elems = document.querySelectorAll('.materialboxed');
+    var instances = M.Materialbox.init(elems, {});
+}
+
 var overallChart;
 var tagsChart;
 

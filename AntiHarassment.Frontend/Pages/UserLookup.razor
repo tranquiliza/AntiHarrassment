@@ -13,9 +13,9 @@
         </div>
         @if (!string.IsNullOrEmpty(userReportService.UserReportLookupError))
         {
-            <p class="red-text">
-                @userReportService.UserReportLookupError
-            </p>
+        <p class="red-text">
+            @userReportService.UserReportLookupError
+        </p>
         }
     </div>
     <div class="col s8">
@@ -25,145 +25,142 @@
 
 @if (Loading)
 {
-    <Spinner />
+<Spinner />
 }
 @if (model != null)
 {
-    <div class="row">
-        <div class="col s3">
-            <ul class="collection with-header">
-                <li class="collection-header blue"><h5>Associated Accounts</h5></li>
-                @foreach (var username in model.AssociatedAccounts)
+<div class="row">
+    <div class="col s3">
+        <h4>Associated Accounts</h4>
+        <div class="collection with-header">
+            @foreach (var username in model.AssociatedAccounts)
                 {
-                    <li class="collection-item">@username</li>
+            <a target="_blank" href="/userlookup/@username" class="collection-item">@username</a>
                 }
-            </ul>
-        </div>
-        <div class="col s3">
-            <ul class="collection with-header">
-                <li class="collection-header blue"><h5>Banned In</h5></li>
-                @foreach (var channel in model.BannedFromChannels.OrderBy(x => x))
-                {
-                    <li class="collection-item">@channel</li>
-                }
-            </ul>
-        </div>
-        <div class="col s3">
-            <ul class="collection with-header">
-                <li class="collection-header blue"><h5>Timeouts In</h5></li>
-                @foreach (var channel in model.TimedoutFromChannels.OrderBy(x => x))
-                {
-                    <li class="collection-item">@channel</li>
-                }
-            </ul>
-        </div>
-        <div class="col s3">
-            <ul class="collection with-header">
-                <li class="collapsible-header blue"><h5>Tagged As</h5></li>
-            </ul>
-            @foreach (var tag in model.Tags)
-            {
-                <div class="chip @(string.IsNullOrEmpty(tag.TagDescription) ? "" : "tooltipped")" data-position="right" data-tooltip="@tag.TagDescription">
-                    @tag.TagName
-                </div>
-            }
         </div>
     </div>
-
-    <div class="row">
-        <div class="col s12">
-            <h5>Suspensions</h5>
-            <ul class="collapsible">
-
-                @foreach (var suspension in model.Suspensions.OrderByDescending(x => x.Timestamp))
+    <div class="col s3">
+        <ul class="collection with-header">
+            <li class="collection-header blue"><h5>Banned In</h5></li>
+            @foreach (var channel in model.BannedFromChannels.OrderBy(x => x))
                 {
+            <li class="collection-item">@channel</li>
+                }
+        </ul>
+    </div>
+    <div class="col s3">
+        <ul class="collection with-header">
+            <li class="collection-header blue"><h5>Timeouts In</h5></li>
+            @foreach (var channel in model.TimedoutFromChannels.OrderBy(x => x))
+                {
+            <li class="collection-item">@channel</li>
+                }
+        </ul>
+    </div>
+    <div class="col s3">
+        <h4>Tagged As</h4>
+        @foreach (var tag in model.Tags)
+            {
+        <div class="chip @(string.IsNullOrEmpty(tag.TagDescription) ? "" : "tooltipped")" data-position="right" data-tooltip="@tag.TagDescription">
+            @tag.TagName
+        </div>
+            }
+    </div>
+</div>
 
-                    <li>
-                        <div style="padding:0; padding-left:6px;" class="collapsible-header blue">
-                            <p>
-                                @suspension.LocalTimeStamp().FancyFormat() - <b>@suspension.Username</b>
-                            </p>
-                            <div style="margin-top:12px; margin-left:8px;" class="chip">
-                                @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
-                                @suspension.SuspensionType.ToString()
-                            </div>
+<div class="row">
+    <div class="col s12">
+        <h5>Suspensions</h5>
+        <ul class="collapsible">
 
-                            @switch (suspension.SuspensionSource)
+            @foreach (var suspension in model.Suspensions.OrderByDescending(x => x.Timestamp))
+                {
+            <li>
+                <div style="padding:0; padding-left:6px;" class="collapsible-header blue">
+                    <p>
+                        @suspension.LocalTimeStamp().FancyFormat() - <b>@suspension.Username</b>
+                    </p>
+                    <div style="margin-top:12px; margin-left:8px;" class="chip">
+                        @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+                        @suspension.SuspensionType.ToString()
+                    </div>
+
+                    @switch (suspension.SuspensionSource)
                             {
                                 case SuspensionSourceModel.User:
 
-                                    <div style="margin-top:12px;" class="chip yellow">
-                                        MANUAL
-                                    </div>
+                    <div style="margin-top:12px;" class="chip yellow">
+                        MANUAL
+                    </div>
                                     break;
                                 case SuspensionSourceModel.System:
-                                    <div style="margin-top:12px;" class="chip red yellow-text">
-                                        SYSTEM
-                                    </div>
-                                    <p>
-                                        @suspension.SystemReason
-                                    </p>
+                    <div style="margin-top:12px;" class="chip red yellow-text">
+                        SYSTEM
+                    </div>
+                    <p>
+                        @suspension.SystemReason
+                    </p>
                                     break;
 
                                 case SuspensionSourceModel.Listener:
                                 default:
                                     break;
                             }
+                </div>
+                <div class="collapsible-body">
+                    <div class="row">
+                        <div class="col s12">
+                            @if (suspension.Images.Count > 0)
+                                    {
+                            <button class="btn" @onclick="async _ => await SelectSuspensionAndShowModal(suspension.SuspensionId)">Show Images</button>
+                                    }
                         </div>
-                        <div class="collapsible-body">
-                            <div class="row">
-                                <div class="col s12">
-                                    @if (suspension.Images.Count > 0)
-                                    {
-                                        <button class="btn" @onclick="async _ => await SelectSuspensionAndShowModal(suspension.SuspensionId)">Show Images</button>
-                                    }
-                                </div>
-                            </div>
-                            <div class="row">
-                                @if (suspension.Tags.Count != 0)
+                    </div>
+                    <div class="row">
+                        @if (suspension.Tags.Count != 0)
                                 {
-                                    @foreach (var tag in suspension.Tags)
+                        @foreach (var tag in suspension.Tags)
                                     {
-                                        <div class="chip @(string.IsNullOrEmpty(tag.TagDescription) ? "" : "tooltipped")" data-position="bottom" data-tooltip="@tag.TagDescription">
-                                            @tag.TagName
-                                        </div>
+                        <div class="chip @(string.IsNullOrEmpty(tag.TagDescription) ? "" : "tooltipped")" data-position="bottom" data-tooltip="@tag.TagDescription">
+                            @tag.TagName
+                        </div>
                                     }
                                 }
-                            </div>
-                            <div class="row">
-                                @if (suspension.LinkedUsers.Count != 0)
+                    </div>
+                    <div class="row">
+                        @if (suspension.LinkedUsers.Count != 0)
                                 {
-                                    <div class="row">
-                                        <p>Linked Usernames:</p>
-                                        @foreach (var linkedUser in suspension.LinkedUsers)
+                        <div class="row">
+                            <p>Linked Usernames:</p>
+                            @foreach (var linkedUser in suspension.LinkedUsers)
                                         {
-                                            <div class="chip red tooltipped" data-position="bottom" data-tooltip="@linkedUser.Reason">
-                                                @linkedUser.Username
-                                            </div>
-                                        }
-                                    </div>
-                                }
+                            <div class="chip red tooltipped" data-position="bottom" data-tooltip="@linkedUser.Reason">
+                                @linkedUser.Username
                             </div>
-                            <div class="row">
-                                @foreach (var message in suspension.Messages)
+                                        }
+                        </div>
+                                }
+                    </div>
+                    <div class="row">
+                        @foreach (var message in suspension.Messages)
                                 {
-                                    @if (message.AutoModded)
+                        @if (message.AutoModded)
                                     {
-                                        <p class="red-text"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+                        <p class="red-text"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
                                     }
                                     else
                                     {
-                                        <p><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+                        <p><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
                                     }
                                 }
-                            </div>
-                        </div>
+                    </div>
+                </div>
 
-                    </li>
+            </li>
                 }
-            </ul>
-        </div>
+        </ul>
     </div>
+</div>
 }
 
 <!-- Modal For SuspensionImages -->
@@ -177,7 +174,7 @@
             {
                 foreach (var imageUrl in currentlySelected.Images)
                 {
-                    <img style="max-width:100%" src="@imageUrl" />
+            <img class="materialboxed" src="@imageUrl" />
                 }
             }
         </div>
@@ -221,6 +218,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await jsRuntime.InvokeVoidAsync("InitCollapsibles");
+        await jsRuntime.InvokeVoidAsync("InitImageBoxes");
     }
 
     private void UpdateUi()
