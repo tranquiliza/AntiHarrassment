@@ -28,7 +28,7 @@ namespace AntiHarassment.Chatlistener.Core
         public async Task IssueBanFor(string username, string channelToBanFrom, string systemReason)
         {
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(username).ConfigureAwait(false);
-            var suspensionsForUserInChannel = suspensionsForUser.Where(x => string.Equals(x.ChannelOfOrigin, username, StringComparison.OrdinalIgnoreCase));
+            var suspensionsForUserInChannel = suspensionsForUser.Where(x => string.Equals(x.ChannelOfOrigin, channelToBanFrom, StringComparison.OrdinalIgnoreCase));
 
             if (suspensionsForUserInChannel.Any(x => x.SuspensionType == SuspensionType.Ban))
             {

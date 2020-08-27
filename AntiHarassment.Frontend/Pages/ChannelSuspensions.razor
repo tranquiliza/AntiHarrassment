@@ -59,10 +59,10 @@ else
                         <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
                         <div class="collection with-header">
                             @foreach (var unaudited in suspensionService.Suspensions
-                          .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                          .GroupBy(x => x.LocalTimeStamp().Date)
-                          .Select(key => key.Key)
-                          .ToList())
+                                .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
+                                .GroupBy(x => x.LocalTimeStamp().Date)
+                                .Select(key => key.Key)
+                                .ToList())
                             {
                                 <a @onclick="() => selectedDate = unaudited.Date" class="hand-pointer collection-item">
                                     @unaudited.Date.ShortFancyFormat()
@@ -91,9 +91,9 @@ else
 <!-- Modal For InvalidReason -->
 <div class="modal" id="invalidReasoningModal">
     <div class="modal-content">
-        <span class="modal-title">
+        <h4>
             Why is this Suspension Invalid?
-        </span>
+        </h4>
         @if (!string.IsNullOrEmpty(InvalidReasonErrorMessage))
         {
             <p class="text-danger">@InvalidReasonErrorMessage</p>
@@ -111,7 +111,7 @@ else
 <!-- Modal For AccountLinking -->
 <div class="modal" id="accountLinkingModal">
     <div class="modal-content">
-        <span class="modal-title">Link another user to this suspension</span>
+        <h4>Link another user to this suspension</h4>
         <div class="input-field">
             <input id="accountLinkReasoninput" type="text" @bind-value="suspensionService.UserLinkReason" />
             <label for="accountLinkReasoninput">Reason for linking</label>
@@ -136,7 +136,7 @@ else
 <!-- Modal For CreateSuspension -->
 <div class="modal" id="createSuspensionModal">
     <div class="modal-content">
-        <span class="modal-title">Create a suspension</span>
+        <h4>Create a suspension</h4>
 
         <div class="input-field">
             <label for="createSuspensionUsernameInput">Twitch Username</label>
@@ -153,13 +153,13 @@ else
 <!-- Modal For SuspensionImages -->
 <div class="modal" id="suspensionImagesModal">
     <div class="modal-content">
-        <span class="modal-header">Images for suspension</span>
+        <h4>Images for suspension</h4>
         <div class="modal-body">
             @if (suspensionService.CurrentlySelectedSuspensionForImages != null)
             {
                 foreach (var imageUrl in suspensionService.CurrentlySelectedSuspensionForImages.Images)
                 {
-                    <img src="@imageUrl" />
+                    <img class="materialboxed" style="max-width:100%;" src="@imageUrl" />
                 }
             }
         </div>
@@ -265,6 +265,7 @@ else
         await jsRuntime.InvokeVoidAsync("InitDropDowns");
         await jsRuntime.InvokeVoidAsync("InitCollapsibles");
         await jsRuntime.InvokeVoidAsync("InitTooltips");
+        await jsRuntime.InvokeVoidAsync("InitImageBoxes");
     }
 
     private void UpdateUi()

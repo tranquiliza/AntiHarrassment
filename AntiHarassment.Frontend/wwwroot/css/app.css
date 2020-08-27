@@ -7,8 +7,20 @@ html, body, app, .valign-wrapper, .container {
     height: 100%;
 }
 
+.materialboxed {
+    max-width: 100%;
+}
+
 input {
     color: #fff;
+}
+
+.modal {
+    overflow: visible
+}
+
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
 }
 
 .chip .xclose {

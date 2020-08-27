@@ -1,5 +1,6 @@
 ﻿using AntiHarassment.Core.Models;
 using AntiHarassment.Core.Security;
+using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using System;
@@ -108,9 +109,8 @@ namespace AntiHarassment.Core
 
         private async Task PublishSuspensionAuditedEvent(Suspension suspension)
         {
-            var auditedEvent = new SuspensionAuditedEvent
+            var auditedEvent = new RuleCheckCommand
             {
-                SuspensionId = suspension.SuspensionId,
                 TwitchUsername = suspension.Username,
                 ChannelOfOrigin = suspension.ChannelOfOrigin
             };

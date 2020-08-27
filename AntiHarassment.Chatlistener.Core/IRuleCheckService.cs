@@ -1,4 +1,4 @@
-﻿using AntiHarassment.Messaging.Events;
+﻿using AntiHarassment.Messaging.Commands;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Core
 {
-    public interface IAuditActionService
+    public interface IRuleCheckService
     {
-        Task ReactTo(SuspensionAuditedEvent @event);
+        Task ReactTo(RuleCheckCommand command);
     }
 }

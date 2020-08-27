@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Messaging.Events
+namespace AntiHarassment.Messaging.Commands
 {
-    public class SuspensionAuditedEvent
+    public class RuleCheckCommand
     {
-        public Guid SuspensionId { get; set; }
         public string TwitchUsername { get; set; }
         public string ChannelOfOrigin { get; set; }
     }

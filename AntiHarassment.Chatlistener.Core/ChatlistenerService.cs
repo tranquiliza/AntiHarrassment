@@ -76,11 +76,11 @@ namespace AntiHarassment.Chatlistener.Core
 
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
             var latestForChannel = suspensionsForUser
-                .Where(x => string.Equals(x.ChannelOfOrigin, e.Channel, StringComparison.OrdinalIgnoreCase))
+                .Where(x => string.Equals(x.ChannelOfOrigin, e.Channel, StringComparison.OrdinalIgnoreCase) && x.SuspensionType == SuspensionType.Ban)
                 .OrderByDescending(x => x.Timestamp).FirstOrDefault();
 
             var timeOfSuspension = datetimeProvider.UtcNow;
-            if (latestForChannel != null && latestForChannel.Timestamp.AddMinutes(3) >= timeOfSuspension)
+            if (latestForChannel != null && latestForChannel.Timestamp.AddSeconds(30) >= timeOfSuspension)
                 return;
 
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
@@ -99,7 +99,7 @@ namespace AntiHarassment.Chatlistener.Core
             var timeOfLatestMessage = await chatRepository.GetTimeStampForLatestMessage().ConfigureAwait(false);
             var timeOfCheck = datetimeProvider.UtcNow;
             logger.LogInformation("time of latest message: {arg}, time of check: {argTwo}", timeOfLatestMessage, timeOfCheck);
-            if (timeOfLatestMessage < timeOfCheck.AddMinutes(-15))
+            if (timeOfLatestMessage < timeOfCheck.AddMinutes(-30))
             {
                 await client.Disconnect().ConfigureAwait(false);
                 logger.LogInformation("Client Disconnected");
