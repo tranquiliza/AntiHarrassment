@@ -11,6 +11,8 @@ namespace AntiHarassment.Frontend.Application
     {
         public ChannelReportModel ChannelReportModel { get; set; }
 
+        public List<UserRulesExceededModel> UserRulesExceededModels { get; set; }
+
         public string CurrentlySelectedChannel { get; set; }
 
         private readonly IApiGateway apiGateway;
@@ -29,6 +31,7 @@ namespace AntiHarassment.Frontend.Application
         {
             CurrentlySelectedChannel = userService.CurrentUserTwitchUsername;
             ChannelReportModel = await apiGateway.Get<ChannelReportModel>("channels", routeValues: new string[] { userService.CurrentUserTwitchUsername, "report" }).ConfigureAwait(false);
+            UserRulesExceededModels = await apiGateway.Get<List<UserRulesExceededModel>>("channels", routeValues: new string[] { userService.CurrentUserTwitchUsername, "channelRules", "exceeded" }).ConfigureAwait(false);
             NotifyStateChanged();
         }
 
@@ -37,7 +40,9 @@ namespace AntiHarassment.Frontend.Application
             CurrentlySelectedChannel = selectedChannel;
 
             ChannelReportModel = null;
+            UserRulesExceededModels = null;
             ChannelReportModel = await apiGateway.Get<ChannelReportModel>("channels", routeValues: new string[] { CurrentlySelectedChannel, "report" }).ConfigureAwait(false);
+            UserRulesExceededModels = await apiGateway.Get<List<UserRulesExceededModel>>("channels", routeValues: new string[] { CurrentlySelectedChannel, "channelRules", "exceeded" }).ConfigureAwait(false);
             NotifyStateChanged();
         }
     }

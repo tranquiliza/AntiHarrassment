@@ -1,9 +1,11 @@
 ﻿using AntiHarassment.Core.Models;
 using AntiHarassment.Core.Security;
 using Microsoft.Extensions.Logging;
+using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -45,5 +47,49 @@ namespace AntiHarassment.Core
             var channelReport = new ChannelReport(channelName, suspensionsForChannelWithoutSystem, usersForChannel.Count);
             return Result<ChannelReport>.Succeeded(channelReport);
         }
+
+        public async Task<IResult<List<UserRulesExceeded>>> GetUsersWhoExceedsRules(string channelName, IApplicationContext context)
+        {
+            var usersInSystem = await chatRepository.GetUniqueChattersForSystem().ConfigureAwait(false);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+
+            if (!context.HaveAccessTo(channel))
+                return Result<List<UserRulesExceeded>>.Unauthorized();
+
+            var allSuspensionsForChannel = await suspensionRepository.GetSuspensionsForChannel(channelName).ConfigureAwait(false);
+
+            var usersWhoExceeded = new List<UserRulesExceeded>();
+            foreach (var user in usersInSystem.Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (allSuspensionsForChannel.Any(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase) && !x.InvalidSuspension && x.Audited))
+                    continue;
+
+                var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(user).ConfigureAwait(false);
+                var report = new UserReport(user, suspensionsForUser);
+
+                foreach (var rule in channel.ChannelRules.Where(x => x.ActionOnTrigger == ChannelRuleAction.Ban))
+                {
+                    if (report.Exceeds(rule))
+                    {
+                        var userRulesExceeded = usersWhoExceeded.Find(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase));
+                        if (userRulesExceeded == null)
+                            userRulesExceeded = new UserRulesExceeded { Username = user };
+
+                        usersWhoExceeded.Remove(userRulesExceeded);
+
+                        userRulesExceeded.RulesBroken.Add(rule);
+                        usersWhoExceeded.Add(userRulesExceeded);
+                    }
+                }
+            }
+
+            return Result<List<UserRulesExceeded>>.Succeeded(usersWhoExceeded);
+        }
+    }
+
+    public class UserRulesExceeded
+    {
+        public string Username { get; set; }
+        public List<ChannelRule> RulesBroken { get; set; } = new List<ChannelRule>();
     }
 }

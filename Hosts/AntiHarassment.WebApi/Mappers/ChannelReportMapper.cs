@@ -1,4 +1,5 @@
 ﻿using AntiHarassment.Contract;
+using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,20 @@ namespace AntiHarassment.WebApi.Mappers
 {
     public static class ChannelReportMapper
     {
+        public static List<UserRulesExceededModel> Map(this List<UserRulesExceeded> input)
+        {
+            return input.Select(Map).ToList();
+        }
+
+        public static UserRulesExceededModel Map(this UserRulesExceeded input)
+        {
+            return new UserRulesExceededModel
+            {
+                RulesBroken = input.RulesBroken.Select(x => x.Map()).ToList(),
+                Username = input.Username
+            };
+        }
+
         public static ChannelReportModel Map(this ChannelReport channelReport)
         {
             return new ChannelReportModel

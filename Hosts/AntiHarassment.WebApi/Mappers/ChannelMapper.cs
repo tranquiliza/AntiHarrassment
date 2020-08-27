@@ -28,7 +28,7 @@ namespace AntiHarassment.WebApi.Mappers
             };
         }
 
-        private static ChannelRuleModel Map(this ChannelRule channelRule)
+        public static ChannelRuleModel Map(this ChannelRule channelRule)
         {
             return new ChannelRuleModel
             {
