@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AntiHarassment.Messaging.Commands
+namespace AntiHarassment.Contract
 {
-    public class RuleCheckCommand
+    public class ManuallyRunRuleCheckModel
     {
         public string TwitchUsername { get; set; }
-        public string ChannelOfOrigin { get; set; }
     }
 }

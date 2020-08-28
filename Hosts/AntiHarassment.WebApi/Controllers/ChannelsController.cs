@@ -180,5 +180,25 @@ namespace AntiHarassment.WebApi.Controllers
 
             return Ok(result.Data.Map());
         }
+
+        [HttpGet("{channelName}/channelRules/exceeded")]
+        public async Task<IActionResult> GetUsersWhoExceededChannelsRules([FromRoute] string channelName)
+        {
+            var result = await channelReportService.GetUsersWhoExceedsRules(channelName, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return NoContent();
+
+            return Ok(result.Data.Map());
+        }
+
+        [HttpPost("{channelName}/users/ruleCheck")]
+        public async Task<IActionResult> SendBanCommandForUser([FromRoute] string channelName, [FromBody] ManuallyRunRuleCheckModel model)
+        {
+            await channelService.InitiateManualRuleCheck(channelName, model.TwitchUsername, ApplicationContext).ConfigureAwait(false);
+            return Ok();
+        }
     }
 }

@@ -8,6 +8,7 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public interface IRuleCheckService
     {
-        Task ReactTo(RuleCheckCommand command);
+        Task CheckBanAction(RuleExceedCheckCommand command);
+        Task CheckRulesFor(string username, string channelName);
     }
 }

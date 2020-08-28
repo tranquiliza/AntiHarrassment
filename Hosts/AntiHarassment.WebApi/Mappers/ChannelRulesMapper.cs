@@ -15,6 +15,7 @@ namespace AntiHarassment.WebApi.Mappers
             {
                 ChannelRuleActionModel.None => ChannelRuleAction.None,
                 ChannelRuleActionModel.Ban => ChannelRuleAction.Ban,
+                ChannelRuleActionModel.NotifyWebsite => ChannelRuleAction.NotifyWebsite,
                 _ => throw new NotImplementedException("No mapping for this value"),
             };
         }
@@ -25,6 +26,7 @@ namespace AntiHarassment.WebApi.Mappers
             {
                 ChannelRuleAction.None => ChannelRuleActionModel.None,
                 ChannelRuleAction.Ban => ChannelRuleActionModel.Ban,
+                ChannelRuleAction.NotifyWebsite => ChannelRuleActionModel.NotifyWebsite,
                 _ => throw new NotImplementedException("No mapping for this value"),
             };
         }

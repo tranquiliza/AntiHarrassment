@@ -50,7 +50,7 @@ namespace AntiHarassment.WebApi
                         routing.RouteToEndpoint(typeof(JoinChannelCommand), "AntiHarassmentChatlistener");
                         routing.RouteToEndpoint(typeof(SendAccountConfirmationCommand), "AntiHarassmentChatlistener");
                         routing.RouteToEndpoint(typeof(SendPasswordResetTokenCommand), "AntiHarassmentChatlistener");
-                        routing.RouteToEndpoint(typeof(RuleCheckCommand), "AntiHarassmentChatlistener");
+                        routing.RouteToEndpoint(typeof(RuleExceedCheckCommand), "AntiHarassmentChatlistener");
                     });
 
                     return builder.BuildConfiguration();

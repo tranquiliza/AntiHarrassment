@@ -90,6 +90,7 @@ namespace AntiHarassment.WebApi
                 endpoints.MapControllers();
                 endpoints.MapHub<Hubs.ChannelsHub>(SignalR.Contract.ChannelsHubSignalRClient.HUBURL);
                 endpoints.MapHub<Hubs.SuspensionsHub>(SignalR.Contract.SuspensionsHubSignalRClient.HUBURL);
+                endpoints.MapHub<Hubs.NotificationHub>(SignalR.Contract.NotificationHubSignalRClient.HUBURL);
             });
         }
     }

@@ -1,0 +1,118 @@
+﻿@inject IChannelStatisticsService channelStatisticsService
+@inject IUserService userService
+@inject IAdminChannelService adminChannelService
+@inject IJSRuntime jsRuntime
+@implements IDisposable
+
+@page "/RulesLookup"
+
+<PageTitle Title="AHS: Rules Lookup"/>
+
+@if (userService.IsUserAdmin && adminChannelService.Channels != null)
+{
+    <div class="row">
+        <div class="col s12">
+            <a class="dropdown-trigger btn" data-target="channelSelectDropDown" style="width:200px;margin-top:26px;">
+                @(string.IsNullOrEmpty(channelStatisticsService.CurrentlySelectedChannel) ? "Channels" : channelStatisticsService.CurrentlySelectedChannel)
+            </a>
+
+            <ul id="channelSelectDropDown" class="dropdown-content">
+                @foreach (var channel in adminChannelService.Channels.OrderBy(x => x.ChannelName))
+                {
+                    <li @onclick="async () => await ChangeChannel(channel.ChannelName)"><a>@channel.ChannelName</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (channelStatisticsService.UserRulesExceededModels == null)
+{
+    <Spinner />
+}
+else
+{
+    <div class="row">
+        <div class="col s12">
+            <ul class="collapsible">
+                @foreach (var user in channelStatisticsService.UserRulesExceededModels)
+                {
+                    <li>
+                        <div class="collapsible-header grey darken-3">
+                            @user.Username
+                        </div>
+                        <div class="collapsible-body">
+                            <div class="row">
+                                <div class="col s12">
+                                    <h5>Rules broken</h5>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col s12">
+                                    <ul>
+                                        @foreach (var rule in user.RulesBroken)
+                                        {
+                                            <li>@rule.RuleName</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col s12">
+                                    <button disabled="@disabled" @onclick="async () => await TriggerCheck(user.Username)" class="btn waves-effect waves-light">Trigger Check Manually</button>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        channelStatisticsService.OnChange += UpdateUi;
+
+        await adminChannelService.Initialize();
+        await channelStatisticsService.Initialize();
+    }
+
+    private bool disabled = false;
+
+    private async Task TriggerCheck(string username)
+    {
+        disabled = true;
+        await channelStatisticsService.ManuallyInvokeRuleCheck(username);
+
+        await Task.Delay(7000);
+        if (disabled)
+        {
+            disabled = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("InitCollapsibles");
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+    }
+
+    private async Task ChangeChannel(string channelName)
+    {
+        await channelStatisticsService.ChangeChannel(channelName);
+    }
+
+    private void UpdateUi()
+    {
+        disabled = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        channelStatisticsService.OnChange -= UpdateUi;
+    }
+}
