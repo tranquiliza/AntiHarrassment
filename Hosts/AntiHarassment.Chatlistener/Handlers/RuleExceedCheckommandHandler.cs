@@ -25,14 +25,14 @@ namespace AntiHarassment.Chatlistener.Handlers
 
         public async Task Handle(RuleExceedCheckCommand command, IMessageHandlerContext context)
         {
-            logger.LogInformation("Received Rule check command from audit for user: {arg}, from channel {arg2}", command.TwitchUsername, command.ChannelOfOrigin);
+            //logger.LogInformation("Received Rule check command from audit for user: {arg}, from channel {arg2}", command.TwitchUsername, command.ChannelOfOrigin);
 
             await auditActionService.CheckBanAction(command).ConfigureAwait(false);
         }
 
         public async Task Handle(UserEnteredChannelEvent message, IMessageHandlerContext context)
         {
-            logger.LogInformation("Received user entered channel event for user: {arg}, from channel {arg2}", message.TwitchUsername, message.ChannelOfOrigin);
+            //logger.LogInformation("Received user entered channel event for user: {arg}, from channel {arg2}", message.TwitchUsername, message.ChannelOfOrigin);
 
             await auditActionService.CheckRulesFor(message.TwitchUsername, message.ChannelOfOrigin).ConfigureAwait(false);
         }

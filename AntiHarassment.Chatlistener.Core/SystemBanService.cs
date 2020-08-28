@@ -44,6 +44,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
             await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = channelToBanFrom }).ConfigureAwait(false);
+            logger.LogInformation("Banned and Created suspension for {arg}", suspension.Username);
         }
     }
 }

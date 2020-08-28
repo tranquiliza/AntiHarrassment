@@ -55,8 +55,6 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task Client_OnUserJoined(object _, UserJoinedEvent e)
         {
-            logger.LogInformation("{arg1} joined {arg2}", e.Username, e.Channel);
-
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
             var userEnteredChannelEvent = new UserEnteredChannelEvent { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
             var checkBanRulesCommand = new RuleExceedCheckCommand { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
