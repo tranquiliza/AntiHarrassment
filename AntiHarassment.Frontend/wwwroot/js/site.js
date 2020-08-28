@@ -123,6 +123,10 @@ window.SendToast = function (textToDisplay) {
     M.toast({ html: textToDisplay, displayLength: 30000 });
 }
 
+window.SetTitle = function (title) {
+    document.title = title;
+}
+
 $(document).on('click', '#toast-container .toast', function () {
     $(this).fadeOut(function () {
         $(this).remove();

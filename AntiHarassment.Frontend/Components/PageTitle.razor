@@ -1,0 +1,16 @@
+﻿@inject IJSRuntime jsRuntime
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetTitle();
+    }
+
+    private async Task SetTitle()
+    {
+        await jsRuntime.InvokeVoidAsync("SetTitle", Title);
+    }
+}

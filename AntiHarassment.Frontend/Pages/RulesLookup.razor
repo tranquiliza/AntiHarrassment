@@ -6,6 +6,8 @@
 
 @page "/RulesLookup"
 
+<PageTitle Title="AHS: Rules Lookup"/>
+
 @if (userService.IsUserAdmin && adminChannelService.Channels != null)
 {
     <div class="row">
@@ -77,6 +79,7 @@ else
         await adminChannelService.Initialize();
         await channelStatisticsService.Initialize();
     }
+
     private bool disabled = false;
 
     private async Task TriggerCheck(string username)
