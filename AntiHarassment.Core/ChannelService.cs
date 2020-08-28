@@ -220,5 +220,15 @@ namespace AntiHarassment.Core
 
             return Result<Channel>.Succeeded(channel);
         }
+
+        public async Task InitiateManualRuleCheck(string channelName, string twitchUsername, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
+            if (!context.HaveAccessTo(channel))
+                return;
+
+            var command = new RuleExceedCheckCommand { ChannelOfOrigin = channelName, TwitchUsername = twitchUsername };
+            await messageDispatcher.Send(command).ConfigureAwait(false);
+        }
     }
 }

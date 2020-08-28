@@ -80,7 +80,7 @@ namespace AntiHarassment.Frontend.Application
 
         private void NotificationHubSignalRClient_NotificationReceived(object _, NotificationEventArgs e)
         {
-            var textToDisplay = $"{e.Username} joined {e.ChannelOfOrigin} warning from {e.RuleName}";
+            var textToDisplay = $"<a target='_BLANK' href='/userlookup/{e.Username}'>{e.Username}</a> joined {e.ChannelOfOrigin} warning from {e.RuleName}";
             jSRuntime.InvokeVoidAsync("SendToast", textToDisplay);
         }
 

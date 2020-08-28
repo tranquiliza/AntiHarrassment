@@ -14,5 +14,6 @@ namespace AntiHarassment.Frontend.Application
 
         Task Initialize();
         Task ChangeChannel(string selectedChannel);
+        Task ManuallyInvokeRuleCheck(string twitchUsername);
     }
 }

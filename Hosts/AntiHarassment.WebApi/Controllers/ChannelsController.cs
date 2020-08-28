@@ -193,5 +193,12 @@ namespace AntiHarassment.WebApi.Controllers
 
             return Ok(result.Data.Map());
         }
+
+        [HttpPost("{channelName}/users/ruleCheck")]
+        public async Task<IActionResult> SendBanCommandForUser([FromRoute] string channelName, [FromBody] ManuallyRunRuleCheckModel model)
+        {
+            await channelService.InitiateManualRuleCheck(channelName, model.TwitchUsername, ApplicationContext).ConfigureAwait(false);
+            return Ok();
+        }
     }
 }

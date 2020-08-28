@@ -40,13 +40,26 @@ else
                             @user.Username
                         </div>
                         <div class="collapsible-body">
-                            <h5>Rules broken</h5>
-                            <ul>
-                                @foreach (var rule in user.RulesBroken)
-                                {
-                                    <li>@rule.RuleName</li>
-                                }
-                            </ul>
+                            <div class="row">
+                                <div class="col s12">
+                                    <h5>Rules broken</h5>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col s12">
+                                    <ul>
+                                        @foreach (var rule in user.RulesBroken)
+                                        {
+                                            <li>@rule.RuleName</li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col s12">
+                                    <button disabled="@disabled" @onclick="async () => await TriggerCheck(user.Username)" class="btn waves-effect waves-light">Trigger Check Manually</button>
+                                </div>
+                            </div>
                         </div>
                     </li>
                 }
@@ -59,10 +72,23 @@ else
 @code {
     protected override async Task OnInitializedAsync()
     {
-        channelStatisticsService.OnChange += StateHasChanged;
+        channelStatisticsService.OnChange += UpdateUi;
 
         await adminChannelService.Initialize();
         await channelStatisticsService.Initialize();
+    }
+    private bool disabled = false;
+
+    private async Task TriggerCheck(string username)
+    {
+        disabled = true;
+        await channelStatisticsService.ManuallyInvokeRuleCheck(username);
+
+        await Task.Delay(7000);
+        if (disabled)
+        {
+            disabled = false;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -76,8 +102,14 @@ else
         await channelStatisticsService.ChangeChannel(channelName);
     }
 
+    private void UpdateUi()
+    {
+        disabled = false;
+        StateHasChanged();
+    }
+
     public void Dispose()
     {
-        channelStatisticsService.OnChange -= StateHasChanged;
+        channelStatisticsService.OnChange -= UpdateUi;
     }
 }
