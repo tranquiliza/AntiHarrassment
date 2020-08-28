@@ -56,10 +56,6 @@ namespace AntiHarassment.Core.Models
         [JsonIgnore]
         public IReadOnlyList<LinkedUser> LinkedUsers => linkedUsers.AsReadOnly();
 
-        // TODO REMOVE IN V1.7.0
-        [JsonProperty]
-        private List<string> linkedUsernames { get; set; } = new List<string>();
-
         [JsonProperty]
         private List<string> images { get; set; } = new List<string>();
 
@@ -86,15 +82,6 @@ namespace AntiHarassment.Core.Models
             Username = username;
             ChannelOfOrigin = channelOfOrigin;
             Timestamp = timestamp;
-        }
-
-        // TODO REMOVE IN V1.7.0
-        public void MigrateData()
-        {
-            foreach (var username in linkedUsernames)
-                linkedUsers.Add(new LinkedUser { Username = username, Reason = "" });
-
-            linkedUsernames = new List<string>();
         }
 
         public bool UpdateValidity(bool invalidate, string invalidationReason, IApplicationContext context, DateTime timestamp)
@@ -144,7 +131,7 @@ namespace AntiHarassment.Core.Models
                 return;
 
             linkedUsers.Add(new LinkedUser { Username = twitchUsername, Reason = reason });
-            AddAuditTrail(context, nameof(linkedUsernames), linkedUsernames, timestamp);
+            AddAuditTrail(context, nameof(linkedUsers), linkedUsers, timestamp);
         }
 
         public void RemoveUserLink(string twitchUsername, IApplicationContext context, DateTime timestamp)
@@ -152,7 +139,7 @@ namespace AntiHarassment.Core.Models
             var existingEntry = linkedUsers.Find(x => string.Equals(x.Username, twitchUsername, StringComparison.OrdinalIgnoreCase));
             linkedUsers.Remove(existingEntry);
 
-            AddAuditTrail(context, nameof(linkedUsernames), linkedUsernames, timestamp);
+            AddAuditTrail(context, nameof(linkedUsers), linkedUsers, timestamp);
         }
 
         public string AddImage(string fileExtension, IApplicationContext context, DateTime timestamp)

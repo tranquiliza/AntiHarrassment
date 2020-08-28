@@ -12,18 +12,14 @@ namespace AntiHarassment.Chatlistener
     public class ChatlistenerWorker : BackgroundService
     {
         private readonly IChatlistenerService chatlistenerService;
-        private readonly ISuspensionRepository suspensionRepository;
 
-        public ChatlistenerWorker(IChatlistenerService chatlistenerService, ISuspensionRepository suspensionRepository)
+        public ChatlistenerWorker(IChatlistenerService chatlistenerService)
         {
             this.chatlistenerService = chatlistenerService;
-            this.suspensionRepository = suspensionRepository;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            // TODO Remove in Version 1.7.0
-            await suspensionRepository.MigrateSuspensionsToNewDataModel().ConfigureAwait(false);
             await chatlistenerService.ConnectAndJoinChannels().ConfigureAwait(false);
         }
     }

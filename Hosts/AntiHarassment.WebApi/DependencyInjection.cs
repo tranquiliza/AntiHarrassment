@@ -38,6 +38,7 @@ namespace AntiHarassment.WebApi
             services.AddSingleton<ISuspensionService, SuspensionService>();
             services.AddSingleton<ITagService, TagService>();
             services.AddSingleton<IUserReportService, UserReportService>();
+            services.AddSingleton<INotificationService, NotificationService>();
 
             services.AddSingleton<ISecurity, PasswordSecurity>();
             services.AddSingleton<IApplicationConfiguration>(applicationConfiguration);

@@ -2,6 +2,7 @@
 using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
 using AntiHarassment.Core.Security;
+using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.Logging;
@@ -44,11 +45,24 @@ namespace AntiHarassment.Chatlistener.Core
             this.serviceProvider = serviceProvider;
             this.logger = logger;
 
+            client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
 
             client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
             pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+        }
+
+        private async Task Client_OnUserJoined(object _, UserJoinedEvent e)
+        {
+            logger.LogInformation("{arg1} joined {arg2}", e.Username, e.Channel);
+
+            var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
+            var userEnteredChannelEvent = new UserEnteredChannelEvent { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
+            var checkBanRulesCommand = new RuleExceedCheckCommand { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
+
+            await messageDispatcher.Publish(userEnteredChannelEvent).ConfigureAwait(false);
+            await messageDispatcher.SendLocal(checkBanRulesCommand);
         }
 
         private async Task OnMessageReceived(object _, MessageReceivedEvent e)

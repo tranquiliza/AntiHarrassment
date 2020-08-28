@@ -11,6 +11,21 @@ html, body, app, .valign-wrapper, .container {
     max-width: 100%;
 }
 
+#toast-container .toast {
+    cursor: pointer;
+}
+
+    #toast-container .toast::after {
+        font-family: 'Material Icons';
+        content: "close";
+        -webkit-font-feature-settings: 'liga';
+        color: #dd2c00;
+        font-size: 1.5rem;
+        font-weight: 300;
+        float: right;
+        padding-left: 3rem;
+    }
+
 input {
     color: #fff;
 }
