@@ -32,7 +32,8 @@ namespace AntiHarassment.WebApi.Mappers
                 InvalidUniqueUsersSuspensions = systemReport.InvalidUniqueUsersSuspensions,
                 InvalidUniqueUsersBan = systemReport.InvalidUniqueUsersBan,
                 InvalidUniqueUsersTimeout = systemReport.InvalidUniqueUsersTimeout,
-                TagAppearances = systemReport.TagAppearances.Select(x => new TagCountModel { Tag = x.Key.Map(), Count = x.Value}).ToList()
+                TagAppearances = systemReport.TagAppearances.Select(x => new TagCountModel { Tag = x.Key.Map(), Count = x.Value}).ToList(),
+                TotalSystemSuspensions = systemReport.TotalSystemSuspensions
             };
         }
 
