@@ -35,6 +35,6 @@ namespace AntiHarassment.Contract
         public int InvalidUniqueUsersTimeout { get; set; }
         public int InvalidUniqueUsersBan { get; set; }
 
-        public int TotalSystemSuspensions { get; set; }
+        public int UniqueUsersSuspendedBySystem { get; set; }
     }
 }
