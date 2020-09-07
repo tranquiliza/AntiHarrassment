@@ -23,6 +23,7 @@ namespace AntiHarassment.Frontend.Application
         string CurrentSearchTerm { get; set; }
         SuspensionModel CurrentlySelectedSuspension { get; set; }
         List<DateTime> DatesWithUnauditedSuspensions { get; set; }
+        DateTime SelectedDate { get; set; }
 
         event Action OnChange;
 

@@ -30,7 +30,7 @@ else
         </div>
         <div class="col s3">
             <div class="input-field">
-                <input @onkeyup="KeyUpEvent" class="white-text" type="date" @bind-value="selectedDate" />
+                <input @onkeyup="KeyUpEvent" class="white-text" type="date" @bind-value="suspensionService.SelectedDate" />
             </div>
         </div>
         <div class="col s3">
@@ -58,13 +58,13 @@ else
                 <p>No suspensions on this day!</p>
             }
 
-            @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.DatesWithUnauditedSuspensions.Count(x => x != selectedDate) > 0)
+            @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.DatesWithUnauditedSuspensions.Count(x => x != suspensionService.SelectedDate) > 0)
             {
                 <div class="card red darken-3">
                     <div class="card-content">
                         <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
                         <div class="collection with-header">
-                            @foreach (var date in suspensionService.DatesWithUnauditedSuspensions.Where(x => x != selectedDate))
+                            @foreach (var date in suspensionService.DatesWithUnauditedSuspensions.Where(x => x != suspensionService.SelectedDate))
                             {
                                 <a @onclick="async () => await SetDateAndFetch(date.Date)" class="hand-pointer collection-item">
                                     @date.Date.ShortFancyFormat()
@@ -172,13 +172,11 @@ else
 </div>
 
 @code {
-    private DateTime selectedDate = DateTime.Now.Date;
-
     private int counter = 0;
 
     private async Task SelectChannel(string channelName)
     {
-        selectedDate = DateTime.Now.Date;
+        suspensionService.SelectedDate = DateTime.Now.Date;
         await suspensionService.FetchSuspensionForChannel(channelName, DateTime.UtcNow);
         await suspensionService.FetchSeenUsersForChannel(channelName);
         await suspensionService.FetchDaysWithUnauditedSuspensions(channelName);
@@ -199,12 +197,12 @@ else
 
     private async Task FetchForDate()
     {
-        await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel, selectedDate);
+        await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel, suspensionService.SelectedDate);
     }
 
     private async Task SetDateAndFetch(DateTime date)
     {
-        selectedDate = date;
+        suspensionService.SelectedDate = date;
 
         await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel, date);
     }

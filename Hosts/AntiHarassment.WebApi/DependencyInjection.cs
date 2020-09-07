@@ -1,4 +1,5 @@
 ﻿using AntiHarassment.Core;
+using AntiHarassment.Core.Repositories;
 using AntiHarassment.FileSystem;
 using AntiHarassment.Messaging.NServiceBus;
 using AntiHarassment.Sql;
@@ -50,6 +51,7 @@ namespace AntiHarassment.WebApi
             services.AddSingleton<ISuspensionRepository, SuspensionRepository>(x => new SuspensionRepository(connstring, x.GetRequiredService<ILogger<SuspensionRepository>>()));
             services.AddSingleton<ITagRepository, TagRepository>(x => new TagRepository(connstring, x.GetRequiredService<ILogger<TagRepository>>()));
             services.AddSingleton<IChatRepository, ChatRepository>(x => new ChatRepository(connstring, x.GetRequiredService<ILogger<ChatRepository>>()));
+            services.AddSingleton<IChatterRepository, ChatterRepository>(x => new ChatterRepository(connstring, x.GetRequiredService<ILogger<ChatterRepository>>()));
 
             services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
 

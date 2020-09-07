@@ -38,6 +38,7 @@ namespace AntiHarassment.Frontend.Application
         public List<SuspensionModel> Suspensions { get; private set; }
         public SuspensionModel CurrentlySelectedSuspensionForImages { get; private set; }
         public List<DateTime> DatesWithUnauditedSuspensions { get; set; }
+        public DateTime SelectedDate { get; set; }
 
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
@@ -65,6 +66,9 @@ namespace AntiHarassment.Frontend.Application
             var existingSuspension = Suspensions.Find(x => x.SuspensionId == args.SuspensionId);
             if (existingSuspension != null)
                 Suspensions.Remove(existingSuspension);
+
+            if (updatedSuspension.Audited)
+                await FetchDaysWithUnauditedSuspensions(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
 
             Suspensions.Add(updatedSuspension);
             NotifyStateChanged();
@@ -230,7 +234,10 @@ namespace AntiHarassment.Frontend.Application
 
             var existingValue = Suspensions.Find(x => x.SuspensionId == model.SuspensionId);
             Suspensions.Remove(existingValue);
-            Suspensions.Add(model);
+
+            if (model.Timestamp.Date == SelectedDate.Date)
+                Suspensions.Add(model);
+
             NotifyStateChanged();
         }
 

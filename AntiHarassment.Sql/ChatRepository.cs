@@ -158,6 +158,17 @@ namespace AntiHarassment.Sql
                     }
                 }
 
+                using (var command = sql.CreateStoredProcedure("[Core].[GetAllChatters]"))
+                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        var value = reader.GetString("TwitchUsername");
+                        if (!result.Contains(value))
+                            result.Add(value);
+                    }
+                }
+
                 return result;
             }
             catch (Exception ex)

@@ -14,4 +14,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="TwitchUsername" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="7f269e25-0e36-462d-8fa9-4eca441e3606" ChangeDateTime="09/07/2020 17:05:06">
+    <Property Name="ElementName" Value="[Core].[Chatters].[NVARCHAR(100)]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Core].[Chatters]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="TwitchUsername" />
+  </Operation>
 </Operations>

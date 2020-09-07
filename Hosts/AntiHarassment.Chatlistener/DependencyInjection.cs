@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Chatlistener.Core;
 using AntiHarassment.Chatlistener.TwitchIntegration;
 using AntiHarassment.Core;
+using AntiHarassment.Core.Repositories;
 using AntiHarassment.Sql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,6 +39,7 @@ namespace AntiHarassment.Chatlistener
                 services.AddSingleton<ISuspensionRepository, SuspensionRepository>(x => new SuspensionRepository(connectionString, x.GetRequiredService<ILogger<SuspensionRepository>>()));
                 services.AddSingleton<IChatRepository, ChatRepository>(x => new ChatRepository(connectionString, x.GetRequiredService<ILogger<ChatRepository>>()));
                 services.AddSingleton<IUserRepository, UserRepository>(x => new UserRepository(connectionString, x.GetRequiredService<ILogger<UserRepository>>()));
+                services.AddSingleton<IChatterRepository, ChatterRepository>(x => new ChatterRepository(connectionString, x.GetRequiredService<ILogger<ChatterRepository>>()));
 
                 services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
             });
