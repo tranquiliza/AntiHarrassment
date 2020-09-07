@@ -3,6 +3,7 @@ using AntiHarassment.Core.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -125,7 +126,7 @@ namespace AntiHarassment.Sql
                     }
                 }
 
-                return result;
+                return result.Distinct().ToList();
             }
             catch (Exception ex)
             {

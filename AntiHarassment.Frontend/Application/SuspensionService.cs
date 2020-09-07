@@ -37,6 +37,7 @@ namespace AntiHarassment.Frontend.Application
         public string CurrentlySelectedChannel { get; private set; }
         public List<SuspensionModel> Suspensions { get; private set; }
         public SuspensionModel CurrentlySelectedSuspensionForImages { get; private set; }
+        public List<DateTime> DatesWithUnauditedSuspensions { get; set; }
 
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
@@ -89,21 +90,36 @@ namespace AntiHarassment.Frontend.Application
             if (Channels == null)
                 return;
 
+            var today = DateTime.UtcNow;
             await suspensionsHub.StartAsync().ConfigureAwait(false);
 
             if (!Channels.Any(x => string.Equals(x.ChannelName, userService.CurrentUserTwitchUsername, StringComparison.OrdinalIgnoreCase)))
             {
                 if (Channels.Count > 0)
                 {
-                    await FetchSuspensionForChannel(Channels[0].ChannelName).ConfigureAwait(false);
+                    await FetchSuspensionForChannel(Channels[0].ChannelName, today).ConfigureAwait(false);
+                    await FetchDaysWithUnauditedSuspensions(Channels[0].ChannelName).ConfigureAwait(false);
                     await FetchSeenUsersForChannel(Channels[0].ChannelName).ConfigureAwait(false);
                 }
             }
             else
             {
-                await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
+                await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername, today).ConfigureAwait(false);
+                await FetchDaysWithUnauditedSuspensions(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
                 await FetchSeenUsersForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
             }
+        }
+
+        public async Task FetchDaysWithUnauditedSuspensions(string channelName)
+        {
+            DatesWithUnauditedSuspensions = null;
+
+            var result = await apiGateway.Get<List<DateTime>>("suspensions", routeValues: new string[] { channelName, "unauditedDates" }).ConfigureAwait(false);
+
+            DatesWithUnauditedSuspensions = result ?? new List<DateTime>();
+
+            if (DatesWithUnauditedSuspensions != null)
+                NotifyStateChanged();
         }
 
         public void SetCurrentlySelectedSuspensionForImages(SuspensionModel suspension)
@@ -112,11 +128,13 @@ namespace AntiHarassment.Frontend.Application
             NotifyStateChanged();
         }
 
-        public async Task FetchSuspensionForChannel(string channelName)
+        public async Task FetchSuspensionForChannel(string channelName, DateTime date)
         {
             Suspensions = null;
 
-            var result = await apiGateway.Get<List<SuspensionModel>>("suspensions", routeValues: new string[] { channelName }).ConfigureAwait(false);
+            var queryParam = new QueryParam("date", date.ToString("yyyy-MM-dd HH:mm:ss"));
+
+            var result = await apiGateway.Get<List<SuspensionModel>>("suspensions", routeValues: new string[] { channelName }, queryParams: queryParam).ConfigureAwait(false);
             Suspensions = result ?? new List<SuspensionModel>();
 
             CurrentlySelectedChannel = channelName;

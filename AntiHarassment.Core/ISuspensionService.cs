@@ -9,7 +9,7 @@ namespace AntiHarassment.Core
 {
     public interface ISuspensionService
     {
-        Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context);
+        Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, DateTime date, IApplicationContext context);
         Task<IResult<Suspension>> UpdateValidity(Guid suspensionId, bool invalidate, string invalidationReason, IApplicationContext context);
         Task<IResult<Suspension>> UpdateAuditState(Guid suspensionId, bool audited, IApplicationContext context);
         Task<IResult<Suspension>> AddTagTo(Guid suspensionId, Guid tagId, IApplicationContext context);
@@ -19,5 +19,6 @@ namespace AntiHarassment.Core
         Task<IResult<Suspension>> RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context);
         Task<IResult<Suspension>> CreateManualSuspension(string username, string channelOfOrigin, IApplicationContext context);
         Task AddImageTo(Guid suspensionId, byte[] imageBytes, string fileExtension, IApplicationContext context);
+        Task<IResult<List<DateTime>>> GetUnauditedDatesFor(string channelOfOrigin, IApplicationContext context);
     }
 }

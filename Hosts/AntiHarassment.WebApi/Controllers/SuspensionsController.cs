@@ -52,9 +52,9 @@ namespace AntiHarassment.WebApi.Controllers
         }
 
         [HttpGet("{channelOfOrigin}")]
-        public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin)
+        public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin, [FromQuery] DateTime date)
         {
-            var result = await suspensionService.GetAllSuspensionsAsync(channelOfOrigin, ApplicationContext).ConfigureAwait(false);
+            var result = await suspensionService.GetAllSuspensionsAsync(channelOfOrigin, date, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Success)
                 return Ok(result.Data.Map(CurrentUrl));
 
@@ -63,6 +63,22 @@ namespace AntiHarassment.WebApi.Controllers
 
             if (result.State == ResultState.Failure)
                 return BadRequest(result.FailureReason);
+
+            return NoContent();
+        }
+
+        [HttpGet("{channelOfOrigin}/unauditedDates")]
+        public async Task<IActionResult> GetDatesWithUnauditedSuspensions([FromRoute] string channelOfOrigin)
+        {
+            var result = await suspensionService.GetUnauditedDatesFor(channelOfOrigin, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data);
 
             return NoContent();
         }

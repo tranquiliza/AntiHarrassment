@@ -22,10 +22,11 @@ namespace AntiHarassment.Frontend.Application
         string UserLinkReason { get; set; }
         string CurrentSearchTerm { get; set; }
         SuspensionModel CurrentlySelectedSuspension { get; set; }
+        List<DateTime> DatesWithUnauditedSuspensions { get; set; }
 
         event Action OnChange;
 
-        Task FetchSuspensionForChannel(string channelName);
+        Task FetchSuspensionForChannel(string channelName, DateTime date);
         Task FetchSeenUsersForChannel(string channelName);
         Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason = "");
         Task UpdateAudited(Guid suspensionId, bool audited);
@@ -37,5 +38,6 @@ namespace AntiHarassment.Frontend.Application
         Task CreateNewSuspension(string username);
         Task UploadImage(Guid suspensionId, MemoryStream memoryStream, string filename);
         void SetCurrentlySelectedSuspensionForImages(SuspensionModel suspension);
+        Task FetchDaysWithUnauditedSuspensions(string channelName);
     }
 }
