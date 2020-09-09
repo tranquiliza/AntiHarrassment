@@ -87,6 +87,42 @@ namespace AntiHarassment.Sql
             }
         }
 
+        private readonly DateTime MinimumDate = DateTime.Parse("1753-01-01");
+
+        public async Task<List<Suspension>> GetSuspensionsForChannelOnDate(string channelOfOrigin, DateTime date)
+        {
+            try
+            {
+                var result = new List<Suspension>();
+
+                if (date < MinimumDate)
+                    return result;
+
+                using (var command = sql.CreateStoredProcedure("[Core].[GetSuspensionsForChannelForDate]"))
+                {
+                    var nextDay = date.AddDays(1);
+
+                    command.WithParameter("channelOfOrigin", channelOfOrigin);
+                    command.WithParameter("startDate", date.Date);
+                    command.WithParameter("endDate", nextDay.Date);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting suspensions for Channel {arg}", channelOfOrigin);
+                throw;
+            }
+        }
+
         public async Task<List<Suspension>> GetAuditedSuspensionsForChannel(string channelOfOrigin, DateTime earliestDate)
         {
             try
@@ -186,6 +222,33 @@ namespace AntiHarassment.Sql
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Error when attempting to get all suspensions");
+                throw;
+            }
+        }
+
+        public async Task<List<DateTime>> GetUnauditedDatesFor(string channelOfOrigin)
+        {
+            try
+            {
+                var result = new List<DateTime>();
+
+                using (var command = sql.CreateStoredProcedure("[Core].[GetDatesForUnauditedSuspensionsForChannel]"))
+                {
+                    command.WithParameter("channelOfOrigin", channelOfOrigin);
+                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                        {
+                            result.Add(reader.GetDateTime("DateWithUnauditedSuspensions"));
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when attempting to get dates for unaudited suspensions");
                 throw;
             }
         }

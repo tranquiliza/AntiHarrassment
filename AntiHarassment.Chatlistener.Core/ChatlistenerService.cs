@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Chatlistener.Core.Events;
 using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
+using AntiHarassment.Core.Repositories;
 using AntiHarassment.Core.Security;
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.Events;
@@ -34,6 +35,7 @@ namespace AntiHarassment.Chatlistener.Core
             ISuspensionRepository suspensionRepository,
             IChatRepository chatRepository,
             IServiceProvider serviceProvider,
+            IChatterRepository chatterRepository,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
@@ -43,6 +45,7 @@ namespace AntiHarassment.Chatlistener.Core
             this.suspensionRepository = suspensionRepository;
             this.chatRepository = chatRepository;
             this.serviceProvider = serviceProvider;
+            this.chatterRepository = chatterRepository;
             this.logger = logger;
 
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
@@ -55,14 +58,13 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task Client_OnUserJoined(object _, UserJoinedEvent e)
         {
-            logger.LogInformation("{arg1} joined {arg2}", e.Username, e.Channel);
-
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
             var userEnteredChannelEvent = new UserEnteredChannelEvent { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
             var checkBanRulesCommand = new RuleExceedCheckCommand { ChannelOfOrigin = e.Channel, TwitchUsername = e.Username };
 
+            await chatterRepository.UpsertChatter(e.Username, datetimeProvider.UtcNow).ConfigureAwait(false);
             await messageDispatcher.Publish(userEnteredChannelEvent).ConfigureAwait(false);
-            await messageDispatcher.SendLocal(checkBanRulesCommand);
+            await messageDispatcher.SendLocal(checkBanRulesCommand).ConfigureAwait(false);
         }
 
         private async Task OnMessageReceived(object _, MessageReceivedEvent e)
@@ -104,6 +106,7 @@ namespace AntiHarassment.Chatlistener.Core
         }
 
         private bool hasBootedUp = false;
+        private readonly IChatterRepository chatterRepository;
 
         public async Task<bool> CheckConnectionAndRestartIfNeeded()
         {

@@ -37,7 +37,7 @@ namespace AntiHarassment.Core
             this.fileRepository = fileRepository;
         }
 
-        public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context)
+        public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, DateTime date, IApplicationContext context)
         {
             var channel = await channelRepository.GetChannel(channelOfOrigin).ConfigureAwait(false);
             if (channel == null)
@@ -46,7 +46,7 @@ namespace AntiHarassment.Core
             if (!context.HaveAccessTo(channel))
                 return Result<List<Suspension>>.Unauthorized();
 
-            var dataForUser = await suspensionRepository.GetSuspensionsForChannel(channelOfOrigin).ConfigureAwait(false);
+            var dataForUser = await suspensionRepository.GetSuspensionsForChannelOnDate(channelOfOrigin, date).ConfigureAwait(false);
             if (dataForUser.Count > 0)
                 return Result<List<Suspension>>.Succeeded(dataForUser.OrderByDescending(x => x.Timestamp).ToList());
 
@@ -228,6 +228,16 @@ namespace AntiHarassment.Core
             await fileRepository.SaveImage(imageBytes, imageName).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
+        }
+
+        public async Task<IResult<List<DateTime>>> GetUnauditedDatesFor(string channelOfOrigin, IApplicationContext context)
+        {
+            var channel = await channelRepository.GetChannel(channelOfOrigin).ConfigureAwait(false);
+            if (!context.HaveAccessTo(channel))
+                return Result<List<DateTime>>.Unauthorized();
+
+            var dates = await suspensionRepository.GetUnauditedDatesFor(channelOfOrigin).ConfigureAwait(false);
+            return Result<List<DateTime>>.Succeeded(dates);
         }
     }
 }

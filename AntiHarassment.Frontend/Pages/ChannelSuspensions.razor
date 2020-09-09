@@ -5,7 +5,7 @@
 
 @page "/ChannelSuspensions"
 
-<PageTitle Title="AHS: Suspensions"/>
+<PageTitle Title="AHS: Suspensions" />
 
 
 @if (suspensionService.Channels == null)
@@ -30,8 +30,11 @@ else
         </div>
         <div class="col s3">
             <div class="input-field">
-                <input class="white-text" type="date" @bind-value="selectedDate" />
+                <input @onkeyup="KeyUpEvent" class="white-text" type="date" @bind-value="suspensionService.SelectedDate" />
             </div>
+        </div>
+        <div class="col s3">
+            <button class="btn" style="margin-top:26px" @onclick="FetchForDate"><i class="material-icons">search</i></button>
         </div>
         <div class="col s3">
             <button style="margin-top:26px;" @onclick="OpenModelForCreateSuspension" class="btn green">Create Suspension</button>
@@ -52,23 +55,19 @@ else
         {
             if (suspensionService.Suspensions.Count == 0)
             {
-                <p>No suspensions yet</p>
+                <p>No suspensions on this day!</p>
             }
 
-            @if (suspensionService.Suspensions.Any(x => x.LocalTimeStamp().Date != selectedDate.Date && !x.Audited))
+            @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.DatesWithUnauditedSuspensions.Count(x => x != suspensionService.SelectedDate) > 0)
             {
                 <div class="card red darken-3">
                     <div class="card-content">
                         <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
                         <div class="collection with-header">
-                            @foreach (var unaudited in suspensionService.Suspensions
-                                .Where(x => !x.Audited && x.LocalTimeStamp().Date != selectedDate.Date)
-                                .GroupBy(x => x.LocalTimeStamp().Date)
-                                .Select(key => key.Key)
-                                .ToList())
+                            @foreach (var date in suspensionService.DatesWithUnauditedSuspensions.Where(x => x != suspensionService.SelectedDate))
                             {
-                                <a @onclick="() => selectedDate = unaudited.Date" class="hand-pointer collection-item">
-                                    @unaudited.Date.ShortFancyFormat()
+                                <a @onclick="async () => await SetDateAndFetch(date.Date)" class="hand-pointer collection-item">
+                                    @date.Date.ShortFancyFormat()
                                 </a>
                             }
                         </div>
@@ -78,7 +77,7 @@ else
             }
 
             <ul class="collapsible">
-                @foreach (var suspension in suspensionService.Suspensions.Where(x => x.LocalTimeStamp().Date == selectedDate.Date).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
+                @foreach (var suspension in suspensionService.Suspensions.OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
                 {
                     <SuspensionComponent suspension="suspension" counter="counter" />
 
@@ -173,14 +172,14 @@ else
 </div>
 
 @code {
-    private DateTime selectedDate = DateTime.Now.Date;
-
     private int counter = 0;
 
     private async Task SelectChannel(string channelName)
     {
-        await suspensionService.FetchSuspensionForChannel(channelName);
+        suspensionService.SelectedDate = DateTime.Now.Date;
+        await suspensionService.FetchSuspensionForChannel(channelName, DateTime.UtcNow);
         await suspensionService.FetchSeenUsersForChannel(channelName);
+        await suspensionService.FetchDaysWithUnauditedSuspensions(channelName);
     }
 
     private async Task CloseLinkUserModal()
@@ -194,6 +193,23 @@ else
         suspensionService.CurrentSearchTerm = "";
         suspensionService.UserLinkReason = "";
         suspensionService.CurrentlySelectedSuspension = null;
+    }
+
+    private async Task FetchForDate()
+    {
+        await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel, suspensionService.SelectedDate);
+    }
+
+    private async Task SetDateAndFetch(DateTime date)
+    {
+        suspensionService.SelectedDate = date;
+
+        await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel, date);
+    }
+
+    private async Task KeyUpEvent(KeyboardEventArgs e)
+    {
+        await FetchForDate();
     }
 
     private async Task LinkUserToSuspensions(string userToLink)

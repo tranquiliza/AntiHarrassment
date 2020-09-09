@@ -15,5 +15,7 @@ namespace AntiHarassment.Core
         Task<List<Suspension>> GetSuspensionsForUser(string username);
         Task<List<string>> GetSuspendedUsersForChannel(string channelName);
         Task<List<Suspension>> GetAuditedSuspensionsForChannel(string channelOfOrigin, DateTime earliestDate);
+        Task<List<Suspension>> GetSuspensionsForChannelOnDate(string channelOfOrigin, DateTime date);
+        Task<List<DateTime>> GetUnauditedDatesFor(string channelOfOrigin);
     }
 }

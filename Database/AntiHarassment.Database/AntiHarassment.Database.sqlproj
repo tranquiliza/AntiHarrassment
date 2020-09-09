@@ -65,6 +65,7 @@
     <Folder Include="StoredProcedures\Suspensions" />
     <Folder Include="StoredProcedures\ChatMessages" />
     <Folder Include="StoredProcedures\Tags" />
+    <Folder Include="StoredProcedures\Chatters" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\Schemas\Core.sql" />
@@ -100,6 +101,11 @@
     <Build Include="StoredProcedures\ChatMessages\GetUniqueChattersForSystem.sql" />
     <Build Include="StoredProcedures\Suspensions\GetUniqueUsersFromSuspensionsForSystem.sql" />
     <Build Include="StoredProcedures\ChatMessages\GetLatestMessageTimestamp.sql" />
+    <Build Include="StoredProcedures\Suspensions\GetSuspensionsForChannelForDate.sql" />
+    <Build Include="StoredProcedures\Suspensions\GetDatesForUnauditedSuspensionsForChannel.sql" />
+    <Build Include="Tables\Chatters.sql" />
+    <Build Include="StoredProcedures\Chatters\UpsertChatter.sql" />
+    <Build Include="StoredProcedures\Chatters\GetAllChatters.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

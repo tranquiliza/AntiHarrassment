@@ -35,7 +35,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             if (suspensionsForUserInChannel.Any(x => x.SuspensionType == SuspensionType.Ban && !x.InvalidSuspension && x.Audited))
             {
-                logger.LogInformation("{arg} has already been banned", username);
+                logger.LogInformation("{arg} has already been banned from {arg2}", username, channelToBanFrom);
                 return;
             }
 
@@ -44,6 +44,7 @@ namespace AntiHarassment.Chatlistener.Core
 
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
             await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = channelToBanFrom }).ConfigureAwait(false);
+            logger.LogInformation("Banned and Created suspension for {arg}", suspension.Username);
         }
     }
 }

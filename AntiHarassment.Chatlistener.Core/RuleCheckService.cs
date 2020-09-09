@@ -21,7 +21,11 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IMessageDispatcher messageDispatcher;
         private readonly ILogger<RuleCheckService> logger;
 
-        public RuleCheckService(IChannelRepository channelRepository, ISuspensionRepository suspensionRepository, IMessageDispatcher messageDispatcher, ILogger<RuleCheckService> logger)
+        public RuleCheckService(
+            IChannelRepository channelRepository,
+            ISuspensionRepository suspensionRepository,
+            IMessageDispatcher messageDispatcher,
+            ILogger<RuleCheckService> logger)
         {
             this.channelRepository = channelRepository;
             this.suspensionRepository = suspensionRepository;
@@ -75,14 +79,13 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task SendBanCommandFor(string username, string channel, string ruleName)
         {
-            logger.LogInformation("Sending a ban command for user: {arg1} on channel: {arg2}, exceeding rule: {arg3}", username, channel, ruleName);
             var command = new SystemBanCommand(username, channel, $"Automated ban from rule: {ruleName}");
             await messageDispatcher.SendLocal(command).ConfigureAwait(false);
         }
 
         private async Task SendUserExceededRuleNotifyEvent(string username, string channel, string ruleName)
         {
-            logger.LogInformation("Sending a notify event for user: {arg1} on channel: {arg2}, exceeding rule: {arg3}", username, channel, ruleName);
+            logger.LogInformation("Sending notication about {arg} on {arg2} for {arg3}", username, channel, ruleName);
             var notifyEvent = new NotifyWebsiteUserExceededRuleEvent(username, channel, ruleName);
             await messageDispatcher.Publish(notifyEvent).ConfigureAwait(false);
         }

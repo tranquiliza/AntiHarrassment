@@ -3,6 +3,7 @@ using AntiHarassment.Core.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -125,7 +126,7 @@ namespace AntiHarassment.Sql
                     }
                 }
 
-                return result;
+                return result.Distinct().ToList();
             }
             catch (Exception ex)
             {
@@ -152,6 +153,17 @@ namespace AntiHarassment.Sql
                     while (await reader.ReadAsync().ConfigureAwait(false))
                     {
                         var value = reader.GetString("username");
+                        if (!result.Contains(value))
+                            result.Add(value);
+                    }
+                }
+
+                using (var command = sql.CreateStoredProcedure("[Core].[GetAllChatters]"))
+                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        var value = reader.GetString("TwitchUsername");
                         if (!result.Contains(value))
                             result.Add(value);
                     }

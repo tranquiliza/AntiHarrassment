@@ -11,6 +11,7 @@ namespace AntiHarassment.Core.Models
     {
         public List<Suspension> AuditedSuspensions { get; private set; }
         public List<Suspension> UnauditedSuspensions { get; private set; }
+        public List<Suspension> SystemSuspensions { get; private set; }
 
         public int UnauditedSuspensionsCount => UnauditedSuspensions.Count(x => !x.InvalidSuspension);
 
@@ -52,10 +53,15 @@ namespace AntiHarassment.Core.Models
         public int InvalidUniqueUsersTimeout { get; private set; }
         public int InvalidUniqueUsersBan { get; private set; }
 
-        public SystemReport(List<Suspension> unauditedSuspensions, List<Suspension> auditedSuspensions, int uniqueUsers)
+        public int UniqueUsersSuspendedBySystem { get; private set; }
+
+        public SystemReport(List<Suspension> unauditedSuspensions, List<Suspension> auditedSuspensions, List<Suspension> systemSuspensions, int uniqueUsers)
         {
             AuditedSuspensions = auditedSuspensions;
             UniqueUsers = uniqueUsers;
+            SystemSuspensions = systemSuspensions;
+
+            UniqueUsersSuspendedBySystem = systemSuspensions.DistinctBy(x => x.Username, StringComparer.OrdinalIgnoreCase).Count();
 
             ValidTotalSuspensions = auditedSuspensions.Count(x => !x.InvalidSuspension);
             ValidTotalBans = auditedSuspensions.Count(x => x.SuspensionType == SuspensionType.Ban && !x.InvalidSuspension);
