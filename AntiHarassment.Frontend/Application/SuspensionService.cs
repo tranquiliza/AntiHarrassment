@@ -68,7 +68,7 @@ namespace AntiHarassment.Frontend.Application
                 Suspensions.Remove(existingSuspension);
 
             if (updatedSuspension.Audited)
-                await FetchDaysWithUnauditedSuspensions(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
+                await FetchDaysWithUnauditedSuspensions(CurrentlySelectedChannel).ConfigureAwait(false);
 
             Suspensions.Add(updatedSuspension);
             NotifyStateChanged();
