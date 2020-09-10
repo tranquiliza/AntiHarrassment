@@ -21,31 +21,39 @@
     <li>
         <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="taglookup" Match="NavLinkMatch.Prefix">User Lookup by tag</NavLink>
     </li>
+    
+    <li><div class="divider blue"></div></li>
+    <li><a class="subheader blue-text">Broadcaster Menu</a></li>
+    <li><div class="divider blue"></div></li>
     <li>
-        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="resources" Match="NavLinkMatch.Prefix">Resources</NavLink>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="settings" Match="NavLinkMatch.All">Settings</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="chatlogs" Match="NavLinkMatch.All">Chat Logs</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="channelRules" Match="NavLinkMatch.All">Channel Rules</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="RulesLookup" Match="NavLinkMatch.All">Users Caught by Rules</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="channelstatistics" Match="NavLinkMatch.All">Statistics</NavLink>
     </li>
 
-    @if (userService.IsUserLoggedIn)
-    {
-        <li><div class="divider blue"></div></li>
-        <li><a class="subheader blue-text">Broadcaster Menu</a></li>
-        <li><div class="divider blue"></div></li>
-        <li>
-            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="settings" Match="NavLinkMatch.All">Settings</NavLink>
-        </li>
-        <li>
-            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="chatlogs" Match="NavLinkMatch.All">Chat Logs</NavLink>
-        </li>
-        <li>
-            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="channelRules" Match="NavLinkMatch.All">Channel Rules</NavLink>
-        </li>
-        <li>
-            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="RulesLookup" Match="NavLinkMatch.All">Users Caught by Rules</NavLink>
-        </li>
-        <li>
-            <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="channelstatistics" Match="NavLinkMatch.All">Statistics</NavLink>
-        </li>
-    }
+    <li><div class="divider blue"></div></li>
+    <li><a class="subheader blue-text">Help Menu</a></li>
+    <li><div class="divider blue"></div></li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="mentalHealth" Match="NavLinkMatch.Prefix">Mental Health Awereness</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="support" Match="NavLinkMatch.Prefix">Support</NavLink>
+    </li>
+    <li>
+        <NavLink class="white-text waves-effect waves-light" ActiveClass="blue" href="tutorialVideos" Match="NavLinkMatch.Prefix">Tutorial Videos</NavLink>
+    </li>
+
     @if (userService.IsUserAdmin)
     {
         <li><div class="divider blue"></div></li>
