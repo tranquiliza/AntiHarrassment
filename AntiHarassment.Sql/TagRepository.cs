@@ -3,7 +3,6 @@ using AntiHarassment.Core.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Sql
@@ -23,11 +22,9 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[DeleteTag]"))
-                {
-                    command.WithParameter("tagId", tagId);
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+                using var command = sql.CreateStoredProcedure("[Core].[DeleteTag]");
+                command.WithParameter("tagId", tagId);
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -43,11 +40,9 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetTag]"))
                 {
                     command.WithParameter("tagId", tagId);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
-                    {
-                        if (await reader.ReadAsync().ConfigureAwait(false))
-                            return Serialization.Deserialize<Tag>(reader.GetString("data"));
-                    }
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    if (await reader.ReadAsync().ConfigureAwait(false))
+                        return Serialization.Deserialize<Tag>(reader.GetString("data"));
                 }
 
                 return null;
@@ -84,14 +79,12 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[UpsertTag]"))
-                {
-                    command.WithParameter("tagId", tag.TagId)
-                        .WithParameter("tagName", tag.TagName)
-                        .WithParameter("data", Serialization.Serialize(tag));
+                using var command = sql.CreateStoredProcedure("[Core].[UpsertTag]");
+                command.WithParameter("tagId", tag.TagId)
+                    .WithParameter("tagName", tag.TagName)
+                    .WithParameter("data", Serialization.Serialize(tag));
 
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +6,7 @@ using NServiceBus;
 
 namespace AntiHarassment.Nsb.Tester
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
@@ -33,7 +29,7 @@ namespace AntiHarassment.Nsb.Tester
 
                     return builder.BuildConfiguration();
                 })
-                .ConfigureServices((hostContext, services) =>
+                .ConfigureServices((_, services) =>
                 {
                     services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
                     services.AddHostedService<Worker>();

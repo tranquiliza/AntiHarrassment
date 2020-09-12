@@ -1,17 +1,12 @@
 ﻿using AntiHarassment.Chatlistener.Core;
 using AntiHarassment.Chatlistener.Core.Events;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Users;
-using TwitchLib.PubSub;
-using TwitchLib.PubSub.Events;
-using TwitchLib.PubSub.Models.Responses;
-using TwitchLib.PubSub.Models.Responses.Messages;
 
 namespace AntiHarassment.Chatlistener.TwitchIntegration
 {
@@ -26,8 +21,6 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         private User BotUser { get; set; }
 
         public event EventHandler<MessageReceivedEvent> OnMessageReceived;
-        //public event EventHandler<UserBannedEvent> OnUserBanned;
-        //public event EventHandler<UserTimedoutEvent> OnUserTimedout;
 
         public TwitchPubSubClient(TwitchClientSettings twitchClientSettings, ILogger<TwitchPubSubClient> logger)
         {

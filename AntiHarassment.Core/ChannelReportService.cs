@@ -1,12 +1,8 @@
 ﻿using AntiHarassment.Core.Models;
 using AntiHarassment.Core.Security;
-using Microsoft.Extensions.Logging;
-using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Core
@@ -71,9 +67,7 @@ namespace AntiHarassment.Core
                 {
                     if (report.Exceeds(rule))
                     {
-                        var userRulesExceeded = usersWhoExceeded.Find(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase));
-                        if (userRulesExceeded == null)
-                            userRulesExceeded = new UserRulesExceeded { Username = user };
+                        var userRulesExceeded = usersWhoExceeded.Find(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase)) ?? new UserRulesExceeded { Username = user };
 
                         usersWhoExceeded.Remove(userRulesExceeded);
 

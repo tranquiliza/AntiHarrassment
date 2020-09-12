@@ -2,10 +2,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace AntiHarassment.Core.Models
 {
@@ -45,18 +43,21 @@ namespace AntiHarassment.Core.Models
         public bool Audited { get; private set; }
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for Tags, should be lowercase")]
         private List<Tag> tags { get; set; } = new List<Tag>();
 
         [JsonIgnore]
         public IReadOnlyList<Tag> Tags => tags.AsReadOnly();
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for LinkedUsers")]
         private List<LinkedUser> linkedUsers { get; set; } = new List<LinkedUser>();
 
         [JsonIgnore]
         public IReadOnlyList<LinkedUser> LinkedUsers => linkedUsers.AsReadOnly();
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for Images")]
         private List<string> images { get; set; } = new List<string>();
 
         [JsonIgnore]

@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using AntiHarassment.Chatlistener.Core;
+using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
-using AntiHarassment.Chatlistener.Core;
-using AntiHarassment.Core;
-using Microsoft.Extensions.Hosting;
 
 namespace AntiHarassment.Chatlistener
 {

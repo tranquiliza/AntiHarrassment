@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AntiHarassment.Messaging.Events
+﻿namespace AntiHarassment.Messaging.Events
 {
     public class LeftChannelEvent
     {

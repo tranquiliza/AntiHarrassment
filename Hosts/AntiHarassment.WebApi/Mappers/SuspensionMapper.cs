@@ -2,8 +2,8 @@
 using AntiHarassment.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace AntiHarassment.WebApi.Mappers
 {
@@ -44,6 +44,7 @@ namespace AntiHarassment.WebApi.Mappers
                 Reason = input.Reason
             };
 
+        [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Can't implement future features before we're in the future.")]
         private static SuspensionTypeModel Map(this SuspensionType suspensionType)
             => suspensionType switch
             {
@@ -52,14 +53,14 @@ namespace AntiHarassment.WebApi.Mappers
                 _ => throw new NotImplementedException(),
             };
 
+        [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Can't implement future features before we're in the future.")]
         private static SuspensionSourceModel Map(this SuspensionSource suspensionSource)
-            => suspensionSource switch
-            {
-                SuspensionSource.Listener => SuspensionSourceModel.Listener,
-                SuspensionSource.User => SuspensionSourceModel.User,
-                SuspensionSource.System => SuspensionSourceModel.System,
-                _ => throw new NotImplementedException()
-            };
+    => suspensionSource switch
+    {
+        SuspensionSource.Listener => SuspensionSourceModel.Listener,
+        SuspensionSource.User => SuspensionSourceModel.User,
+        SuspensionSource.System => SuspensionSourceModel.System,
+        _ => throw new NotImplementedException()
+    };
     }
-
 }

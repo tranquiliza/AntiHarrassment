@@ -1,19 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AntiHarassment.WebApi.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace AntiHarassment.WebApi
 {
@@ -26,16 +19,9 @@ namespace AntiHarassment.WebApi
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(builder =>
-                {
-                    builder.WithOrigins("https://antiharassment.azurewebsites.net", "https://localhost:44394").AllowAnyHeader().AllowAnyMethod();
-                });
-            });
+            services.AddCors(options => options.AddDefaultPolicy(builder => builder.WithOrigins("https://antiharassment.azurewebsites.net", "https://localhost:44394").AllowAnyHeader().AllowAnyMethod()));
 
             services.AddControllers();
             services.AddSignalR();
@@ -63,13 +49,9 @@ namespace AntiHarassment.WebApi
                 };
             });
 
-            services.AddMvc(options =>
-            {
-                options.Filters.Add(typeof(ApplicationContextFilter));
-            });
+            services.AddMvc(options => options.Filters.Add(typeof(ApplicationContextFilter)));
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())

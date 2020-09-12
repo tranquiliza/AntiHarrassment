@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Sql
@@ -46,13 +45,11 @@ namespace AntiHarassment.Sql
                         .WithParameter("channelOfOrigin", channelOfOrigin)
                         .WithParameter("earliestTime", earliestTime);
 
-                    using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
-                            result.Add(chatMessage);
-                        }
+                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
+                        result.Add(chatMessage);
                     }
                 }
 
@@ -76,15 +73,13 @@ namespace AntiHarassment.Sql
                         .WithParameter("earliestTime", earliestTime)
                         .WithParameter("latestTime", latestTime);
 
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
-                            chatMessage.AttachUsername(reader.GetString("username"));
+                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
+                        chatMessage.AttachUsername(reader.GetString("username"));
 
-                            result.Add(chatMessage);
-                        }
+                        result.Add(chatMessage);
                     }
                 }
 
@@ -105,24 +100,20 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetUniqueChattersForChannel]"))
                 {
                     command.WithParameter("channelOfOrigin", channelOfOrigin);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
-                    {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                            result.Add(reader.GetString("Username"));
-                    }
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                        result.Add(reader.GetString("Username"));
                 }
 
                 using (var command = sql.CreateStoredProcedure("[Core].[GetUniqueUsersFromSuspensions]"))
                 {
                     command.WithParameter("channelOfOrigin", channelOfOrigin);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            var value = reader.GetString("username");
-                            if (!result.Contains(value))
-                                result.Add(value);
-                        }
+                        var value = reader.GetString("username");
+                        if (!result.Contains(value))
+                            result.Add(value);
                     }
                 }
 
@@ -182,16 +173,14 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[InsertChatMessage]"))
-                {
-                    command.WithParameter("username", username)
-                        .WithParameter("channelOfOrigin", channelOfOrigin)
-                        .WithParameter("message", message)
-                        .WithParameter("automodded", autoModded)
-                        .WithParameter("timestamp", timestamp);
+                using var command = sql.CreateStoredProcedure("[Core].[InsertChatMessage]");
+                command.WithParameter("username", username)
+                    .WithParameter("channelOfOrigin", channelOfOrigin)
+                    .WithParameter("message", message)
+                    .WithParameter("automodded", autoModded)
+                    .WithParameter("timestamp", timestamp);
 
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

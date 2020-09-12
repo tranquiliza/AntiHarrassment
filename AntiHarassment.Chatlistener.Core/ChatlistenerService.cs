@@ -8,7 +8,6 @@ using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public class ChatlistenerService : IChatlistenerService, IDisposable
     {
-        private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
 
         private readonly IChatClient client;
         private readonly IPubSubClient pubSubClient;
@@ -158,9 +157,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task ListenTo(string channelName, IApplicationContext context)
         {
-            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
-            if (channel == null)
-                channel = new Channel(channelName, shouldListen: true);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false) ?? new Channel(channelName, shouldListen: true);
 
             channel.EnableListening(context, datetimeProvider.UtcNow);
 
@@ -178,9 +175,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task UnlistenTo(string channelName, IApplicationContext context)
         {
-            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
-            if (channel == null)
-                channel = new Channel(channelName, shouldListen: false);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false) ?? new Channel(channelName, shouldListen: false);
 
             channel.DisableListening(context, datetimeProvider.UtcNow);
             channel.DisableAutoModdedMessageListening(context, datetimeProvider.UtcNow);

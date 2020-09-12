@@ -1,8 +1,6 @@
 ﻿using AntiHarassment.Core.Repositories;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Sql
@@ -22,13 +20,11 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[UpsertChatter]"))
-                {
-                    command.WithParameter("@twitchUsername", twitchUsername)
-                        .WithParameter("@firstTimeSeen", timestamp);
+                using var command = sql.CreateStoredProcedure("[Core].[UpsertChatter]");
+                command.WithParameter("@twitchUsername", twitchUsername)
+                    .WithParameter("@firstTimeSeen", timestamp);
 
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

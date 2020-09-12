@@ -1,12 +1,8 @@
-﻿using AntiHarassment.Core.Models;
-using AntiHarassment.Messaging.Events;
+﻿using AntiHarassment.Messaging.Events;
 using AntiHarassment.SignalR.Contract;
 using AntiHarassment.WebApi.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using NServiceBus;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.WebApi.Handlers

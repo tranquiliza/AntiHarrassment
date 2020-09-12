@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using AntiHarassment.Messaging.NServiceBus;
 using Serilog;
-using Serilog.Events;
-using Serilog.Core;
+using System;
 
 namespace AntiHarassment.Chatlistener
 {

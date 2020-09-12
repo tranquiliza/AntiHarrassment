@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AntiHarassment.Core;
+﻿using AntiHarassment.Core;
 using AntiHarassment.Core.Security;
 using AntiHarassment.WebApi.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace AntiHarassment.WebApi.Controllers
 {

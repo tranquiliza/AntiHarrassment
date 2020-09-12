@@ -1,15 +1,15 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 
 // Possibly need a transition property in the future if changing property names.
 // https://stackoverflow.com/questions/43714050/multiple-jsonproperty-name-assigned-to-single-property
 
 namespace AntiHarassment.Core.Models
 {
-    public class User
+    public sealed class User
     {
         [JsonProperty]
         public Guid Id { get; private set; }
@@ -27,6 +27,7 @@ namespace AntiHarassment.Core.Models
         public byte[] PasswordSalt { get; private set; }
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for roles should be lowercase")]
         private List<string> roles { get; set; } = new List<string>();
 
         [JsonProperty]

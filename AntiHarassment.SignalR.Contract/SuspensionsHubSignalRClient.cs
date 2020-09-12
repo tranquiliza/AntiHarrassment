@@ -1,9 +1,6 @@
 ﻿using AntiHarassment.SignalR.Contract.EventArgs;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.SignalR.Contract
@@ -65,8 +62,8 @@ namespace AntiHarassment.SignalR.Contract
         {
             if (started)
             {
-                await hubConnection.StopAsync();
-                await hubConnection.DisposeAsync();
+                await hubConnection.StopAsync().ConfigureAwait(false);
+                await hubConnection.DisposeAsync().ConfigureAwait(false);
                 hubConnection = null;
                 started = false;
             }

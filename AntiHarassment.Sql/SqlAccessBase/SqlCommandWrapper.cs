@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Sql
@@ -58,11 +56,10 @@ namespace AntiHarassment.Sql
 
         public virtual ISqlCommandWrapper WithBinaryParameter(string name, byte[] data)
         {
-            var param = new SqlParameter(name, SqlDbType.VarBinary);
-            if (data != null)
-                param.Value = data;
-            else
-                param.Value = DBNull.Value;
+            var param = new SqlParameter(name, SqlDbType.VarBinary)
+            {
+                Value = data ?? (object)DBNull.Value
+            };
 
             Command.Parameters.Add(param);
 
@@ -73,13 +70,9 @@ namespace AntiHarassment.Sql
         {
             var param = new SqlParameter(name, SqlDbType.Structured)
             {
-                TypeName = typeName
+                TypeName = typeName,
+                Value = table ?? (object)DBNull.Value
             };
-
-            if (table != null)
-                param.Value = table;
-            else
-                param.Value = DBNull.Value;
 
             Command.Parameters.Add(param);
 
@@ -98,20 +91,20 @@ namespace AntiHarassment.Sql
 
         public async Task<int> ExecuteNonQueryAsync()
         {
-            await EnsureOpenConnection();
-            return await Command.ExecuteNonQueryAsync();
+            await EnsureOpenConnection().ConfigureAwait(false);
+            return await Command.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
 
         public async Task<object> ExecuteScalarAsync()
         {
-            await EnsureOpenConnection();
-            return await Command.ExecuteScalarAsync();
+            await EnsureOpenConnection().ConfigureAwait(false);
+            return await Command.ExecuteScalarAsync().ConfigureAwait(false);
         }
 
         public async Task<SqlDataReader> ExecuteReaderAsync(CommandBehavior behavior = CommandBehavior.Default)
         {
-            await EnsureOpenConnection();
-            return await Command.ExecuteReaderAsync(behavior);
+            await EnsureOpenConnection().ConfigureAwait(false);
+            return await Command.ExecuteReaderAsync(behavior).ConfigureAwait(false);
         }
 
         public SqlDataReader ExecuteReader(CommandBehavior behavior = CommandBehavior.Default)
@@ -130,7 +123,7 @@ namespace AntiHarassment.Sql
         private async Task EnsureOpenConnection()
         {
             if (Command.Connection.State != ConnectionState.Open)
-                await Command.Connection.OpenAsync();
+                await Command.Connection.OpenAsync().ConfigureAwait(false);
         }
     }
 }

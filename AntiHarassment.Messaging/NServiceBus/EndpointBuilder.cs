@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
 using NServiceBus;
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Text;
 
 namespace AntiHarassment.Messaging.NServiceBus
 {

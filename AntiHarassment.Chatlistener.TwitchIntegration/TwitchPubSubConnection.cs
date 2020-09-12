@@ -105,7 +105,6 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             {
                 case "chat_moderator_actions":
                     var cma = msg.MessageData as ChatModeratorActions;
-                    var reason = "";
                     var targetChannelId = msg.Topic.Split('.')[2];
                     if (!UserIdChannelName.TryGetValue(targetChannelId, out var targetChannelName))
                     {
