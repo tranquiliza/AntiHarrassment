@@ -114,34 +114,6 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 
                     switch (cma?.ModerationAction.ToLower())
                     {
-                        case "timeout":
-                            //if (cma.Args.Count > 2)
-                            //    reason = cma.Args[2];
-                            //OnTimeout?.Invoke(this, new OnTimeoutArgs
-                            //{
-                            //    TimedoutBy = cma.CreatedBy,
-                            //    TimedoutById = cma.CreatedByUserId,
-                            //    TimedoutUserId = cma.TargetUserId,
-                            //    TimeoutDuration = TimeSpan.FromSeconds(int.Parse(cma.Args[1])),
-                            //    TimeoutReason = reason,
-                            //    TimedoutUser = cma.Args[0],
-                            //    ChannelId = channelId
-                            //});
-                            return;
-                        case "ban":
-                            //if (cma.Args.Count > 1)
-                            //    reason = cma.Args[1];
-                            //OnBan?.Invoke(this, new OnBanArgs { BannedBy = cma.CreatedBy, BannedByUserId = cma.CreatedByUserId, BannedUserId = cma.TargetUserId, BanReason = reason, BannedUser = cma.Args[0], ChannelId = channelId });
-                            return;
-                        //case "delete":
-                        //    OnMessageDeleted?.Invoke(this, new OnMessageDeletedArgs { DeletedBy = cma.CreatedBy, DeletedByUserId = cma.CreatedByUserId, TargetUserId = cma.TargetUserId, TargetUser = cma.Args[0], Message = cma.Args[1], MessageId = cma.Args[2], ChannelId = channelId });
-                        //    return;
-                        case "unban":
-                            //OnUnban?.Invoke(this, new OnUnbanArgs { UnbannedBy = cma.CreatedBy, UnbannedByUserId = cma.CreatedByUserId, UnbannedUserId = cma.TargetUserId, UnbannedUser = cma.Args[0], ChannelId = channelId });
-                            return;
-                        case "untimeout":
-                            //OnUntimeout?.Invoke(this, new OnUntimeoutArgs { UntimeoutedBy = cma.CreatedBy, UntimeoutedByUserId = cma.CreatedByUserId, UntimeoutedUserId = cma.TargetUserId, UntimeoutedUser = cma.Args[0], ChannelId = channelId });
-                            return;
                         case "automod_rejected":
                             OnMessageReceived?.Invoke(this, new MessageReceivedEvent
                             {
@@ -155,13 +127,6 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                     }
                     break;
             }
-
-            UnaccountedFor(message);
-        }
-
-        private void UnaccountedFor(string message)
-        {
-            //logger.LogDebug("Received a message that is unaccounted for: {arg}", message);
         }
 
         private void PubSubService_OnUntimeout(object sender, OnUntimeoutArgs e)
