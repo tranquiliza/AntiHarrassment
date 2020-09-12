@@ -140,7 +140,7 @@ namespace AntiHarassment.Chatlistener.Core
         {
             logger.LogInformation("Connecting and joining channels");
             await client.Connect().ConfigureAwait(false);
-            await pubSubClient.Connect().ConfigureAwait(false);
+            pubSubClient.Connect();
 
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
             var enabledChannels = channels.Where(x => x.ShouldListen);
@@ -169,7 +169,7 @@ namespace AntiHarassment.Chatlistener.Core
                 if (await pubSubClient.JoinChannel(channelName).ConfigureAwait(false))
                     channel.EnableAutoModdedMessageListening(context, datetimeProvider.UtcNow);
                 else
-                    logger.LogWarning("Unable to join channel {channelName} have we hit the cap?", channelName);
+                    logger.LogWarning("Unable to join channel {channelName}", channelName);
             }
 
             await client.JoinChannel(channelName).ConfigureAwait(false);

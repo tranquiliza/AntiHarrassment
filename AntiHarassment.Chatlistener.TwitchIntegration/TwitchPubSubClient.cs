@@ -17,50 +17,35 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 {
     public class TwitchPubSubClient : IPubSubClient
     {
-        // TODO Need to make sure that pubsub server never exceeds 50 topics. 
-        // When time arrives, refactor to have a collection of pubsubservice, wrapped with information about active topics
-        // maximum of 10 per IP.
-        private readonly TwitchPubSub pubSubService;
         private readonly TwitchAPI twitchApi;
         private readonly TwitchClientSettings twitchClientSettings;
         private readonly ILogger<TwitchPubSubClient> logger;
 
+        private readonly List<TwitchPubSubConnection> pubSubConnections = new List<TwitchPubSubConnection>();
+
         private User BotUser { get; set; }
 
         public event EventHandler<MessageReceivedEvent> OnMessageReceived;
-        //public event EventHandler<UserJoinedEvent> OnUserJoined;
         //public event EventHandler<UserBannedEvent> OnUserBanned;
         //public event EventHandler<UserTimedoutEvent> OnUserTimedout;
-
-        private Dictionary<string, string> UserIdChannelName = new Dictionary<string, string>();
 
         public TwitchPubSubClient(TwitchClientSettings twitchClientSettings, ILogger<TwitchPubSubClient> logger)
         {
             this.twitchClientSettings = twitchClientSettings;
-            pubSubService = new TwitchPubSub();
             twitchApi = new TwitchAPI();
-
-            //pubSubService.OnTimeout += PubSubService_OnTimeout;
-            //pubSubService.OnBan += PubSubService_OnBan;
-            //pubSubService.OnUntimeout += PubSubService_OnUntimeout;
-            //pubSubService.OnUnban += PubSubService_OnUnban;
-            pubSubService.OnLog += PubSubService_OnLog;
             this.logger = logger;
         }
 
-        public Task Connect()
+        public void Connect()
         {
             twitchApi.Helix.Settings.ClientId = twitchClientSettings.ClientId;
             twitchApi.Helix.Settings.Secret = twitchClientSettings.Secret;
-            pubSubService.Connect();
-            return Task.CompletedTask;
         }
 
-        public Task<bool> Disconnect()
+        public void Disconnect()
         {
-            pubSubService.Disconnect();
-
-            return Task.FromResult(true);
+            foreach (var pubSubConnection in pubSubConnections)
+                pubSubConnection.Disconnect();
         }
 
         public async Task<bool> JoinChannels(List<string> channelNames)
@@ -80,35 +65,15 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 
             foreach (var user in response.Users.Where(x => x != BotUser))
             {
-                if (UserIdChannelName.Count == 50)
-                {
-                    logger.LogWarning("Channel count at 50, cannot listen to more topics on this connection");
-                    continue;
-                }
-
-                if (UserIdChannelName.ContainsKey(user.Id))
-                {
-                    logger.LogInformation("Channel already in pubsub listening, skipping: {arg}", user.DisplayName);
-                    continue;
-                }
-
-                UserIdChannelName.Add(user.Id, user.DisplayName);
-                pubSubService.ListenToChatModeratorActions(BotUser.Id, user.Id);
+                if (!await JoinPubSubForUser(user).ConfigureAwait(false))
+                    logger.LogWarning("Was unable to join pubsub for user {arg}", user.DisplayName);
             }
-
-            pubSubService.SendTopics(twitchClientSettings.TwitchBotOAuth);
 
             return true;
         }
 
         public async Task<bool> JoinChannel(string channelName)
         {
-            if (UserIdChannelName.Count == 50)
-            {
-                logger.LogWarning("Channel count at 50, cannot listen to more topics on this connection");
-                return false;
-            }
-
             var channelNames = new List<string> { channelName };
             if (BotUser == null)
                 channelNames.Add(twitchClientSettings.TwitchUsername);
@@ -124,126 +89,115 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                 return false;
             }
 
-            foreach (var user in response.Users.Where(x => x != BotUser))
+            var userToConnect = Array.Find(response.Users, x => x != BotUser);
+            if (userToConnect == null)
             {
-                if (UserIdChannelName.ContainsKey(user.Id))
+                logger.LogWarning("Was unable to find user Id for user we're trying to connect");
+                return false;
+            }
+
+            return await JoinPubSubForUser(userToConnect).ConfigureAwait(false);
+        }
+
+        private async Task<bool> JoinPubSubForUser(User userToConnect)
+        {
+            if (pubSubConnections.Any(x => x.IsListeningForUser(userToConnect.Id)))
+            {
+                logger.LogInformation("Already listening for user {arg}", userToConnect.DisplayName);
+                return false;
+            }
+
+            var firstConnectionWithSpace = pubSubConnections.Find(x => x.HasSpace);
+            if (firstConnectionWithSpace != null)
+            {
+                if (firstConnectionWithSpace.JoinChannel(BotUser.Id, userToConnect.Id, userToConnect.DisplayName))
+                    return true;
+
+                logger.LogError("Unable to connect channel to the first connection that had space, trying with new connection");
+            }
+
+            if (pubSubConnections.Count < 11)
+            {
+                var newConnection = new TwitchPubSubConnection(twitchClientSettings);
+                await newConnection.Connect().ConfigureAwait(false);
+
+                newConnection.OnMessageReceived += NewConnection_OnMessageReceived;
+
+                newConnection.OnUserBanned += NewConnection_OnUserBanned;
+                newConnection.OnUserTimedout += NewConnection_OnUserTimedout;
+                newConnection.OnUserUnbanned += NewConnection_OnUserUnbanned;
+                newConnection.OnUserUntimedout += NewConnection_OnUserUntimedout;
+
+                pubSubConnections.Add(newConnection);
+
+                if (!newConnection.JoinChannel(BotUser.Id, userToConnect.Id, userToConnect.DisplayName))
                 {
-                    logger.LogInformation("Channel already in pubsub listening, skipping: {arg}", user.DisplayName);
+                    logger.LogError("Created new connection, but was unable to connect pubsub for channel: {arg}", userToConnect.DisplayName);
                     return false;
                 }
 
-                UserIdChannelName.Add(user.Id, user.DisplayName);
-                pubSubService.ListenToChatModeratorActions(BotUser.Id, user.Id);
+                return true;
+            }
+            else
+            {
+                logger.LogWarning("Was unable to connect to channel {arg}, because we have reached maximum pubsub topics in the connections");
             }
 
-            pubSubService.SendTopics(twitchClientSettings.TwitchBotOAuth);
-            return true;
+            return false;
+        }
+
+        private void NewConnection_OnUserUntimedout(object sender, UserUntimedoutEvent e)
+        {
+            logger.LogInformation("Received untimeout on {arg}, issued by {arg2} in channel {arg3}", e.Username, e.UntimedoutBy, e.Channel);
+        }
+
+        private void NewConnection_OnUserUnbanned(object sender, UserUnbannedEvent e)
+        {
+            logger.LogInformation("Received Unban on {arg}, issued by {arg2} in channel {arg3}", e.Username, e.UnbannedBy, e.Channel);
+        }
+
+        private void NewConnection_OnUserTimedout(object sender, UserTimedoutEvent e)
+        {
+            logger.LogInformation("Received Timedout on {arg}, issued by {arg2} in channel {arg3} for {arg4} seconds", e.Username, e.TimedoutBy, e.Channel, e.TimeoutDuration);
+        }
+
+        private void NewConnection_OnUserBanned(object sender, UserBannedEvent e)
+        {
+            logger.LogInformation("Received Ban on {arg}, issued by {arg2} in channel {arg3}", e.Username, e.BannedBy, e.Channel);
+        }
+
+        private void NewConnection_OnMessageReceived(object _, MessageReceivedEvent e)
+        {
+            OnMessageReceived?.Invoke(this, e);
         }
 
         public bool LeaveChannel(string channelName)
         {
-            var channelValuePair = UserIdChannelName.FirstOrDefault(x => string.Equals(x.Value, channelName, StringComparison.OrdinalIgnoreCase));
-            if (channelValuePair.Key == null)
+            var connection = pubSubConnections.Find(x => x.IsListeningForChannelName(channelName));
+            if (connection == null)
+            {
+                logger.LogWarning("Attempting to disconnect a channel that was not connected: {arg}", channelName);
                 return false;
+            }
 
-            pubSubService.ListenToChatModeratorActions(BotUser.Id, channelValuePair.Key);
-            pubSubService.SendTopics(twitchClientSettings.TwitchBotOAuth, unlisten: true);
+            if (connection.LeaveChannel(BotUser.Id, channelName))
+                logger.LogInformation("Disconnect listener for pubsub on channel {arg}", channelName);
+            else
+                logger.LogWarning("Was unable to disconnect listener for pubsub on channel {arg}", channelName);
 
-            UserIdChannelName.Remove(channelValuePair.Key);
+            if (connection.IsEmpty)
+            {
+                connection.Disconnect();
+                pubSubConnections.Remove(connection);
+            }
 
             return true;
         }
 
-        //private void PubSubService_OnUntimeout(object sender, OnUntimeoutArgs e)
-        //{
-        //}
-
-        //private void PubSubService_OnUnban(object sender, OnUnbanArgs e)
-        //{
-        //}
-
-        //private void PubSubService_OnBan(object sender, OnBanArgs e)
-        //{
-        //}
-
-        //private void PubSubService_OnTimeout(object sender, OnTimeoutArgs e)
-        //{
-        //}
-
-        private void PubSubService_OnLog(object sender, OnLogArgs e)
-        {
-            var message = e.Data;
-            var type = JObject.Parse(message).SelectToken("type")?.ToString();
-            if (type?.ToLower() != "message")
-                return;
-
-            var msg = new Message(message);
-            switch (msg.Topic.Split('.')[0])
-            {
-                case "chat_moderator_actions":
-                    var cma = msg.MessageData as ChatModeratorActions;
-                    var reason = "";
-                    var targetChannelId = msg.Topic.Split('.')[2];
-                    if (!UserIdChannelName.TryGetValue(targetChannelId, out var targetChannelName))
-                    {
-                        return;
-                    }
-
-                    switch (cma?.ModerationAction.ToLower())
-                    {
-                        case "timeout":
-                            //if (cma.Args.Count > 2)
-                            //    reason = cma.Args[2];
-                            //OnTimeout?.Invoke(this, new OnTimeoutArgs
-                            //{
-                            //    TimedoutBy = cma.CreatedBy,
-                            //    TimedoutById = cma.CreatedByUserId,
-                            //    TimedoutUserId = cma.TargetUserId,
-                            //    TimeoutDuration = TimeSpan.FromSeconds(int.Parse(cma.Args[1])),
-                            //    TimeoutReason = reason,
-                            //    TimedoutUser = cma.Args[0],
-                            //    ChannelId = channelId
-                            //});
-                            return;
-                        case "ban":
-                            //if (cma.Args.Count > 1)
-                            //    reason = cma.Args[1];
-                            //OnBan?.Invoke(this, new OnBanArgs { BannedBy = cma.CreatedBy, BannedByUserId = cma.CreatedByUserId, BannedUserId = cma.TargetUserId, BanReason = reason, BannedUser = cma.Args[0], ChannelId = channelId });
-                            return;
-                        //case "delete":
-                        //    OnMessageDeleted?.Invoke(this, new OnMessageDeletedArgs { DeletedBy = cma.CreatedBy, DeletedByUserId = cma.CreatedByUserId, TargetUserId = cma.TargetUserId, TargetUser = cma.Args[0], Message = cma.Args[1], MessageId = cma.Args[2], ChannelId = channelId });
-                        //    return;
-                        case "unban":
-                            //OnUnban?.Invoke(this, new OnUnbanArgs { UnbannedBy = cma.CreatedBy, UnbannedByUserId = cma.CreatedByUserId, UnbannedUserId = cma.TargetUserId, UnbannedUser = cma.Args[0], ChannelId = channelId });
-                            return;
-                        case "untimeout":
-                            //OnUntimeout?.Invoke(this, new OnUntimeoutArgs { UntimeoutedBy = cma.CreatedBy, UntimeoutedByUserId = cma.CreatedByUserId, UntimeoutedUserId = cma.TargetUserId, UntimeoutedUser = cma.Args[0], ChannelId = channelId });
-                            return;
-                        case "automod_rejected":
-                            OnMessageReceived?.Invoke(this, new MessageReceivedEvent
-                            {
-                                Message = cma.Args[1],
-                                DisplayName = cma.Args[0],
-                                UserId = cma.TargetUserId,
-                                Channel = targetChannelName,
-                                AutoModded = true
-                            });
-                            return;
-                    }
-                    break;
-            }
-
-            UnaccountedFor(message);
-        }
-
-        private void UnaccountedFor(string message)
-        {
-            logger.LogDebug("Received a message that is unaccounted for: {arg}", message);
-        }
-
         public void Dispose()
         {
-            pubSubService.Disconnect();
+            foreach (var connection in pubSubConnections)
+                connection.Disconnect();
         }
     }
 }
