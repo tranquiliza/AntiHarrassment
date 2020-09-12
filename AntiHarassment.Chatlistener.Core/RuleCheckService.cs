@@ -3,13 +3,8 @@ using AntiHarassment.Core.Models;
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Core
@@ -85,7 +80,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task SendUserExceededRuleNotifyEvent(string username, string channel, string ruleName)
         {
-            logger.LogInformation("Sending notication about {arg} on {arg2} for {arg3}", username, channel, ruleName);
+            logger.LogInformation("Sending notification about {arg} on {arg2} for {arg3}", username, channel, ruleName);
             var notifyEvent = new NotifyWebsiteUserExceededRuleEvent(username, channel, ruleName);
             await messageDispatcher.Publish(notifyEvent).ConfigureAwait(false);
         }

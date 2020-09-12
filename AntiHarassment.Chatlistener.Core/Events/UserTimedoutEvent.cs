@@ -2,13 +2,14 @@
 {
     public class UserTimedoutEvent
     {
-        public string Channel;
+        public string Channel { get; set; }
 
         /// <summary>
         /// This is in seconds
         /// </summary>
-        public int TimeoutDuration;
-        public string TimeoutReason;
-        public string Username;
+        public int TimeoutDuration { get; set; }
+        public string TimeoutReason { get; set; }
+        public string Username { get; set; }
+        public string TimedoutBy { get; set; }
     }
 }
