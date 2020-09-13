@@ -35,6 +35,18 @@ namespace AntiHarassment.Core
             this.fileRepository = fileRepository;
         }
 
+        public async Task<IResult<List<Suspension>>> GetAllUnconfirmedSourcesSuspensions(IApplicationContext context)
+        {
+            if (!context.User.HasRole(Roles.Admin))
+                return Result<List<Suspension>>.Unauthorized();
+
+            var suspensions = await suspensionRepository.GetUnconfirmedSourcesSuspensions().ConfigureAwait(false);
+            if (suspensions.Count == 0)
+                return Result<List<Suspension>>.NoContentFound();
+
+            return Result<List<Suspension>>.Succeeded(suspensions);
+        }
+
         public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, DateTime date, IApplicationContext context)
         {
             var channel = await channelRepository.GetChannel(channelOfOrigin).ConfigureAwait(false);

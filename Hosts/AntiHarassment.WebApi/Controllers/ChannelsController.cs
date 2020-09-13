@@ -3,6 +3,7 @@ using AntiHarassment.Core;
 using AntiHarassment.WebApi.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MoreLinq;
 using System;
 using System.Threading.Tasks;
 
@@ -47,6 +48,19 @@ namespace AntiHarassment.WebApi.Controllers
 
                 return Ok(multipleChannelsResult.Data.Map());
             }
+        }
+
+        [HttpGet("noUser")]
+        public async Task<IActionResult> GetChannelsWithNoUser()
+        {
+            var result = await channelService.GetChannelsThatHasNoUser(ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
         }
 
         [HttpGet("{channelName}/chatlogs")]

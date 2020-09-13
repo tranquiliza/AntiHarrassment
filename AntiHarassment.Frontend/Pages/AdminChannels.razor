@@ -8,13 +8,14 @@
 <PageTitle Title="AHS: Admin Channels" />
 
 <div class="row">
-    <div class="col-12">
+    <div class="col s12">
         @if (channelService.Channels == null)
         {
             <Spinner />
         }
         else
         {
+            <h5>Channels who are registered</h5>
             <table>
                 <thead>
                     <tr>
@@ -80,7 +81,79 @@
     </div>
 </div>
 
+<div class="row">
+    <div class="col s12">
+        @if (channelService.ChannelsWithoutUser == null)
+        {
+            <Spinner />
+        }
+        else
+        {
+            <h5>Unconfirmed Sources</h5>
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">ChannelName</th>
+                        <th scope="col">Should Listen</th>
+                        <th scope="col">Is Modded</th>
+                        <th scope="col">AutoMod Listener Active</th>
+                    </tr>
+                </thead>
+                <tbody>
 
+                    <tr>
+                        <td>
+                            <div class="input-field">
+                                <input id="channelNameTwoInput" type="text" @bind-value="channelModel.ChannelName" />
+                                <label for="channelNameTwoInput">Channel Name</label>
+                            </div>
+                        </td>
+                        <td><button @onclick="async () => await AddNewChannel()" class="waves-effect waves-light btn blue-grey darken-3">Add</button></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                    @foreach (var channel in channelService.ChannelsWithoutUser.OrderByDescending(x => x.ShouldListen).ThenBy(x => x.ChannelName))
+                    {
+                        <tr>
+                            <td>@channel.ChannelName</td>
+                            <td>
+                                @if (channel.ShouldListen)
+                                {
+                                    <button class="waves-effect waves-light btn green" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Enabled</button>
+                                }
+                                else
+                                {
+                                    <button class="waves-effect waves-light btn red" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Disabled</button>
+                                }
+                            </td>
+                            <td>
+                                @if (channel.SystemIsModerator)
+                                {
+                                    <button class="waves-effect waves-light btn green" @onclick="async () => await channelService.UpdateChannelSystemIsModerator(channel.ChannelName, false)">Is Moderator</button>
+                                }
+                                else
+                                {
+                                    <button class="waves-effect waves-light btn red" @onclick="async () => await channelService.UpdateChannelSystemIsModerator(channel.ChannelName, true)">Not Moderator</button>
+                                }
+                            </td>
+                            <td>
+                                @if (channel.ShouldListenForAutoModdedMessages)
+                                {
+                                    <button disabled="disabled" class="waves-effect waves-light btn green">Listening For AutoModded</button>
+                                }
+                                else
+                                {
+                                    <button disabled="disabled" class="waves-effect waves-light btn red">Not Listening For AutoModded</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
 
 @code {
     private ChannelModel channelModel = new ChannelModel() { ShouldListen = true };

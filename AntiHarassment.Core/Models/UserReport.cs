@@ -37,9 +37,7 @@ namespace AntiHarassment.Core.Models
         {
             var bannedTagCount = BanTagCounts.Find(x => x.Tag.TagId == rule.Tag.TagId);
             if (bannedTagCount != null && bannedTagCount.Count >= rule.BansForTrigger && rule.BansForTrigger != 0)
-            {
                 return true;
-            }
 
             var timedoutTagCount = TimeoutTagCounts.Find(x => x.Tag.TagId == rule.Tag.TagId);
             return timedoutTagCount != null && timedoutTagCount.Count >= rule.TimeoutsForTrigger && rule.TimeoutsForTrigger != 0;

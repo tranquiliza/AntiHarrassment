@@ -15,6 +15,7 @@ namespace AntiHarassment.Contract
         public string InvalidationReason { get; set; }
         public string SystemReason { get; set; }
         public bool Audited { get; set; }
+        public bool UnconfirmedSource { get; set; }
         public SuspensionTypeModel SuspensionType { get; set; }
         public SuspensionSourceModel SuspensionSource { get; set; }
         public List<TagModel> Tags { get; set; }

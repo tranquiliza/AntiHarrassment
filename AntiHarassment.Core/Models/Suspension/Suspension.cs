@@ -75,6 +75,9 @@ namespace AntiHarassment.Core.Models
         [JsonProperty]
         public List<ChatMessage> ChatMessages { get; private set; }
 
+        [JsonProperty]
+        public bool UnconfirmedSource { get; private set; }
+
         private Suspension() { }
 
         private Suspension(string username, string channelOfOrigin, DateTime timestamp)
@@ -152,7 +155,7 @@ namespace AntiHarassment.Core.Models
             return uniqueName;
         }
 
-        public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages)
+        public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages, bool unconfirmedSource)
         {
             return new Suspension(username, channelOfOrigin, timestamp)
             {
@@ -160,18 +163,20 @@ namespace AntiHarassment.Core.Models
                 SuspensionSource = SuspensionSource.Listener,
                 Timestamp = timestamp,
                 Duration = duration,
-                ChatMessages = chatMessages
+                ChatMessages = chatMessages,
+                UnconfirmedSource = unconfirmedSource
             };
         }
 
-        public static Suspension CreateBan(string username, string channelOfOrigin, DateTime timestamp, List<ChatMessage> chatMessages)
+        public static Suspension CreateBan(string username, string channelOfOrigin, DateTime timestamp, List<ChatMessage> chatMessages, bool unconfirmedSource)
         {
             return new Suspension(username, channelOfOrigin, timestamp)
             {
                 SuspensionType = SuspensionType.Ban,
                 SuspensionSource = SuspensionSource.Listener,
                 Duration = 0,
-                ChatMessages = chatMessages
+                ChatMessages = chatMessages,
+                UnconfirmedSource = unconfirmedSource
             };
         }
 

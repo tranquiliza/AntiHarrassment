@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AntiHarassment.Contract.Suspensions
+namespace AntiHarassment.Contract
 {
     public class DeleteTagFromSuspensionModel
     {

@@ -14,6 +14,8 @@ namespace AntiHarassment.Frontend.Application
     {
         public List<ChannelModel> Channels { get; private set; }
 
+        public List<ChannelModel> ChannelsWithoutUser { get; private set; }
+
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
         private readonly ChannelsHubSignalRClient channelsHubSignalRClient;
@@ -34,18 +36,14 @@ namespace AntiHarassment.Frontend.Application
 
         private void ChannelsHubSignalRClient_AutoModListenerEnabled(object sender, AutoModListenerEnabledEventArgs e)
         {
-            var channel = Channels.Find(x => x.ChannelName == e.ChannelName);
-            if (channel != null)
-                channel.ShouldListenForAutoModdedMessages = true;
+            UpdateAutoModListenerForChannels(e.ChannelName, true);
 
             NotifyStateChanged();
         }
 
         private void ChannelsHubSignalRClient_AutoModListenerDisabled(object sender, AutoModListenerDisabledEventArgs e)
         {
-            var channel = Channels.Find(x => x.ChannelName == e.ChannelName);
-            if (channel != null)
-                channel.ShouldListenForAutoModdedMessages = false;
+            UpdateAutoModListenerForChannels(e.ChannelName, false);
 
             NotifyStateChanged();
         }
@@ -58,9 +56,7 @@ namespace AntiHarassment.Frontend.Application
             }
             else
             {
-                var channel = Channels.Find(x => x.ChannelName == e.ChannelName);
-                if (channel != null)
-                    channel.ShouldListen = true;
+                UpdateConnectedStateForChannels(e.ChannelName, true);
             }
 
             NotifyStateChanged();
@@ -68,17 +64,40 @@ namespace AntiHarassment.Frontend.Application
 
         private void ChannelsHubSignalRClient_ChannelLeft(object _, ChannelLeftEventArgs e)
         {
-            var channel = Channels.Find(x => x.ChannelName == e.ChannelName);
-            if (channel != null)
-                channel.ShouldListen = false;
+            UpdateConnectedStateForChannels(e.ChannelName, false);
 
             NotifyStateChanged();
+        }
+
+        private void UpdateAutoModListenerForChannels(string channelName, bool autoModIsListening)
+        {
+            var channel = Channels.Find(x => x.ChannelName == channelName);
+            if (channel != null)
+                channel.ShouldListenForAutoModdedMessages = autoModIsListening;
+
+            var channelWithoutUser = ChannelsWithoutUser.Find(x => x.ChannelName == channelName);
+            if (channelWithoutUser != null)
+                channelWithoutUser.ShouldListenForAutoModdedMessages = autoModIsListening;
+        }
+
+        private void UpdateConnectedStateForChannels(string channelName, bool shouldListen)
+        {
+            var channel = Channels.Find(x => x.ChannelName == channelName);
+            if (channel != null)
+                channel.ShouldListen = shouldListen;
+
+            var channelWithoutUser = ChannelsWithoutUser.Find(x => x.ChannelName == channelName);
+            if (channelWithoutUser != null)
+                channelWithoutUser.ShouldListen = shouldListen;
         }
 
         private void UserService_OnChange()
         {
             if (!userService.IsUserLoggedIn)
+            {
                 Channels = null;
+                ChannelsWithoutUser = null;
+            }
         }
 
         private void NotifyStateChanged() => OnChange?.Invoke();
@@ -102,19 +121,33 @@ namespace AntiHarassment.Frontend.Application
         public async Task UpdateChannelSystemIsModerator(string channelName, bool systemIsModerator)
         {
             var model = new UpdateSystemIsModeratorStatusModel { SystemIsModerator = systemIsModerator };
+
             var channel = await apiGateway.Post<ChannelModel, UpdateSystemIsModeratorStatusModel>(model, "channels", routeValues: new string[] { channelName, "systemIsModerator" }).ConfigureAwait(false);
+
             var existingChannel = Channels.Find(x => string.Equals(x.ChannelName, channelName, StringComparison.OrdinalIgnoreCase));
             if (existingChannel != null)
+            {
                 Channels.Remove(existingChannel);
+                Channels.Add(channel);
+            }
 
-            Channels.Add(channel);
+            var existingChannelWithoutUser = ChannelsWithoutUser.Find(x => string.Equals(x.ChannelName, channelName, StringComparison.OrdinalIgnoreCase));
+            if (existingChannelWithoutUser != null)
+            {
+                ChannelsWithoutUser.Remove(existingChannelWithoutUser);
+                ChannelsWithoutUser.Add(channel);
+            }
 
             NotifyStateChanged();
         }
 
         private async Task FetchChannels()
         {
+            Channels = null;
+            ChannelsWithoutUser = null;
+
             Channels = await apiGateway.Get<List<ChannelModel>>("Channels").ConfigureAwait(false);
+            ChannelsWithoutUser = await apiGateway.Get<List<ChannelModel>>("Channels", routeValues: new string[] { "noUser" }).ConfigureAwait(false);
         }
 
         public async Task UpdateChannel(ChannelModel channelModel)
