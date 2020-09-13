@@ -8,7 +8,7 @@
 
 @page "/channelRules"
 
-<PageTitle Title="AHS: Channel Rules"/>
+<PageTitle Title="AHS: Channel Rules" />
 
 <div class="row">
     <div class="col s12">
@@ -69,45 +69,95 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col s12">
-                    @if (channelService.Channel.ChannelRules.Count > 0)
-                    {
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Rule Name</th>
-                                    <th scope="col">Tag Name</th>
-                                    <th scope="col">Timeout Threshold</th>
-                                    <th scope="col">Ban Threshold</th>
-                                    <th scope="col">Action on Trigger</th>
-                                    <th scope="col"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var rule in channelService.Channel.ChannelRules)
-                                {
-                                    <tr>
-                                        <td>@rule.RuleName</td>
-                                        <td>
-                                            <div class="chip tooltipped" data-position="bottom" data-tooltip="@rule.Tag.TagDescription">
-                                                @rule.Tag.TagName
-                                            </div>
-                                        </td>
-                                        <td>@rule.TimeoutsForTrigger</td>
-                                        <td>@rule.BansForTrigger</td>
-                                        <td>@rule.ActionOnTrigger.ToString()</td>
-                                        <td>
-                                            <button @onclick="async _ => await LoadRuleForEdit(rule.RuleId)" data-target="editRuleModal" class="btn green">Edit</button>
-                                            <button @onclick="async _ => await DeleteRule(rule.RuleId)" class="btn red">Delete</button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
+            @if (channelService.Channel.ChannelRules.Count(x => x.ActionOnTrigger == ChannelRuleActionModel.Ban) > 0)
+            {
+                <div class="card grey darken-3">
+                    <div class="card-content">
+                        <span class="card-title">Ban</span>
+                        <div class="row">
+                            <div class="col s12">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Rule Name</th>
+                                            <th scope="col">Tag Name</th>
+                                            <th scope="col">Timeout Threshold</th>
+                                            <th scope="col">Ban Threshold</th>
+                                            <th scope="col">Action on Trigger</th>
+                                            <th scope="col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var rule in channelService.Channel.ChannelRules.Where(x => x.ActionOnTrigger == ChannelRuleActionModel.Ban))
+                                        {
+                                            <tr>
+                                                <td>@rule.RuleName</td>
+                                                <td>
+                                                    <div class="chip tooltipped" data-position="bottom" data-tooltip="@rule.Tag.TagDescription">
+                                                        @rule.Tag.TagName
+                                                    </div>
+                                                </td>
+                                                <td>@rule.TimeoutsForTrigger</td>
+                                                <td>@rule.BansForTrigger</td>
+                                                <td>@rule.ActionOnTrigger.ToString()</td>
+                                                <td>
+                                                    <button @onclick="async _ => await LoadRuleForEdit(rule.RuleId)" data-target="editRuleModal" class="btn green">Edit</button>
+                                                    <button @onclick="async _ => await DeleteRule(rule.RuleId)" class="btn red">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
+
+            @if (channelService.Channel.ChannelRules.Count(x => x.ActionOnTrigger == ChannelRuleActionModel.NotifyWebsite) > 0)
+            {
+                <div class="card grey darken-3">
+                    <div class="card-content">
+                        <span class="card-title">Notify on Website</span>
+                        <div class="row">
+                            <div class="col s12">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Rule Name</th>
+                                            <th scope="col">Tag Name</th>
+                                            <th scope="col">Timeout Threshold</th>
+                                            <th scope="col">Ban Threshold</th>
+                                            <th scope="col">Action on Trigger</th>
+                                            <th scope="col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var rule in channelService.Channel.ChannelRules.Where(x => x.ActionOnTrigger == ChannelRuleActionModel.NotifyWebsite))
+                                        {
+                                            <tr>
+                                                <td>@rule.RuleName</td>
+                                                <td>
+                                                    <div class="chip tooltipped" data-position="bottom" data-tooltip="@rule.Tag.TagDescription">
+                                                        @rule.Tag.TagName
+                                                    </div>
+                                                </td>
+                                                <td>@rule.TimeoutsForTrigger</td>
+                                                <td>@rule.BansForTrigger</td>
+                                                <td>@rule.ActionOnTrigger.ToString()</td>
+                                                <td>
+                                                    <button @onclick="async _ => await LoadRuleForEdit(rule.RuleId)" data-target="editRuleModal" class="btn green">Edit</button>
+                                                    <button @onclick="async _ => await DeleteRule(rule.RuleId)" class="btn red">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         }
     </div>
 </div>
