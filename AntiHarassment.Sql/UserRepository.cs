@@ -2,6 +2,7 @@
 using AntiHarassment.Core.Models;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
@@ -16,6 +17,27 @@ namespace AntiHarassment.Sql
         {
             sql = SqlAccessBase.Create(connectionString);
             this.logger = logger;
+        }
+
+        public async Task<List<User>> GetUsers()
+        {
+            try
+            {
+                var result = new List<User>();
+
+                using var command = sql.CreateStoredProcedure("[Core].[GetAllUsers]");
+                using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                    result.Add(Serialization.Deserialize<User>(reader.GetString("data")));
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting all users");
+                throw;
+            }
         }
 
         public async Task<User> GetByTwitchUsername(string twitchUsername)

@@ -1,5 +1,4 @@
 ﻿using AntiHarassment.Contract;
-using AntiHarassment.Contract.Suspensions;
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.SignalR.Contract;
 using AntiHarassment.SignalR.Contract.EventArgs;
@@ -70,7 +69,9 @@ namespace AntiHarassment.Frontend.Application
             if (updatedSuspension.Audited)
                 await FetchDaysWithUnauditedSuspensions(CurrentlySelectedChannel).ConfigureAwait(false);
 
-            Suspensions.Add(updatedSuspension);
+            if (updatedSuspension.Timestamp.Date == SelectedDate.Date)
+                Suspensions.Add(updatedSuspension);
+
             NotifyStateChanged();
         }
 

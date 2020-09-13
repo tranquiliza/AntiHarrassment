@@ -20,5 +20,6 @@ namespace AntiHarassment.Core
         Task<IResult<Channel>> AddRuleToChannel(string channelName, string ruleName, Guid tagId, int bansForTrigger, int timeoutsForTrigger, ChannelRuleAction channelRuleAction, IApplicationContext context);
         Task<IResult<Channel>> UpdateRuleForChannel(string channelName, Guid ruleId, string rulename, int bansForTrigger, int timeoutsForTrigger, ChannelRuleAction channelRuleAction, IApplicationContext context);
         Task InitiateManualRuleCheck(string channelName, string twitchUsername, IApplicationContext applicationContext);
+        Task<IResult<List<Channel>>> GetChannelsThatHasNoUser(IApplicationContext context);
     }
 }

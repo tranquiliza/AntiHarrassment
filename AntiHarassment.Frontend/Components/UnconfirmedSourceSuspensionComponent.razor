@@ -1,0 +1,288 @@
+﻿@inject IUnconfirmedSourceSuspensionService suspensionService
+@inject ITagService tagService
+@inject IJSRuntime jsRuntime
+
+<li>
+    <div style="padding:0; padding-left:6px;" class="collapsible-header @SelectButtonColor(suspension)">
+        <p>
+            @suspension.ChannelOfOrigin - @suspension.LocalTimeStamp().FancyFormat() - <b>@suspension.Username</b>
+        </p>
+        <div style="margin-top:12px; margin-left:8px;" class="chip @SelectColorForText(suspension)">
+            @(suspension.Duration == 0 ? "Permanent" : $"{suspension.Duration.ToString()} seconds")
+            @suspension.SuspensionType.ToString()
+        </div>
+
+        @switch (suspension.SuspensionSource)
+        {
+            case SuspensionSourceModel.User:
+
+                <div style="margin-top:12px;" class="chip yellow">
+                    MANUAL
+                </div>
+                break;
+            case SuspensionSourceModel.System:
+                <div style="margin-top:12px;" class="chip red yellow-text">
+                    SYSTEM
+                </div>
+                <p>
+                    @suspension.SystemReason
+                </p>
+                break;
+
+            case SuspensionSourceModel.Listener:
+            default:
+                break;
+        }
+    </div>
+
+    <div class="collapsible-body">
+        <div class="row">
+            <div class="col s8">
+                @if (suspension.InvalidSuspension)
+                {
+                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: false)" class="btn green">Mark Valid</button>
+                }
+                else
+                {
+                    <button @onclick="async _ => await UpdateValidity(suspension.SuspensionId, invalidate: true)" class="btn red">Mark Invalid</button>
+                }
+
+                @if (suspension.Audited)
+                {
+                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: false)" class="btn red">Mark as Unaudited</button>
+                }
+                else
+                {
+                    <button @onclick="async _ => await UpdateAudited(suspension.SuspensionId, audited: true)" class="btn green">Mark as Audited</button>
+                    <button @onclick="async _ => await OpenLinkUserModal(suspension.SuspensionId)" class="btn yellow grey-text text-darken-3">Link User</button>
+                }
+                <a class="btn" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
+                <button class="btn grey darken-3" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
+                @*@if (suspension.Images.Count > 0)
+                    {
+                        <button class="btn" @onclick="SelectSuspensionAndShowModal">Show Images</button>
+                    }*@
+            </div>
+            @*@if (!suspension.Audited)
+                {
+                    <div class="col s4">
+                        <InputFile multiple OnChange="LoadFileIntoMemory" />
+                        <button class="btn grey darken-3" disabled="@uploadDisabled" @onclick="UploadSelectedImages">Upload</button>
+                    </div>
+                }*@
+        </div>
+        <div class="row">
+            @foreach (var tag in suspension.Tags)
+            {
+                <div class="chip @(string.IsNullOrEmpty(tag.TagDescription) ? "" : "tooltipped")" data-position="bottom" data-tooltip="@tag.TagDescription">
+                    @tag.TagName
+                    @if (!suspension.Audited)
+                    {
+                        <i class="xclose material-icons" @onclick="async _ => await RemoveTagFromSuspension(suspension.SuspensionId, tag.TagId)">close</i>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (tagService.Tags != null && !suspension.Audited)
+        {
+            <a class="dropdown-trigger btn" data-target="@("tagSelectMenu"+counter)" style="width:200px;">Tags</a>
+            <ul class='dropdown-content' id="@("tagSelectMenu"+counter)">
+                @foreach (var tag in tagService.Tags.OrderBy(x => x.TagName))
+                {
+                    <li class="@(string.IsNullOrEmpty(tag.TagDescription) ? "": "tooltipped")" data-position="right" data-tooltip="@tag.TagDescription" @onclick="async _ => await AddTagToSuspension(suspension.SuspensionId, tag.TagId)"><a>@tag.TagName</a></li>
+                }
+            </ul>
+        }
+
+        @if (suspension.LinkedUsers.Count != 0)
+        {
+            <div class="row">
+                <p>Linked Usernames:</p>
+                @foreach (var linkedUser in suspension.LinkedUsers)
+                {
+                    <div class="chip red tooltipped" data-position="bottom" data-tooltip="@linkedUser.Reason">
+                        @linkedUser.Username
+                        @if (!suspension.Audited)
+                        {
+                            <i class="xclose material-icons" @onclick="async _ => await suspensionService.RemoveUserLinkFromSuspension(suspension.SuspensionId, linkedUser.Username)">close</i>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @if (suspension.InvalidSuspension && !string.IsNullOrEmpty(suspension.InvalidationReason))
+        {
+            <p class="red-text"><b>Invalid Because:</b> @suspension.InvalidationReason</p>
+        }
+
+        @foreach (var message in suspension.Messages)
+        {
+            @if (message.AutoModded)
+            {
+                <p class="red-text"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+            }
+            else
+            {
+                <p><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+            }
+
+        }
+    </div>
+</li>
+
+
+
+@code {
+    [Parameter]
+    public SuspensionModel suspension { get; set; }
+
+    [Parameter]
+    public int counter { get; set; }
+
+    private bool uploadDisabled = true;
+
+    private System.IO.MemoryStream[] filesToUpload;
+    private string[] fileNames;
+
+    //private async Task SelectSuspensionAndShowModal()
+    //{
+    //    suspensionService.SetCurrentlySelectedSuspensionForImages(suspension);
+
+    //    await jsRuntime.InvokeVoidAsync("OpenModalForDisplayingImages");
+    //}
+
+    private async Task LoadFileIntoMemory(IFileListEntry[] files)
+    {
+        filesToUpload = new System.IO.MemoryStream[files.Length];
+        fileNames = new string[files.Length];
+
+        for (int i = 0; i < files.Length; i++)
+        {
+            var currentFile = files[i];
+
+            var stream = new System.IO.MemoryStream();
+            await currentFile.Data.CopyToAsync(stream);
+
+            filesToUpload[i] = stream;
+            fileNames[i] = currentFile.Name;
+        }
+
+        uploadDisabled = false;
+    }
+
+    //private async Task UploadSelectedImages()
+    //{
+    //    if (filesToUpload.Length == 0)
+    //    {
+    //        return;
+    //    }
+
+    //    uploadDisabled = true;
+
+    //    for (int i = 0; i < filesToUpload.Length; i++)
+    //    {
+    //        await suspensionService.UploadImage(suspension.SuspensionId, filesToUpload[i], fileNames[i]);
+    //    }
+
+    //    filesToUpload = null;
+    //    fileNames = null;
+
+    //    uploadDisabled = false;
+    //    StateHasChanged();
+    //}
+
+    private string SelectButtonColor(SuspensionModel suspension)
+    {
+        if (suspension.Audited && suspension.InvalidSuspension)
+        {
+            return "grey darken-3";
+        }
+        if (suspension.Audited && !suspension.InvalidSuspension)
+        {
+            return "green";
+        }
+        if (!suspension.Audited && suspension.InvalidSuspension)
+        {
+            return "red darken-3";
+        }
+        if (!suspension.Audited && !suspension.InvalidSuspension)
+        {
+            return "orange grey-text text-darken-3";
+        }
+
+        return "grey darken-3";
+    }
+
+    private string SelectColorForText(SuspensionModel suspension)
+    {
+        if (suspension.SuspensionType == SuspensionTypeModel.Ban)
+        {
+            return "red-text";
+        }
+        else
+        {
+            return "blue-text";
+        }
+    }
+
+    private async Task UpdateValidity(Guid suspensionId, bool invalidate)
+    {
+        if (invalidate)
+        {
+            suspensionService.CurrentlySelectedSuspensionForInvalidation = suspension;
+
+            await jsRuntime.InvokeVoidAsync("OpenModalForInvalidReasoning");
+            return;
+        }
+
+        await suspensionService.UpdateSuspensionValidity(suspensionId, invalidate);
+    }
+
+    private async Task UpdateAudited(Guid suspensionId, bool audited)
+    {
+        await suspensionService.UpdateAudited(suspensionId, audited);
+    }
+
+    private async Task OpenLinkUserModal(Guid suspensionId)
+    {
+        suspensionService.CurrentlySelectedSuspension = suspension;
+
+        await jsRuntime.InvokeVoidAsync("OpenModalForUserLinking");
+    }
+
+    private async Task AddTagToSuspension(Guid suspensionId, Guid tagId)
+    {
+        // Yes this is trash code, but not sure how else to do it
+        if (tagId == Guid.Parse("7A1694E6-5418-4FB6-9347-093AEE2AA4A9"))
+        {
+            suspensionService.UserLinkReason = "Ban Evasion";
+            await OpenLinkUserModal(suspensionId);
+        }
+
+        await suspensionService.AddTagToSuspension(suspensionId, tagId);
+    }
+
+    private async Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId)
+    {
+        await suspensionService.RemoveTagFromSuspension(suspensionId, tagId);
+    }
+
+    private string CopyUsernameButtonText = "Copy Username";
+
+    private async Task CopyToClipboard(string textToCopy)
+    {
+        CopyUsernameButtonText = "Copied";
+        await jsRuntime.InvokeVoidAsync("CopyTextToClipboard", textToCopy);
+
+        await Task.Delay(800);
+        CopyUsernameButtonText = "Copy Username";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+    }
+}
+

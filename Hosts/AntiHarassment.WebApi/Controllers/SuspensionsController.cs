@@ -1,5 +1,4 @@
 ﻿using AntiHarassment.Contract;
-using AntiHarassment.Contract.Suspensions;
 using AntiHarassment.Core;
 using AntiHarassment.WebApi.Mappers;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +20,19 @@ namespace AntiHarassment.WebApi.Controllers
         public SuspensionsController(ISuspensionService suspensionService)
         {
             this.suspensionService = suspensionService;
+        }
+
+        [HttpGet("unconfirmed")]
+        public async Task<IActionResult> GetUnconfirmedSourcesSuspensions()
+        {
+            var result = await suspensionService.GetAllUnconfirmedSourcesSuspensions(ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map(CurrentUrl));
+
+            return NoContent();
         }
 
         [HttpGet]

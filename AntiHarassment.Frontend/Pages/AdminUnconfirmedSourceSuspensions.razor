@@ -1,0 +1,158 @@
+﻿@inject ITagService tagService
+@inject IJSRuntime jsRuntime
+@inject IUnconfirmedSourceSuspensionService suspensionService
+@implements IDisposable
+
+<AdminOnlyComponent />
+@page "/admin/unconfirmedSources/suspensions"
+
+<h5>Unconfirmed Source Suspensions</h5>
+
+@if (suspensionService.Suspensions == null)
+{
+    <Spinner />
+}
+else
+{
+    <div class="row">
+        <div class="col s12">
+            <ul class="collapsible">
+                @foreach (var suspension in suspensionService.Suspensions.OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Audited).ThenByDescending(x => x.Timestamp))
+                {
+                    <UnconfirmedSourceSuspensionComponent suspension="suspension" counter="counter" />
+
+                    {
+                        counter++;
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+<!-- Modal For InvalidReason -->
+<div class="modal" id="invalidReasoningModal">
+    <div class="modal-content">
+        <h4>
+            Why is this Suspension Invalid?
+        </h4>
+        @if (!string.IsNullOrEmpty(InvalidReasonErrorMessage))
+        {
+            <p class="text-danger">@InvalidReasonErrorMessage</p>
+        }
+        <div class="input-field">
+            <input type="text" @bind-value="suspensionService.CurrentInvalidationReason" />
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn red modal-close">Cancel</button>
+        <button @onclick="MarkInvalid" class="btn green">Mark Invalid</button>
+    </div>
+</div>
+
+<!-- Modal For AccountLinking -->
+<div class="modal" id="accountLinkingModal">
+    <div class="modal-content">
+        <h4>Link another user to this suspension</h4>
+        <div class="input-field">
+            <input id="accountLinkReasoninput" type="text" @bind-value="suspensionService.UserLinkReason" />
+            <label for="accountLinkReasoninput">Reason for linking</label>
+        </div>
+        <div class="input-field">
+            <input id="accountLinkingUserInput" type="text" @bind-value="suspensionService.CurrentSearchTerm" />
+            <label for="accountLinkingUserInput">Search For a User</label>
+        </div>
+
+        @* TODO: Figure out where to grab users from (Unique for system?) *@
+
+        @*@if (suspensionService.UsersFromChannel != null)
+            {
+                @foreach (var userName in suspensionService.UsersFromChannel)
+                {
+                    <button @onclick="async _ => await LinkUserToSuspensions(userName)" class="btn grey darken-3">@userName</button>
+                }
+            }*@
+    </div>
+    <div class="modal-footer">
+        <button @onclick="CloseLinkUserModal" class="btn red modal-close">Cancel</button>
+    </div>
+</div>
+
+@code {
+    private int counter = 0;
+
+    private string InvalidReasonErrorMessage = "";
+
+    private async Task MarkInvalid()
+    {
+        if (suspensionService.CurrentlySelectedSuspensionForInvalidation != null && !string.IsNullOrEmpty(suspensionService.CurrentInvalidationReason))
+        {
+            await suspensionService.UpdateSuspensionValidity(suspensionService.CurrentlySelectedSuspensionForInvalidation.SuspensionId, true, suspensionService.CurrentInvalidationReason);
+            await jsRuntime.InvokeVoidAsync("CloseModalForInvalidReasoning");
+
+            InvalidReasonErrorMessage = "";
+        }
+        else
+        {
+            InvalidReasonErrorMessage = "You must give a reason why the suspension is invalid!";
+        }
+    }
+
+    private async Task CloseLinkUserModal()
+    {
+        if (suspensionService.CurrentlySelectedSuspension == null)
+        {
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
+        suspensionService.CurrentSearchTerm = "";
+        suspensionService.UserLinkReason = "";
+        suspensionService.CurrentlySelectedSuspension = null;
+    }
+
+    private async Task LinkUserToSuspensions(string userToLink)
+    {
+        if (suspensionService.CurrentlySelectedSuspension == null
+            || string.IsNullOrEmpty(userToLink)
+            || string.IsNullOrEmpty(suspensionService.UserLinkReason))
+        {
+            return;
+        }
+
+        await suspensionService.AddUserLinkToSuspension(suspensionService.CurrentlySelectedSuspension.SuspensionId, userToLink, suspensionService.UserLinkReason);
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
+        suspensionService.CurrentSearchTerm = "";
+        suspensionService.CurrentlySelectedSuspension = null;
+        suspensionService.UserLinkReason = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        suspensionService.OnChange += UpdateUi;
+        tagService.OnChange += UpdateUi;
+        await tagService.Initialize();
+        await suspensionService.Initialize();
+    }
+
+    private void UpdateUi()
+    {
+        counter = 0;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+        await jsRuntime.InvokeVoidAsync("InitCollapsibles");
+        await jsRuntime.InvokeVoidAsync("InitTooltips");
+        await jsRuntime.InvokeVoidAsync("InitImageBoxes");
+    }
+
+    public void Dispose()
+    {
+        suspensionService.OnChange -= UpdateUi;
+        tagService.OnChange -= UpdateUi;
+    }
+}

@@ -24,6 +24,7 @@ namespace AntiHarassment.WebApi.Mappers
                 InvalidSuspension = suspension.InvalidSuspension,
                 InvalidationReason = suspension.InvalidationReason,
                 Audited = suspension.Audited,
+                UnconfirmedSource = suspension.UnconfirmedSource,
                 Tags = suspension.Tags.Map(),
                 SuspensionType = suspension.SuspensionType.Map(),
                 Messages = suspension.ChatMessages.Map(),

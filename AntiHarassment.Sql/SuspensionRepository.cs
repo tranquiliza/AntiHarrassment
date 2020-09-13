@@ -172,6 +172,7 @@ namespace AntiHarassment.Sql
                     .WithParameter("typeOfSuspension", suspension.SuspensionType.ToString())
                     .WithParameter("timestamp", suspension.Timestamp)
                     .WithParameter("duration", suspension.Duration)
+                    .WithParameter("unconfirmedSource", suspension.UnconfirmedSource)
                     .WithParameter("data", Serialization.Serialize(suspension));
 
                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);
@@ -204,6 +205,30 @@ namespace AntiHarassment.Sql
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Error when attempting to get all suspensions");
+                throw;
+            }
+        }
+
+        public async Task<List<Suspension>> GetUnconfirmedSourcesSuspensions()
+        {
+            try
+            {
+                var result = new List<Suspension>();
+
+                using (var command = sql.CreateStoredProcedure("[Core].[GetUnconfirmedSourcesSuspensions]"))
+                {
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when attempting to get unconfirmedSources suspensions");
                 throw;
             }
         }

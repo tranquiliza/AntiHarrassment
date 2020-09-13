@@ -13,6 +13,7 @@ namespace AntiHarassment.Frontend.Application
         Task UpdateChannelSystemIsModerator(string channelName, bool systemIsModerator);
 
         List<ChannelModel> Channels { get; }
+        List<ChannelModel> ChannelsWithoutUser { get; }
 
         event Action OnChange;
     }
