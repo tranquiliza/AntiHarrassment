@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AntiHarassment.TwitchIntegration
+﻿namespace AntiHarassment.TwitchIntegration
 {
     public class TwitchApiSettings
     {

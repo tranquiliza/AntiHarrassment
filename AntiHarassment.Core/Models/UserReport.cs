@@ -1,10 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Text.Json.Serialization;
 
 namespace AntiHarassment.Core.Models
 {
@@ -42,15 +37,10 @@ namespace AntiHarassment.Core.Models
         {
             var bannedTagCount = BanTagCounts.Find(x => x.Tag.TagId == rule.Tag.TagId);
             if (bannedTagCount != null && bannedTagCount.Count >= rule.BansForTrigger && rule.BansForTrigger != 0)
-            {
                 return true;
-            }
 
             var timedoutTagCount = TimeoutTagCounts.Find(x => x.Tag.TagId == rule.Tag.TagId);
-            if (timedoutTagCount != null && timedoutTagCount.Count >= rule.TimeoutsForTrigger && rule.TimeoutsForTrigger != 0)
-                return true;
-
-            return false;
+            return timedoutTagCount != null && timedoutTagCount.Count >= rule.TimeoutsForTrigger && rule.TimeoutsForTrigger != 0;
         }
 
         public List<string> AssociatatedAccounts => Suspensions.SelectMany(x => x.LinkedUsers.Select(y => y.Username)).Distinct().ToList();

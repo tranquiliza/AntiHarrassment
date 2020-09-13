@@ -2,10 +2,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace AntiHarassment.Core.Models
 {
@@ -45,18 +43,21 @@ namespace AntiHarassment.Core.Models
         public bool Audited { get; private set; }
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for Tags, should be lowercase")]
         private List<Tag> tags { get; set; } = new List<Tag>();
 
         [JsonIgnore]
         public IReadOnlyList<Tag> Tags => tags.AsReadOnly();
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for LinkedUsers")]
         private List<LinkedUser> linkedUsers { get; set; } = new List<LinkedUser>();
 
         [JsonIgnore]
         public IReadOnlyList<LinkedUser> LinkedUsers => linkedUsers.AsReadOnly();
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for Images")]
         private List<string> images { get; set; } = new List<string>();
 
         [JsonIgnore]
@@ -73,6 +74,9 @@ namespace AntiHarassment.Core.Models
         /// </summary>
         [JsonProperty]
         public List<ChatMessage> ChatMessages { get; private set; }
+
+        [JsonProperty]
+        public bool UnconfirmedSource { get; private set; }
 
         private Suspension() { }
 
@@ -151,7 +155,7 @@ namespace AntiHarassment.Core.Models
             return uniqueName;
         }
 
-        public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages)
+        public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages, bool unconfirmedSource)
         {
             return new Suspension(username, channelOfOrigin, timestamp)
             {
@@ -159,18 +163,20 @@ namespace AntiHarassment.Core.Models
                 SuspensionSource = SuspensionSource.Listener,
                 Timestamp = timestamp,
                 Duration = duration,
-                ChatMessages = chatMessages
+                ChatMessages = chatMessages,
+                UnconfirmedSource = unconfirmedSource
             };
         }
 
-        public static Suspension CreateBan(string username, string channelOfOrigin, DateTime timestamp, List<ChatMessage> chatMessages)
+        public static Suspension CreateBan(string username, string channelOfOrigin, DateTime timestamp, List<ChatMessage> chatMessages, bool unconfirmedSource)
         {
             return new Suspension(username, channelOfOrigin, timestamp)
             {
                 SuspensionType = SuspensionType.Ban,
                 SuspensionSource = SuspensionSource.Listener,
                 Duration = 0,
-                ChatMessages = chatMessages
+                ChatMessages = chatMessages,
+                UnconfirmedSource = unconfirmedSource
             };
         }
 

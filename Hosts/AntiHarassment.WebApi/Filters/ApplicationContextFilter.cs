@@ -2,8 +2,7 @@
 using AntiHarassment.WebApi.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.WebApi.Filters
@@ -17,6 +16,7 @@ namespace AntiHarassment.WebApi.Filters
             this.userRepository = userRepository;
         }
 
+        [SuppressMessage("Design", "RCS1090:Call 'ConfigureAwait(false)'.", Justification = "Might need synchronisation context")]
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             if (context.Controller is ContextController controller && Guid.TryParse(context.HttpContext?.User?.Identity?.Name, out var userId))

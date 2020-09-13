@@ -5,5 +5,6 @@
         public string BanReason { get; set; }
         public string Channel { get; set; }
         public string Username { get; set; }
+        public string BannedBy { get; set; }
     }
 }

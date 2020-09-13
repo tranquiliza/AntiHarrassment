@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AntiHarassment.Messaging.NServiceBus
+﻿namespace AntiHarassment.Messaging.NServiceBus
 {
     public interface IEndpointConfig
     {

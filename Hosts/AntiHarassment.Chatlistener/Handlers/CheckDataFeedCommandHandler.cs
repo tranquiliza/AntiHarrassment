@@ -3,8 +3,6 @@ using AntiHarassment.Messaging.Commands;
 using Microsoft.Extensions.Logging;
 using NServiceBus;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Handlers

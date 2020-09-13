@@ -2,9 +2,7 @@
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.NServiceBus;
 using System;
-using System.Collections.Generic;
 using System.Net.Mail;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 

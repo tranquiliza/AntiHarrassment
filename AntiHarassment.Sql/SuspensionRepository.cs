@@ -3,8 +3,6 @@ using AntiHarassment.Core.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Sql
@@ -26,12 +24,10 @@ namespace AntiHarassment.Sql
             using (var command = sql.CreateStoredProcedure("[Core].[GetSuspendedUsersForChannel]"))
             {
                 command.WithParameter("channelOfOrigin", channelName);
-                using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync().ConfigureAwait(false))
-                    {
-                        result.Add(reader.GetString("username"));
-                    }
+                    result.Add(reader.GetString("username"));
                 }
             }
 
@@ -45,11 +41,9 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetSuspension]"))
                 {
                     command.WithParameter("suspensionId", suspensionId);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
-                    {
-                        if (await reader.ReadAsync().ConfigureAwait(false))
-                            return Serialization.Deserialize<Suspension>(reader.GetString("data"));
-                    }
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    if (await reader.ReadAsync().ConfigureAwait(false))
+                        return Serialization.Deserialize<Suspension>(reader.GetString("data"));
                 }
 
                 return null;
@@ -69,12 +63,10 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetSuspensionsForChannel]"))
                 {
                     command.WithParameter("channelOfOrigin", channelOfOrigin);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
-                        }
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
                     }
                 }
 
@@ -105,12 +97,10 @@ namespace AntiHarassment.Sql
                     command.WithParameter("channelOfOrigin", channelOfOrigin);
                     command.WithParameter("startDate", date.Date);
                     command.WithParameter("endDate", nextDay.Date);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
-                        }
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
                     }
                 }
 
@@ -132,11 +122,9 @@ namespace AntiHarassment.Sql
                 {
                     command.WithParameter("channelOfOrigin", channelOfOrigin);
                     command.WithParameter("earliestDate", earliestDate);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
-                    {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
-                    }
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
                 }
 
                 return result;
@@ -156,12 +144,10 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetSuspensionsForUser]"))
                 {
                     command.WithParameter("username", username);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
-                        }
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
                     }
                 }
 
@@ -178,19 +164,18 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[InsertSuspension]"))
-                {
-                    command
-                        .WithParameter("suspensionId", suspension.SuspensionId)
-                        .WithParameter("username", suspension.Username)
-                        .WithParameter("channelOfOrigin", suspension.ChannelOfOrigin)
-                        .WithParameter("typeOfSuspension", suspension.SuspensionType.ToString())
-                        .WithParameter("timestamp", suspension.Timestamp)
-                        .WithParameter("duration", suspension.Duration)
-                        .WithParameter("data", Serialization.Serialize(suspension));
+                using var command = sql.CreateStoredProcedure("[Core].[InsertSuspension]");
+                command
+                    .WithParameter("suspensionId", suspension.SuspensionId)
+                    .WithParameter("username", suspension.Username)
+                    .WithParameter("channelOfOrigin", suspension.ChannelOfOrigin)
+                    .WithParameter("typeOfSuspension", suspension.SuspensionType.ToString())
+                    .WithParameter("timestamp", suspension.Timestamp)
+                    .WithParameter("duration", suspension.Duration)
+                    .WithParameter("unconfirmedSource", suspension.UnconfirmedSource)
+                    .WithParameter("data", Serialization.Serialize(suspension));
 
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -208,12 +193,10 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetSuspensions]"))
                 {
                     command.WithParameter("earliestDate", earliestDate);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
-                        }
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
                     }
                 }
 
@@ -222,6 +205,30 @@ namespace AntiHarassment.Sql
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Error when attempting to get all suspensions");
+                throw;
+            }
+        }
+
+        public async Task<List<Suspension>> GetUnconfirmedSourcesSuspensions()
+        {
+            try
+            {
+                var result = new List<Suspension>();
+
+                using (var command = sql.CreateStoredProcedure("[Core].[GetUnconfirmedSourcesSuspensions]"))
+                {
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
+                    {
+                        result.Add(Serialization.Deserialize<Suspension>(reader.GetString("data")));
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when attempting to get unconfirmedSources suspensions");
                 throw;
             }
         }
@@ -235,12 +242,10 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetDatesForUnauditedSuspensionsForChannel]"))
                 {
                     command.WithParameter("channelOfOrigin", channelOfOrigin);
-                    using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
+                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                        {
-                            result.Add(reader.GetDateTime("DateWithUnauditedSuspensions"));
-                        }
+                        result.Add(reader.GetDateTime("DateWithUnauditedSuspensions"));
                     }
                 }
 

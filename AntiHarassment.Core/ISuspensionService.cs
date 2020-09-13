@@ -2,7 +2,6 @@
 using AntiHarassment.Core.Security;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Core
@@ -20,5 +19,6 @@ namespace AntiHarassment.Core
         Task<IResult<Suspension>> CreateManualSuspension(string username, string channelOfOrigin, IApplicationContext context);
         Task AddImageTo(Guid suspensionId, byte[] imageBytes, string fileExtension, IApplicationContext context);
         Task<IResult<List<DateTime>>> GetUnauditedDatesFor(string channelOfOrigin, IApplicationContext context);
+        Task<IResult<List<Suspension>>> GetAllUnconfirmedSourcesSuspensions(IApplicationContext context);
     }
 }

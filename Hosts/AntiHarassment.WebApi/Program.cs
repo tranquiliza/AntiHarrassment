@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NServiceBus;
 using Serilog;
+using System;
 
 namespace AntiHarassment.WebApi
 {
@@ -55,9 +52,6 @@ namespace AntiHarassment.WebApi
 
                     return builder.BuildConfiguration();
                 })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
+                .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
     }
 }

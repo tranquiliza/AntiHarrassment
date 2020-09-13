@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace AntiHarassment.Core.Models
@@ -24,12 +25,14 @@ namespace AntiHarassment.Core.Models
         public bool SystemIsModerator { get; private set; }
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing Field for Moderators")]
         private List<string> moderators { get; set; }
 
         [JsonIgnore]
         public IReadOnlyList<string> Moderators => moderators.AsReadOnly();
 
         [JsonProperty]
+        [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Backing field for ChannelRules")]
         private List<ChannelRule> channelRules { get; set; } = new List<ChannelRule>();
 
         [JsonIgnore]

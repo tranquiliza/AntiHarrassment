@@ -2,8 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using NServiceBus;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AntiHarassment.Messaging.NServiceBus
 {
@@ -22,10 +20,7 @@ namespace AntiHarassment.Messaging.NServiceBus
                 return builder.BuildConfiguration();
             });
 
-            return hostBuilder.ConfigureServices(services =>
-            {
-                services.AddSingleton<IMessageDispatcher, MessageDispatcher>();
-            });
+            return hostBuilder.ConfigureServices(services => services.AddSingleton<IMessageDispatcher, MessageDispatcher>());
         }
     }
 }

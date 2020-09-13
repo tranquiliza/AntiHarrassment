@@ -1,7 +1,6 @@
 ﻿using AntiHarassment.Core.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Core
@@ -17,5 +16,6 @@ namespace AntiHarassment.Core
         Task<List<Suspension>> GetAuditedSuspensionsForChannel(string channelOfOrigin, DateTime earliestDate);
         Task<List<Suspension>> GetSuspensionsForChannelOnDate(string channelOfOrigin, DateTime date);
         Task<List<DateTime>> GetUnauditedDatesFor(string channelOfOrigin);
+        Task<List<Suspension>> GetUnconfirmedSourcesSuspensions();
     }
 }

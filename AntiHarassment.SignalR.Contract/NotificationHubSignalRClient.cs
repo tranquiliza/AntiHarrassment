@@ -1,8 +1,6 @@
 ﻿using AntiHarassment.SignalR.Contract.EventArgs;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.SignalR.Contract
@@ -34,12 +32,7 @@ namespace AntiHarassment.SignalR.Contract
 
                 await hubConnection.StartAsync().ConfigureAwait(false);
 
-                //Console.WriteLine("SENDING REGISTER");
-                //Console.WriteLine(twitchUsername);
-
                 await hubConnection.SendAsync(NotificationHubMethods.REGISTER, twitchUsername).ConfigureAwait(false);
-
-                //Console.WriteLine("SENT REGISTER");
 
                 started = true;
             }
@@ -62,8 +55,8 @@ namespace AntiHarassment.SignalR.Contract
         {
             if (started)
             {
-                await hubConnection.StopAsync();
-                await hubConnection.DisposeAsync();
+                await hubConnection.StopAsync().ConfigureAwait(false);
+                await hubConnection.DisposeAsync().ConfigureAwait(false);
                 hubConnection = null;
                 started = false;
             }

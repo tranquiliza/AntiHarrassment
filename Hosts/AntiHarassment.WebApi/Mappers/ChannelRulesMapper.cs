@@ -1,14 +1,13 @@
 ﻿using AntiHarassment.Contract;
 using AntiHarassment.Core.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AntiHarassment.WebApi.Mappers
 {
     public static class ChannelRulesMapper
     {
+        [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Can't implement future features before we're in the future.")]
         public static ChannelRuleAction Map(this ChannelRuleActionModel model)
         {
             return model switch
@@ -20,6 +19,7 @@ namespace AntiHarassment.WebApi.Mappers
             };
         }
 
+        [SuppressMessage("General", "RCS1079:Throwing of new NotImplementedException.", Justification = "Can't implement future features before we're in the future.")]
         public static ChannelRuleActionModel Map(this ChannelRuleAction action)
         {
             return action switch

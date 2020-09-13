@@ -6,7 +6,6 @@ using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Core
@@ -18,19 +17,22 @@ namespace AntiHarassment.Core
         private readonly IChatRepository chatRepository;
         private readonly IDatetimeProvider datetimeProvider;
         private readonly ITagRepository tagRepository;
+        private readonly IUserRepository userRepository;
 
         public ChannelService(
             IChannelRepository channelRepository,
             IMessageDispatcher messageDispatcher,
             IChatRepository chatRepository,
             IDatetimeProvider datetimeProvider,
-            ITagRepository tagRepository)
+            ITagRepository tagRepository,
+            IUserRepository userRepository)
         {
             this.channelRepository = channelRepository;
             this.messageDispatcher = messageDispatcher;
             this.chatRepository = chatRepository;
             this.datetimeProvider = datetimeProvider;
             this.tagRepository = tagRepository;
+            this.userRepository = userRepository;
         }
 
         public async Task<IResult<Channel>> AddModeratorToChannel(string channelName, string moderatorTwitchUsername, IApplicationContext context)
@@ -78,11 +80,30 @@ namespace AntiHarassment.Core
             return Result<Channel>.Succeeded(result);
         }
 
+        public async Task<IResult<List<Channel>>> GetChannelsThatHasNoUser(IApplicationContext context)
+        {
+            var query = await channelRepository.GetChannels().ConfigureAwait(false);
+            if (context.User.HasRole(Roles.Admin))
+            {
+                var users = await userRepository.GetUsers().ConfigureAwait(false);
+                var filtered = query.Where(y => !users.Any(x => string.Equals(x.TwitchUsername, y.ChannelName, StringComparison.OrdinalIgnoreCase))).ToList();
+
+                return Result<List<Channel>>.Succeeded(filtered);
+            }
+
+            return Result<List<Channel>>.Unauthorized();
+        }
+
         public async Task<IResult<List<Channel>>> GetChannels(IApplicationContext context)
         {
             var query = await channelRepository.GetChannels().ConfigureAwait(false);
             if (context.User.HasRole(Roles.Admin))
-                return Result<List<Channel>>.Succeeded(query);
+            {
+                var users = await userRepository.GetUsers().ConfigureAwait(false);
+                var filtered = query.Where(y => users.Any(x => string.Equals(x.TwitchUsername, y.ChannelName, StringComparison.OrdinalIgnoreCase))).ToList();
+
+                return Result<List<Channel>>.Succeeded(filtered);
+            }
 
             var result = query.Where(channel => channel.HasModerator(context.User.TwitchUsername)
             || string.Equals(channel.ChannelName, context.User.TwitchUsername, StringComparison.OrdinalIgnoreCase)).ToList();

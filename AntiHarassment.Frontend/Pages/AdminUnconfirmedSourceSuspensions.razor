@@ -1,0 +1,279 @@
+﻿@inject ITagService tagService
+@inject IJSRuntime jsRuntime
+@inject IUnconfirmedSourceSuspensionService suspensionService
+@implements IDisposable
+
+<AdminOnlyComponent />
+@page "/admin/unconfirmedSources/suspensions"
+
+<div class="row">
+    <div class="col s12">
+        <h5>Unconfirmed Source Suspensions</h5>
+    </div>
+</div>
+
+@if (suspensionService.Suspensions == null)
+{
+    <Spinner />
+}
+else
+{
+    <div class="row">
+        <div class="col s4">
+            <div class="input-field">
+                <select @bind="amountToShow">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="100">100</option>
+                    <option value="@suspensionService.Suspensions.Count(x => !x.Audited && !x.InvalidSuspension)">All</option>
+                </select>
+                <label>Amount to show</label>
+            </div>
+        </div>
+        <div class="col s4">
+            <button style="margin-top:26px" class="btn" @onclick="FetchSuspensions"><i class="material-icons">refresh</i></button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <ul class="collapsible">
+                @foreach (var suspension in suspensionService.Suspensions.Where(x => !x.Audited && !x.InvalidSuspension).OrderByDescending(x => x.Timestamp).Take(amountToShow))
+                {
+                    <UnconfirmedSourceSuspensionComponent suspension="suspension" counter="counter" />
+
+                    {
+                        counter++;
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col s12">
+            <h5>Invalid</h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s4">
+            <div class="input-field">
+                <select @bind="invalidToShow">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="100">100</option>
+                    <option value="@suspensionService.Suspensions.Count(x => x.InvalidSuspension && !x.Audited)">All</option>
+                </select>
+                <label>Amount to show</label>
+            </div>
+        </div>
+        <div class="col s4">
+            <button style="margin-top:26px" class="btn" @onclick="FetchSuspensions"><i class="material-icons">refresh</i></button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <ul class="collapsible">
+                @foreach (var suspension in suspensionService.Suspensions.Where(x => x.InvalidSuspension && !x.Audited).OrderBy(x => x.Timestamp).Take(invalidToShow))
+                {
+                    <UnconfirmedSourceSuspensionComponent suspension="suspension" counter="counter" />
+
+                    {
+                        counter++;
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <h5>Audited</h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s4">
+            <div class="input-field">
+                <select @bind="auditedToShow">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="100">100</option>
+                    <option value="@suspensionService.Suspensions.Count(x => x.Audited)">All</option>
+                </select>
+                <label>Amount to show</label>
+            </div>
+        </div>
+        <div class="col s4">
+            <button style="margin-top:26px" class="btn" @onclick="FetchSuspensions"><i class="material-icons">refresh</i></button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <ul class="collapsible">
+                @foreach (var suspension in suspensionService.Suspensions.Where(x => x.Audited).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Timestamp).Take(auditedToShow))
+                {
+                    <UnconfirmedSourceSuspensionComponent suspension="suspension" counter="counter" />
+
+                    {
+                        counter++;
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+<!-- Modal For InvalidReason -->
+<div class="modal" id="invalidReasoningModal">
+    <div class="modal-content">
+        <h4>
+            Why is this Suspension Invalid?
+        </h4>
+        @if (!string.IsNullOrEmpty(InvalidReasonErrorMessage))
+        {
+            <p class="text-danger">@InvalidReasonErrorMessage</p>
+        }
+        <EditForm OnValidSubmit="MarkInvalid" EditContext="markInvalidEditContext">
+            <div class="input-field">
+                <input type="text" @bind-value="suspensionService.CurrentInvalidationReason" />
+            </div>
+        </EditForm>
+    </div>
+    <div class="modal-footer">
+        <button class="btn red modal-close">Cancel</button>
+        <button @onclick="MarkInvalid" class="btn green">Mark Invalid</button>
+    </div>
+</div>
+
+<!-- Modal For AccountLinking -->
+<div class="modal" id="accountLinkingModal">
+    <div class="modal-content">
+        <h4>Link another user to this suspension</h4>
+        <div class="input-field">
+            <input id="accountLinkReasoninput" type="text" @bind-value="suspensionService.UserLinkReason" />
+            <label for="accountLinkReasoninput">Reason for linking</label>
+        </div>
+        <div class="input-field">
+            <input id="accountLinkingUserInput" type="text" @bind-value="suspensionService.CurrentSearchTerm" />
+            <label for="accountLinkingUserInput">Search For a User</label>
+        </div>
+
+        @* TODO: Figure out where to grab users from (Unique for system?) *@
+
+        @*@if (suspensionService.UsersFromChannel != null)
+            {
+                @foreach (var userName in suspensionService.UsersFromChannel)
+                {
+                    <button @onclick="async _ => await LinkUserToSuspensions(userName)" class="btn grey darken-3">@userName</button>
+                }
+            }*@
+    </div>
+    <div class="modal-footer">
+        <button @onclick="CloseLinkUserModal" class="btn red modal-close">Cancel</button>
+    </div>
+</div>
+
+@code {
+    private int counter = 0;
+
+    private int amountToShow = 20;
+
+    private int invalidToShow = 10;
+    private int auditedToShow = 10;
+
+    private string InvalidReasonErrorMessage = "";
+
+    private class Model
+    {
+        public string invalidReason { get; set; }
+    }
+
+    private EditContext markInvalidEditContext = new EditContext(new Model());
+
+    private async Task MarkInvalid()
+    {
+        if (suspensionService.CurrentlySelectedSuspensionForInvalidation != null && !string.IsNullOrEmpty(suspensionService.CurrentInvalidationReason))
+        {
+            await suspensionService.UpdateSuspensionValidity(suspensionService.CurrentlySelectedSuspensionForInvalidation.SuspensionId, true, suspensionService.CurrentInvalidationReason);
+            await jsRuntime.InvokeVoidAsync("CloseModalForInvalidReasoning");
+
+            InvalidReasonErrorMessage = "";
+        }
+        else
+        {
+            InvalidReasonErrorMessage = "You must give a reason why the suspension is invalid!";
+        }
+    }
+
+    private async Task FetchSuspensions()
+    {
+        await suspensionService.FetchSuspensions();
+    }
+
+    private async Task CloseLinkUserModal()
+    {
+        if (suspensionService.CurrentlySelectedSuspension == null)
+        {
+            return;
+        }
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
+        suspensionService.CurrentSearchTerm = "";
+        suspensionService.UserLinkReason = "";
+        suspensionService.CurrentlySelectedSuspension = null;
+    }
+
+    private async Task LinkUserToSuspensions(string userToLink)
+    {
+        if (suspensionService.CurrentlySelectedSuspension == null
+            || string.IsNullOrEmpty(userToLink)
+            || string.IsNullOrEmpty(suspensionService.UserLinkReason))
+        {
+            return;
+        }
+
+        await suspensionService.AddUserLinkToSuspension(suspensionService.CurrentlySelectedSuspension.SuspensionId, userToLink, suspensionService.UserLinkReason);
+
+        await jsRuntime.InvokeVoidAsync("CloseModalForUserLinking");
+        suspensionService.CurrentSearchTerm = "";
+        suspensionService.CurrentlySelectedSuspension = null;
+        suspensionService.UserLinkReason = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        suspensionService.OnChange += UpdateUi;
+        tagService.OnChange += UpdateUi;
+        await tagService.Initialize();
+        await suspensionService.Initialize();
+    }
+
+    private void UpdateUi()
+    {
+        counter = 0;
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await jsRuntime.InvokeVoidAsync("InitDropDowns");
+        await jsRuntime.InvokeVoidAsync("InitCollapsibles");
+        await jsRuntime.InvokeVoidAsync("InitTooltips");
+        await jsRuntime.InvokeVoidAsync("InitImageBoxes");
+        await jsRuntime.InvokeVoidAsync("InitSelectors");
+    }
+
+    public void Dispose()
+    {
+        suspensionService.OnChange -= UpdateUi;
+        tagService.OnChange -= UpdateUi;
+    }
+}

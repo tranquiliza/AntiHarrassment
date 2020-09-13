@@ -8,7 +8,6 @@ using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public class ChatlistenerService : IChatlistenerService, IDisposable
     {
-        private TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
 
         private readonly IChatClient client;
         private readonly IPubSubClient pubSubClient;
@@ -25,6 +24,8 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IChatRepository chatRepository;
         private readonly IServiceProvider serviceProvider;
+        private readonly IChatterRepository chatterRepository;
+        private readonly IUserRepository userRepository;
         private readonly ILogger<ChatlistenerService> logger;
 
         public ChatlistenerService(
@@ -36,6 +37,7 @@ namespace AntiHarassment.Chatlistener.Core
             IChatRepository chatRepository,
             IServiceProvider serviceProvider,
             IChatterRepository chatterRepository,
+            IUserRepository userRepository,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
@@ -46,6 +48,7 @@ namespace AntiHarassment.Chatlistener.Core
             this.chatRepository = chatRepository;
             this.serviceProvider = serviceProvider;
             this.chatterRepository = chatterRepository;
+            this.userRepository = userRepository;
             this.logger = logger;
 
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
@@ -81,7 +84,8 @@ namespace AntiHarassment.Chatlistener.Core
 
             var timeOfSuspension = datetimeProvider.UtcNow;
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
-            var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser);
+            var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
+            var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser, userForChannel == null);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
             await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
         }
@@ -100,13 +104,14 @@ namespace AntiHarassment.Chatlistener.Core
                 return;
 
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
-            var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser);
+            var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
+
+            var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser, userForChannel == null);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
             await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
         }
 
         private bool hasBootedUp = false;
-        private readonly IChatterRepository chatterRepository;
 
         public async Task<bool> CheckConnectionAndRestartIfNeeded()
         {
@@ -140,7 +145,7 @@ namespace AntiHarassment.Chatlistener.Core
         {
             logger.LogInformation("Connecting and joining channels");
             await client.Connect().ConfigureAwait(false);
-            await pubSubClient.Connect().ConfigureAwait(false);
+            pubSubClient.Connect();
 
             var channels = await channelRepository.GetChannels().ConfigureAwait(false);
             var enabledChannels = channels.Where(x => x.ShouldListen);
@@ -158,9 +163,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task ListenTo(string channelName, IApplicationContext context)
         {
-            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
-            if (channel == null)
-                channel = new Channel(channelName, shouldListen: true);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false) ?? new Channel(channelName, shouldListen: true);
 
             channel.EnableListening(context, datetimeProvider.UtcNow);
 
@@ -169,7 +172,7 @@ namespace AntiHarassment.Chatlistener.Core
                 if (await pubSubClient.JoinChannel(channelName).ConfigureAwait(false))
                     channel.EnableAutoModdedMessageListening(context, datetimeProvider.UtcNow);
                 else
-                    logger.LogWarning("Unable to join channel {channelName} have we hit the cap?", channelName);
+                    logger.LogWarning("Unable to join channel {channelName}", channelName);
             }
 
             await client.JoinChannel(channelName).ConfigureAwait(false);
@@ -178,9 +181,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         public async Task UnlistenTo(string channelName, IApplicationContext context)
         {
-            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
-            if (channel == null)
-                channel = new Channel(channelName, shouldListen: false);
+            var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false) ?? new Channel(channelName, shouldListen: false);
 
             channel.DisableListening(context, datetimeProvider.UtcNow);
             channel.DisableAutoModdedMessageListening(context, datetimeProvider.UtcNow);

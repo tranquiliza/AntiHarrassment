@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AntiHarassment.Sql
+﻿namespace AntiHarassment.Sql
 {
     public interface ISqlAccess
     {

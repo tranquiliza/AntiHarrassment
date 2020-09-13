@@ -1,4 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AntiHarassment.Contract;
+using AntiHarassment.Core;
+using AntiHarassment.Core.Models;
+using AntiHarassment.WebApi.Mappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -7,11 +11,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using AntiHarassment.Contract;
-using AntiHarassment.Core;
-using AntiHarassment.WebApi.Mappers;
-using AntiHarassment.Core.Security;
-using AntiHarassment.Core.Models;
 
 namespace AntiHarassment.WebApi.Controllers
 {

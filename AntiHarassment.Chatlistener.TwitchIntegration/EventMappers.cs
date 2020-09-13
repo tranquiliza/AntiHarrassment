@@ -84,23 +84,16 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 
         private static UserType Map(this TwitchLib.Client.Enums.UserType userType)
         {
-            switch (userType)
+            return userType switch
             {
-                case TwitchLib.Client.Enums.UserType.Viewer:
-                    return UserType.Viewer;
-                case TwitchLib.Client.Enums.UserType.Moderator:
-                    return UserType.Moderator;
-                case TwitchLib.Client.Enums.UserType.GlobalModerator:
-                    return UserType.GlobalModerator;
-                case TwitchLib.Client.Enums.UserType.Broadcaster:
-                    return UserType.Broadcaster;
-                case TwitchLib.Client.Enums.UserType.Admin:
-                    return UserType.Admin;
-                case TwitchLib.Client.Enums.UserType.Staff:
-                    return UserType.Staff;
-                default:
-                    return UserType.Viewer;
-            }
+                TwitchLib.Client.Enums.UserType.Viewer => UserType.Viewer,
+                TwitchLib.Client.Enums.UserType.Moderator => UserType.Moderator,
+                TwitchLib.Client.Enums.UserType.GlobalModerator => UserType.GlobalModerator,
+                TwitchLib.Client.Enums.UserType.Broadcaster => UserType.Broadcaster,
+                TwitchLib.Client.Enums.UserType.Admin => UserType.Admin,
+                TwitchLib.Client.Enums.UserType.Staff => UserType.Staff,
+                _ => UserType.Viewer,
+            };
         }
     }
 }

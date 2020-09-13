@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Sql
@@ -20,6 +19,27 @@ namespace AntiHarassment.Sql
             this.logger = logger;
         }
 
+        public async Task<List<User>> GetUsers()
+        {
+            try
+            {
+                var result = new List<User>();
+
+                using var command = sql.CreateStoredProcedure("[Core].[GetAllUsers]");
+                using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                    result.Add(Serialization.Deserialize<User>(reader.GetString("data")));
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when getting all users");
+                throw;
+            }
+        }
+
         public async Task<User> GetByTwitchUsername(string twitchUsername)
         {
             try
@@ -28,11 +48,9 @@ namespace AntiHarassment.Sql
                 {
                     command.WithParameter("twitchUsername", twitchUsername);
 
-                    using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
-                    {
-                        if (await reader.ReadAsync().ConfigureAwait(false))
-                            return Serialization.Deserialize<User>(reader.GetString("data"));
-                    }
+                    using var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false);
+                    if (await reader.ReadAsync().ConfigureAwait(false))
+                        return Serialization.Deserialize<User>(reader.GetString("data"));
                 }
 
                 return null;
@@ -51,11 +69,9 @@ namespace AntiHarassment.Sql
                 using (var command = sql.CreateStoredProcedure("[Core].[GetUserById]"))
                 {
                     command.WithParameter("userId", id);
-                    using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false))
-                    {
-                        if (await reader.ReadAsync().ConfigureAwait(false))
-                            return Serialization.Deserialize<User>(reader.GetString("data"));
-                    }
+                    using var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow).ConfigureAwait(false);
+                    if (await reader.ReadAsync().ConfigureAwait(false))
+                        return Serialization.Deserialize<User>(reader.GetString("data"));
                 }
 
                 return null;
@@ -71,15 +87,13 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[InsertUpdateUser]"))
-                {
-                    command.WithParameter("userId", user.Id)
-                        .WithParameter("twitchUsername", user.TwitchUsername)
-                        .WithParameter("email", user.Email)
-                        .WithParameter("data", Serialization.Serialize(user));
+                using var command = sql.CreateStoredProcedure("[Core].[InsertUpdateUser]");
+                command.WithParameter("userId", user.Id)
+                    .WithParameter("twitchUsername", user.TwitchUsername)
+                    .WithParameter("email", user.Email)
+                    .WithParameter("data", Serialization.Serialize(user));
 
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -92,11 +106,9 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                using (var command = sql.CreateStoredProcedure("[Core].[DeleteUserById]"))
-                {
-                    command.WithParameter("userId", userId);
-                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
-                }
+                using var command = sql.CreateStoredProcedure("[Core].[DeleteUserById]");
+                command.WithParameter("userId", userId);
+                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
