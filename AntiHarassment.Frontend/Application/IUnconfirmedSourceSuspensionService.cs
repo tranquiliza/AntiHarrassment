@@ -18,14 +18,13 @@ namespace AntiHarassment.Frontend.Application
         Task AddUserLinkToSuspension(Guid suspensionId, string twitchUsername, string linkReason);
         Task RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername);
 
-
         Task UpdateAudited(Guid suspensionId, bool audited);
         Task AddTagToSuspension(Guid suspensionId, Guid tagId);
         Task RemoveTagFromSuspension(Guid suspensionId, Guid tagId);
 
-
         event Action OnChange;
         List<SuspensionModel> Suspensions { get; }
         Task Initialize();
+        Task FetchSuspensions();
     }
 }

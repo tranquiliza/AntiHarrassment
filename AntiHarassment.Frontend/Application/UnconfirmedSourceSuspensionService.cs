@@ -26,7 +26,7 @@ namespace AntiHarassment.Frontend.Application
             this.apiGateway = apiGateway;
             this.suspensionsHub = suspensionsHub;
 
-            suspensionsHub.OnNewSuspension += async (sender, args) => await SuspensionsHub_OnNewSuspension(sender, args);
+            //suspensionsHub.OnNewSuspension += async (sender, args) => await SuspensionsHub_OnNewSuspension(sender, args);
             suspensionsHub.OnSuspensionUpdated += async (sender, args) => await SuspensionsHub_SuspensionUpdated(sender, args);
         }
 
@@ -44,12 +44,12 @@ namespace AntiHarassment.Frontend.Application
             }
         }
 
-        private async Task SuspensionsHub_OnNewSuspension(object _, NewSuspensionEventArgs args)
-        {
-            var qParam = new QueryParam("suspensionId", args.SuspensionId.ToString());
-            var newSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
-            UpdateState(newSuspension);
-        }
+        //private async Task SuspensionsHub_OnNewSuspension(object _, NewSuspensionEventArgs args)
+        //{
+        //    var qParam = new QueryParam("suspensionId", args.SuspensionId.ToString());
+        //    var newSuspension = await apiGateway.Get<SuspensionModel>("suspensions", queryParams: qParam).ConfigureAwait(false);
+        //    UpdateState(newSuspension);
+        //}
 
         private void UpdateState(SuspensionModel model)
         {
@@ -69,6 +69,16 @@ namespace AntiHarassment.Frontend.Application
             Suspensions = result ?? new List<SuspensionModel>();
 
             await suspensionsHub.StartAsync().ConfigureAwait(false);
+
+            NotifyStateChanged();
+        }
+
+        public async Task FetchSuspensions()
+        {
+            Suspensions = null;
+
+            var result = await apiGateway.Get<List<SuspensionModel>>("suspensions", routeValues: new string[] { "unconfirmed" }).ConfigureAwait(false);
+            Suspensions = result ?? new List<SuspensionModel>();
 
             NotifyStateChanged();
         }
