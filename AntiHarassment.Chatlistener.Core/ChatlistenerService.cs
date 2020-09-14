@@ -26,6 +26,7 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IServiceProvider serviceProvider;
         private readonly IChatterRepository chatterRepository;
         private readonly IUserRepository userRepository;
+        private readonly IDeletedMessagesRepository deletedMessagesRepository;
         private readonly ILogger<ChatlistenerService> logger;
 
         public ChatlistenerService(
@@ -38,6 +39,7 @@ namespace AntiHarassment.Chatlistener.Core
             IServiceProvider serviceProvider,
             IChatterRepository chatterRepository,
             IUserRepository userRepository,
+            IDeletedMessagesRepository deletedMessagesRepository,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
@@ -49,6 +51,7 @@ namespace AntiHarassment.Chatlistener.Core
             this.serviceProvider = serviceProvider;
             this.chatterRepository = chatterRepository;
             this.userRepository = userRepository;
+            this.deletedMessagesRepository = deletedMessagesRepository;
             this.logger = logger;
 
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
@@ -57,6 +60,12 @@ namespace AntiHarassment.Chatlistener.Core
 
             client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
             pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            pubSubClient.OnMessageDeleted += async (sender, eventArgs) => await OnMessageDeleted(sender, eventArgs).ConfigureAwait(false);
+        }
+
+        private async Task OnMessageDeleted(object _, MessageDeletedEvent e)
+        {
+            await deletedMessagesRepository.Insert(e.Channel, e.Username, e.DeletedBy, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserJoined(object _, UserJoinedEvent e)

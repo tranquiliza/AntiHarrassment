@@ -36,6 +36,7 @@ namespace AntiHarassment.Chatlistener
                 services.AddSingleton<IChatRepository, ChatRepository>(x => new ChatRepository(connectionString, x.GetRequiredService<ILogger<ChatRepository>>()));
                 services.AddSingleton<IUserRepository, UserRepository>(x => new UserRepository(connectionString, x.GetRequiredService<ILogger<UserRepository>>()));
                 services.AddSingleton<IChatterRepository, ChatterRepository>(x => new ChatterRepository(connectionString, x.GetRequiredService<ILogger<ChatterRepository>>()));
+                services.AddSingleton<IDeletedMessagesRepository, DeletedMessagesRepository>(x => new DeletedMessagesRepository(connectionString, x.GetRequiredService<ILogger<DeletedMessagesRepository>>()));
 
                 services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
             });

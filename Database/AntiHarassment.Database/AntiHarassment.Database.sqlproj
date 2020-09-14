@@ -66,6 +66,7 @@
     <Folder Include="StoredProcedures\ChatMessages" />
     <Folder Include="StoredProcedures\Tags" />
     <Folder Include="StoredProcedures\Chatters" />
+    <Folder Include="StoredProcedures\DeletedMessages" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\Schemas\Core.sql" />
@@ -108,6 +109,8 @@
     <Build Include="StoredProcedures\Chatters\GetAllChatters.sql" />
     <Build Include="StoredProcedures\Users\GetAllUsers.sql" />
     <Build Include="StoredProcedures\Suspensions\GetUnconfirmedSourcesSuspensions.sql" />
+    <Build Include="Tables\DeletedMessages.sql" />
+    <Build Include="StoredProcedures\DeletedMessages\InsertDeletedMessage.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

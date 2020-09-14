@@ -21,6 +21,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         private User BotUser { get; set; }
 
         public event EventHandler<MessageReceivedEvent> OnMessageReceived;
+        public event EventHandler<MessageDeletedEvent> OnMessageDeleted;
 
         public TwitchPubSubClient(TwitchClientSettings twitchClientSettings, ILogger<TwitchPubSubClient> logger)
         {
@@ -115,6 +116,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                 await newConnection.Connect().ConfigureAwait(false);
 
                 newConnection.OnMessageReceived += NewConnection_OnMessageReceived;
+                newConnection.OnMessageDeleted += NewConnection_OnMessageDeleted;
 
                 newConnection.OnUserBanned += NewConnection_OnUserBanned;
                 newConnection.OnUserTimedout += NewConnection_OnUserTimedout;
@@ -137,6 +139,12 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             }
 
             return false;
+        }
+
+        private void NewConnection_OnMessageDeleted(object _, MessageDeletedEvent e)
+        {
+            logger.LogInformation("Received deleted message from channel {arg}, on user {arg2}, issued by {arg3} regarding message: {arg4}", e.Channel, e.Username, e.DeletedBy, e.Message);
+            OnMessageDeleted?.Invoke(this, e);
         }
 
         private void NewConnection_OnUserUntimedout(object sender, UserUntimedoutEvent e)
@@ -181,6 +189,14 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             if (connection.IsEmpty)
             {
                 connection.Disconnect();
+
+                connection.OnMessageReceived -= NewConnection_OnMessageReceived;
+                connection.OnMessageDeleted -= NewConnection_OnMessageDeleted;
+                connection.OnUserBanned -= NewConnection_OnUserBanned;
+                connection.OnUserTimedout -= NewConnection_OnUserTimedout;
+                connection.OnUserUnbanned -= NewConnection_OnUserUnbanned;
+                connection.OnUserUntimedout -= NewConnection_OnUserUntimedout;
+
                 pubSubConnections.Remove(connection);
             }
 
