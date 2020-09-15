@@ -37,7 +37,7 @@ namespace AntiHarassment.Core.Tests
                 fileRepository.Object);
 
             // act
-            var result = await service.GetAllSuspensionsAsync("Tranquiliza", DateTime.UtcNow, context.Object).ConfigureAwait(false);
+            var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
 
             // assert
             Assert.AreEqual(result.State, ResultState.NoContent);
@@ -74,7 +74,7 @@ namespace AntiHarassment.Core.Tests
                 fileRepository.Object);
 
             // act
-            var result = await service.GetAllSuspensionsAsync("Tranquiliza", DateTime.UtcNow, context.Object).ConfigureAwait(false);
+            var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
 
             // assert
             Assert.AreEqual(result.State, ResultState.NoContent);
@@ -113,7 +113,7 @@ namespace AntiHarassment.Core.Tests
                 fileRepository.Object);
 
             // act
-            var result = await service.GetAllSuspensionsAsync("Tranquiliza", DateTime.UtcNow, context.Object).ConfigureAwait(false);
+            var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
 
             // assert
             Assert.AreEqual(result.State, ResultState.NoContent);
@@ -157,7 +157,7 @@ namespace AntiHarassment.Core.Tests
                 fileRepository.Object);
 
             // act
-            var result = await service.GetAllSuspensionsAsync("Tranquiliza", DateTime.UtcNow, context.Object).ConfigureAwait(false);
+            var result = await service.GetAllSuspensionsAsync("Tranquiliza", context.Object).ConfigureAwait(false);
 
             // assert
             Assert.AreEqual(result.State, ResultState.AccessDenied);

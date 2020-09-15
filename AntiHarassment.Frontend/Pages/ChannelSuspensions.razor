@@ -7,7 +7,6 @@
 
 <PageTitle Title="AHS: Suspensions" />
 
-
 @if (suspensionService.Channels == null)
 {
     <p>You don't have access to any channels. Go to settings and ensure you have enabled the system!</p>
@@ -30,11 +29,8 @@ else
         </div>
         <div class="col s3">
             <div class="input-field">
-                <input @onkeyup="KeyUpEvent" class="white-text" type="date" @bind-value="suspensionService.SelectedDate" />
+                <input class="white-text" type="date" @bind-value="suspensionService.SelectedDate" />
             </div>
-        </div>
-        <div class="col s3">
-            <button class="btn" style="margin-top:26px" @onclick="FetchForDate"><i class="material-icons">search</i></button>
         </div>
         <div class="col s3">
             <button style="margin-top:26px;" @onclick="OpenModelForCreateSuspension" class="btn green">Create Suspension</button>
@@ -51,33 +47,33 @@ else
 }
 else
 {
-    @if (suspensionService.Suspensions.Count == 0)
+    @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.DatesWithUnauditedSuspensions.Count(x => x != suspensionService.SelectedDate) > 0)
+    {
+        <div class="row">
+            <div class="col s12">
+                <div class="card red darken-3">
+                    <div class="card-content">
+                        <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
+                        <div class="collection with-header">
+                            @foreach (var date in suspensionService.DatesWithUnauditedSuspensions.Where(x => x != suspensionService.SelectedDate))
+                            {
+                                <a @onclick="_ => SetDate(date.Date)" class="hand-pointer collection-item">
+                                    @date.Date.ShortFancyFormat()
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (suspensionService.Suspensions.Count(x => x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date) == 0)
     {
         <p>No suspensions on this day!</p>
     }
     else
     {
-        <div class="row">
-            <div class="col s12">
-                @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.DatesWithUnauditedSuspensions.Count(x => x != suspensionService.SelectedDate) > 0)
-                {
-                    <div class="card red darken-3">
-                        <div class="card-content">
-                            <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
-                            <div class="collection with-header">
-                                @foreach (var date in suspensionService.DatesWithUnauditedSuspensions.Where(x => x != suspensionService.SelectedDate))
-                                {
-                                    <a @onclick="async () => await SetDateAndFetch(date.Date)" class="hand-pointer collection-item">
-                                        @date.Date.ShortFancyFormat()
-                                    </a>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-
         <div class="row">
             <div class="col s4">
                 <div class="input-field">
@@ -85,7 +81,7 @@ else
                         <option value="10">10</option>
                         <option value="20">20</option>
                         <option value="40">40</option>
-                        <option value="@suspensionService.Suspensions.Count(x => !x.Audited && !x.InvalidSuspension)">All</option>
+                        <option value="@suspensionService.Suspensions.Count(x => !x.Audited && !x.InvalidSuspension && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date)">All</option>
                     </select>
                     <label>Amount to show</label>
                 </div>
@@ -95,7 +91,7 @@ else
         <div class="row">
             <div class="col s12">
                 <ul class="collapsible">
-                    @foreach (var suspension in suspensionService.Suspensions.Where(x => !x.Audited && !x.InvalidSuspension).OrderByDescending(x => x.Timestamp).Take(amountToShow))
+                    @foreach (var suspension in suspensionService.Suspensions.Where(x => !x.Audited && !x.InvalidSuspension && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date).OrderByDescending(x => x.Timestamp).Take(amountToShow))
                     {
                         <SuspensionComponent suspension="suspension" counter="counter" />
 
@@ -122,7 +118,7 @@ else
                         <option value="10">10</option>
                         <option value="20">20</option>
                         <option value="40">40</option>
-                        <option value="@suspensionService.Suspensions.Count(x => x.InvalidSuspension && !x.Audited)">All</option>
+                        <option value="@suspensionService.Suspensions.Count(x => x.InvalidSuspension && !x.Audited && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date)">All</option>
                     </select>
                     <label>Amount to show</label>
                 </div>
@@ -132,7 +128,7 @@ else
         <div class="row">
             <div class="col s12">
                 <ul class="collapsible">
-                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.InvalidSuspension && !x.Audited).OrderBy(x => x.Timestamp).Take(invalidToShow))
+                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.InvalidSuspension && !x.Audited && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date).OrderBy(x => x.Timestamp).Take(invalidToShow))
                     {
                         <SuspensionComponent suspension="suspension" counter="counter" />
 
@@ -157,7 +153,7 @@ else
                         <option value="10">10</option>
                         <option value="20">20</option>
                         <option value="40">40</option>
-                        <option value="@suspensionService.Suspensions.Count(x => x.Audited)">All</option>
+                        <option value="@suspensionService.Suspensions.Count(x => x.Audited && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date)">All</option>
                     </select>
                     <label>Amount to show</label>
                 </div>
@@ -167,7 +163,7 @@ else
         <div class="row">
             <div class="col s12">
                 <ul class="collapsible">
-                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.Audited).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Timestamp).Take(auditedToShow))
+                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.Audited && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Timestamp).Take(auditedToShow))
                     {
                         <SuspensionComponent suspension="suspension" counter="counter" />
 
@@ -283,7 +279,7 @@ else
     private async Task SelectChannel(string channelName)
     {
         suspensionService.SelectedDate = DateTime.Now.Date;
-        await suspensionService.FetchSuspensionForChannel(channelName, DateTime.UtcNow);
+        await suspensionService.FetchSuspensionForChannel(channelName);
         await suspensionService.FetchSeenUsersForChannel(channelName);
         await suspensionService.FetchDaysWithUnauditedSuspensions(channelName);
     }
@@ -303,14 +299,12 @@ else
 
     private async Task FetchForDate()
     {
-        await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel, suspensionService.SelectedDate);
+        await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel);
     }
 
-    private async Task SetDateAndFetch(DateTime date)
+    private void SetDate(DateTime date)
     {
         suspensionService.SelectedDate = date;
-
-        await suspensionService.FetchSuspensionForChannel(suspensionService.CurrentlySelectedChannel, date);
     }
 
     private async Task KeyUpEvent(KeyboardEventArgs e)

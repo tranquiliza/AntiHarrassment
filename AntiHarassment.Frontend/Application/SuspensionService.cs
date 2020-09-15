@@ -48,6 +48,7 @@ namespace AntiHarassment.Frontend.Application
             this.apiGateway = apiGateway;
             this.userService = userService;
             this.suspensionsHub = suspensionsHub;
+
             suspensionsHub.OnNewSuspension += async (sender, args) => await SuspensionsHub_OnNewSuspension(sender, args);
             suspensionsHub.OnSuspensionUpdated += async (sender, args) => await SuspensionsHub_SuspensionUpdated(sender, args);
         }
@@ -69,7 +70,7 @@ namespace AntiHarassment.Frontend.Application
             if (updatedSuspension.Audited)
                 await FetchDaysWithUnauditedSuspensions(CurrentlySelectedChannel).ConfigureAwait(false);
 
-            if (updatedSuspension.Timestamp.Date == SelectedDate.Date)
+            if (updatedSuspension.Timestamp.ToLocalTime().Date == SelectedDate.Date)
                 Suspensions.Add(updatedSuspension);
 
             NotifyStateChanged();
@@ -95,21 +96,20 @@ namespace AntiHarassment.Frontend.Application
             if (Channels == null)
                 return;
 
-            var today = DateTime.UtcNow;
             await suspensionsHub.StartAsync().ConfigureAwait(false);
 
             if (!Channels.Any(x => string.Equals(x.ChannelName, userService.CurrentUserTwitchUsername, StringComparison.OrdinalIgnoreCase)))
             {
                 if (Channels.Count > 0)
                 {
-                    await FetchSuspensionForChannel(Channels[0].ChannelName, today).ConfigureAwait(false);
+                    await FetchSuspensionForChannel(Channels[0].ChannelName).ConfigureAwait(false);
                     await FetchDaysWithUnauditedSuspensions(Channels[0].ChannelName).ConfigureAwait(false);
                     await FetchSeenUsersForChannel(Channels[0].ChannelName).ConfigureAwait(false);
                 }
             }
             else
             {
-                await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername, today).ConfigureAwait(false);
+                await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
                 await FetchDaysWithUnauditedSuspensions(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
                 await FetchSeenUsersForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
             }
@@ -123,7 +123,7 @@ namespace AntiHarassment.Frontend.Application
 
             DatesWithUnauditedSuspensions = result ?? new List<DateTime>();
 
-            if (DatesWithUnauditedSuspensions != null)
+            if (DatesWithUnauditedSuspensions.Count > 0)
                 NotifyStateChanged();
         }
 
@@ -133,13 +133,11 @@ namespace AntiHarassment.Frontend.Application
             NotifyStateChanged();
         }
 
-        public async Task FetchSuspensionForChannel(string channelName, DateTime date)
+        public async Task FetchSuspensionForChannel(string channelName)
         {
             Suspensions = null;
 
-            var queryParam = new QueryParam("date", date.ToString("yyyy-MM-dd HH:mm:ss"));
-
-            var result = await apiGateway.Get<List<SuspensionModel>>("suspensions", routeValues: new string[] { channelName }, queryParams: queryParam).ConfigureAwait(false);
+            var result = await apiGateway.Get<List<SuspensionModel>>("suspensions", routeValues: new string[] { channelName }).ConfigureAwait(false);
             Suspensions = result ?? new List<SuspensionModel>();
 
             CurrentlySelectedChannel = channelName;
@@ -236,7 +234,7 @@ namespace AntiHarassment.Frontend.Application
             var existingValue = Suspensions.Find(x => x.SuspensionId == model.SuspensionId);
             Suspensions.Remove(existingValue);
 
-            if (model.Timestamp.Date == SelectedDate.Date)
+            if (model.Timestamp.Date.ToLocalTime().Date == SelectedDate.Date)
                 Suspensions.Add(model);
 
             NotifyStateChanged();
