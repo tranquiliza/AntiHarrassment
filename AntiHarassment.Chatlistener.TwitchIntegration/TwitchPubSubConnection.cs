@@ -24,6 +24,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         public event EventHandler<UserTimedoutEvent> OnUserTimedout;
         public event EventHandler<UserUntimedoutEvent> OnUserUntimedout;
         public event EventHandler<UserUnbannedEvent> OnUserUnbanned;
+        public event EventHandler<MessageDeletedEvent> OnMessageDeleted;
 
         public bool HasSpace => UserIdChannelName.Count < 50;
 
@@ -40,6 +41,21 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
             pubSubService.OnBan += PubSubService_OnBan;
             pubSubService.OnUntimeout += PubSubService_OnUntimeout;
             pubSubService.OnUnban += PubSubService_OnUnban;
+            pubSubService.OnMessageDeleted += PubSubService_OnMessageDeleted;
+        }
+
+        private void PubSubService_OnMessageDeleted(object sender, OnMessageDeletedArgs e)
+        {
+            if (!UserIdChannelName.TryGetValue(e.ChannelId, out var channelName))
+                return;
+
+            OnMessageDeleted?.Invoke(this, new MessageDeletedEvent
+            {
+                Channel = channelName,
+                DeletedBy = e.DeletedBy,
+                Message = e.Message,
+                Username = e.TargetUser
+            });
         }
 
         public Task Connect()

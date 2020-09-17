@@ -2,6 +2,7 @@
 using AntiHarassment.Chatlistener.TwitchIntegration;
 using AntiHarassment.Core;
 using AntiHarassment.Core.Repositories;
+using AntiHarassment.MachineLearning;
 using AntiHarassment.Sql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,6 +21,7 @@ namespace AntiHarassment.Chatlistener
                 var twitchBotOAuth = context.Configuration["Twitch:OAuthToken"];
                 var clientId = context.Configuration["Twitch:ClientId"];
                 var secret = context.Configuration["Twitch:Secret"];
+                var fileStoragePath = context.Configuration["ApplicationSettings:FileStoragePath"];
 
                 var chatClientSettings = new TwitchClientSettings(twitchUsername, twitchBotOAuth, clientId, secret);
 
@@ -34,8 +36,11 @@ namespace AntiHarassment.Chatlistener
                 services.AddSingleton<IChannelRepository, ChannelRepository>(x => new ChannelRepository(connectionString, x.GetRequiredService<ILogger<ChannelRepository>>()));
                 services.AddSingleton<ISuspensionRepository, SuspensionRepository>(x => new SuspensionRepository(connectionString, x.GetRequiredService<ILogger<SuspensionRepository>>()));
                 services.AddSingleton<IChatRepository, ChatRepository>(x => new ChatRepository(connectionString, x.GetRequiredService<ILogger<ChatRepository>>()));
+                services.AddSingleton<ITagRepository, TagRepository>(x => new TagRepository(connectionString, x.GetRequiredService<ILogger<TagRepository>>()));
                 services.AddSingleton<IUserRepository, UserRepository>(x => new UserRepository(connectionString, x.GetRequiredService<ILogger<UserRepository>>()));
                 services.AddSingleton<IChatterRepository, ChatterRepository>(x => new ChatterRepository(connectionString, x.GetRequiredService<ILogger<ChatterRepository>>()));
+                services.AddSingleton<IDeletedMessagesRepository, DeletedMessagesRepository>(x => new DeletedMessagesRepository(connectionString, x.GetRequiredService<ILogger<DeletedMessagesRepository>>()));
+                services.AddSingleton<IDataAnalyser, DataAnalyser>(x => new DataAnalyser(fileStoragePath, x.GetRequiredService<ITagRepository>(), x.GetRequiredService<ISuspensionRepository>(), x.GetRequiredService<IDatetimeProvider>(), x.GetRequiredService<ILogger<DataAnalyser>>()));
 
                 services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
             });

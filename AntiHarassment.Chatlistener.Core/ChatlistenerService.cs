@@ -15,7 +15,8 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public class ChatlistenerService : IChatlistenerService, IDisposable
     {
-        private readonly TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan TimeoutChatLogRecordTime = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan BanChatLogRecordTime = TimeSpan.FromHours(1);
 
         private readonly IChatClient client;
         private readonly IPubSubClient pubSubClient;
@@ -26,6 +27,7 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IServiceProvider serviceProvider;
         private readonly IChatterRepository chatterRepository;
         private readonly IUserRepository userRepository;
+        private readonly IDeletedMessagesRepository deletedMessagesRepository;
         private readonly ILogger<ChatlistenerService> logger;
 
         public ChatlistenerService(
@@ -38,6 +40,8 @@ namespace AntiHarassment.Chatlistener.Core
             IServiceProvider serviceProvider,
             IChatterRepository chatterRepository,
             IUserRepository userRepository,
+            IDeletedMessagesRepository deletedMessagesRepository,
+            IDataAnalyser dataAnalyser,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
@@ -49,6 +53,8 @@ namespace AntiHarassment.Chatlistener.Core
             this.serviceProvider = serviceProvider;
             this.chatterRepository = chatterRepository;
             this.userRepository = userRepository;
+            this.deletedMessagesRepository = deletedMessagesRepository;
+            this.dataAnalyser = dataAnalyser;
             this.logger = logger;
 
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
@@ -57,6 +63,12 @@ namespace AntiHarassment.Chatlistener.Core
 
             client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
             pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
+            pubSubClient.OnMessageDeleted += async (sender, eventArgs) => await OnMessageDeleted(sender, eventArgs).ConfigureAwait(false);
+        }
+
+        private async Task OnMessageDeleted(object _, MessageDeletedEvent e)
+        {
+            await deletedMessagesRepository.Insert(e.Channel, e.Username, e.DeletedBy, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserJoined(object _, UserJoinedEvent e)
@@ -83,11 +95,13 @@ namespace AntiHarassment.Chatlistener.Core
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var timeOfSuspension = datetimeProvider.UtcNow;
-            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
+            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, TimeoutChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
             var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
             var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser, userForChannel == null);
-            await suspensionRepository.Save(suspension).ConfigureAwait(false);
-            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
+
+            var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
+            await suspensionRepository.Save(analysedSuspension).ConfigureAwait(false);
+            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = analysedSuspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserBanned(object _, UserBannedEvent e)
@@ -103,15 +117,18 @@ namespace AntiHarassment.Chatlistener.Core
             if (latestForChannel != null && latestForChannel.Timestamp.AddSeconds(30) >= timeOfSuspension)
                 return;
 
-            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
+            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, BanChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
             var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
 
             var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser, userForChannel == null);
-            await suspensionRepository.Save(suspension).ConfigureAwait(false);
-            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
+
+            var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
+            await suspensionRepository.Save(analysedSuspension).ConfigureAwait(false);
+            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = analysedSuspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
         }
 
         private bool hasBootedUp = false;
+        private readonly IDataAnalyser dataAnalyser;
 
         public async Task<bool> CheckConnectionAndRestartIfNeeded()
         {

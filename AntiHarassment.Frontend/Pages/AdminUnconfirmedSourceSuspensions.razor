@@ -39,7 +39,7 @@ else
     <div class="row">
         <div class="col s12">
             <ul class="collapsible">
-                @foreach (var suspension in suspensionService.Suspensions.Where(x => !x.Audited && !x.InvalidSuspension).OrderByDescending(x => x.Timestamp).Take(amountToShow))
+                @foreach (var suspension in suspensionService.Suspensions.Where(x => !x.Audited && !x.InvalidSuspension).OrderBy(x => x.Timestamp).Take(amountToShow))
                 {
                     <UnconfirmedSourceSuspensionComponent suspension="suspension" counter="counter" />
 

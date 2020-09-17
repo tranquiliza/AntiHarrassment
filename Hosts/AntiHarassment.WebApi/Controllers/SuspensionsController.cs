@@ -62,9 +62,9 @@ namespace AntiHarassment.WebApi.Controllers
         }
 
         [HttpGet("{channelOfOrigin}")]
-        public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin, [FromQuery] DateTime date)
+        public async Task<IActionResult> GetSuspensionsForAll([FromRoute] string channelOfOrigin)
         {
-            var result = await suspensionService.GetAllSuspensionsAsync(channelOfOrigin, date, ApplicationContext).ConfigureAwait(false);
+            var result = await suspensionService.GetAllSuspensionsAsync(channelOfOrigin, ApplicationContext).ConfigureAwait(false);
             if (result.State == ResultState.Success)
                 return Ok(result.Data.Map(CurrentUrl));
 

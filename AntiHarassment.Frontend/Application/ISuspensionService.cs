@@ -27,7 +27,7 @@ namespace AntiHarassment.Frontend.Application
 
         event Action OnChange;
 
-        Task FetchSuspensionForChannel(string channelName, DateTime date);
+        Task FetchSuspensionForChannel(string channelName);
         Task FetchSeenUsersForChannel(string channelName);
         Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason = "");
         Task UpdateAudited(Guid suspensionId, bool audited);

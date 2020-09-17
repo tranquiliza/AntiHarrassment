@@ -130,7 +130,7 @@ namespace AntiHarassment.Sql
         {
             try
             {
-                var result = new List<string>();
+                var result = new List<string>(500000);
                 using (var command = sql.CreateStoredProcedure("[Core].[GetUniqueChattersForSystem]"))
                 using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                 {
@@ -142,25 +142,17 @@ namespace AntiHarassment.Sql
                 using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                 {
                     while (await reader.ReadAsync().ConfigureAwait(false))
-                    {
-                        var value = reader.GetString("username");
-                        if (!result.Contains(value))
-                            result.Add(value);
-                    }
+                        result.Add(reader.GetString("username"));
                 }
 
                 using (var command = sql.CreateStoredProcedure("[Core].[GetAllChatters]"))
                 using (var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                 {
                     while (await reader.ReadAsync().ConfigureAwait(false))
-                    {
-                        var value = reader.GetString("TwitchUsername");
-                        if (!result.Contains(value))
-                            result.Add(value);
-                    }
+                        result.Add(reader.GetString("TwitchUsername"));
                 }
 
-                return result;
+                return result.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             }
             catch (Exception ex)
             {

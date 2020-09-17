@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Chatlistener.TwitchIntegration\AntiHarassment.Chatlistener.TwitchIntegration.csproj" />
+    <ProjectReference Include="..\..\AntiHarassment.MachineLearning\AntiHarassment.MachineLearning.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Messaging\AntiHarassment.Messaging.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Sql\AntiHarassment.Sql.csproj" />
   </ItemGroup>

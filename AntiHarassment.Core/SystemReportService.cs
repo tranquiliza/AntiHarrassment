@@ -23,8 +23,8 @@ namespace AntiHarassment.Core
             if (!context.User.HasRole(Roles.Admin))
                 return Result<SystemReport>.Unauthorized();
 
-            var allSuspensions = await suspensionRepository.GetSuspensions(datetimeProvider.UtcNow.AddDays(-30)).ConfigureAwait(false);
-            var systemSuspensions = allSuspensions.Where(x => x.SuspensionSource == SuspensionSource.System).ToList();
+            var allSuspensions = await suspensionRepository.GetSuspensions(datetimeProvider.UtcNow.AddYears(-1)).ConfigureAwait(false);
+            var systemSuspensions = allSuspensions.Where(x => x.SuspensionSource == SuspensionSource.System && !x.UnconfirmedSource).ToList();
             var allSuspensionsWithoutSystem = allSuspensions.Where(x => x.SuspensionSource != SuspensionSource.System);
 
             var auditedSuspensions = allSuspensionsWithoutSystem.Where(x => x.Audited).ToList();

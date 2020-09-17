@@ -94,6 +94,7 @@ namespace AntiHarassment.Core.Models
 
             foreach (var group in auditedSuspensions.Where(x => !x.InvalidSuspension).SelectMany(x => x.Tags).GroupBy(x => x.TagId))
                 TagAppearances.Add(group.First(), group.Count());
+
             UnauditedSuspensions = unauditedSuspensions;
         }
     }

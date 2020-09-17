@@ -47,7 +47,7 @@ namespace AntiHarassment.Core
             return Result<List<Suspension>>.Succeeded(suspensions);
         }
 
-        public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, DateTime date, IApplicationContext context)
+        public async Task<IResult<List<Suspension>>> GetAllSuspensionsAsync(string channelOfOrigin, IApplicationContext context)
         {
             var channel = await channelRepository.GetChannel(channelOfOrigin).ConfigureAwait(false);
             if (channel == null)
@@ -56,7 +56,7 @@ namespace AntiHarassment.Core
             if (!context.HaveAccessTo(channel))
                 return Result<List<Suspension>>.Unauthorized();
 
-            var dataForUser = await suspensionRepository.GetSuspensionsForChannelOnDate(channelOfOrigin, date).ConfigureAwait(false);
+            var dataForUser = await suspensionRepository.GetSuspensionsForChannel(channelOfOrigin).ConfigureAwait(false);
             if (dataForUser.Count > 0)
                 return Result<List<Suspension>>.Succeeded(dataForUser.OrderByDescending(x => x.Timestamp).ToList());
 
