@@ -46,19 +46,21 @@ namespace AntiHarassment.Core
 
         public async Task<IResult<List<UserRulesExceeded>>> GetUsersWhoExceedsRules(string channelName, IApplicationContext context)
         {
-            var usersInSystem = await chatRepository.GetUniqueChattersForSystem().ConfigureAwait(false);
+            var suspensionsForSystem = await suspensionRepository.GetSuspensions(datetimeProvider.UtcNow.AddYears(-1)).ConfigureAwait(false);
+            var usersFromSuspensions = suspensionsForSystem.Select(x => x.Username);
+
             var channel = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
 
             if (!context.HaveAccessTo(channel))
                 return Result<List<UserRulesExceeded>>.Unauthorized();
 
             var allSuspensionsForChannel = await suspensionRepository.GetSuspensionsForChannel(channelName).ConfigureAwait(false);
+            var allValidAuditedSuspensionForChannel = allSuspensionsForChannel.Where(x => !x.InvalidSuspension && x.Audited);
 
             var usersWhoExceeded = new List<UserRulesExceeded>();
-            foreach (var user in usersInSystem.Distinct(StringComparer.OrdinalIgnoreCase))
+            foreach (var user in usersFromSuspensions.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                // TODO FIX THIS GARBAGE (This is expensive)
-                if (allSuspensionsForChannel.Any(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase) && !x.InvalidSuspension && x.Audited))
+                if (allValidAuditedSuspensionForChannel.Any(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase)))
                     continue;
 
                 var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(user).ConfigureAwait(false);
