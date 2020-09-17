@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="1.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AntiHarassment.Chatlistener.Core\AntiHarassment.Chatlistener.Core.csproj" />
+    <ProjectReference Include="..\AntiHarassment.Core\AntiHarassment.Core.csproj" />
+  </ItemGroup>
+
+</Project>

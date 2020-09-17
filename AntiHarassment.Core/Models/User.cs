@@ -118,5 +118,6 @@ namespace AntiHarassment.Core.Models
 
         internal static User CreateNewUser(string email, string twitchUsername, byte[] passwordHash, byte[] passwordSalt) => new User(email, twitchUsername, passwordHash, passwordSalt);
         internal static User CreateNewUser(string email, string twitchUsername) => new User(email, twitchUsername) { EmailConfirmed = true };
+        public static User CreateSystemUser() => new User() { TwitchUsername = "AntiHarassment", Id = Guid.Parse("ead96d55-4e9a-4b8a-9476-3ef54274c0aa") };
     }
 }

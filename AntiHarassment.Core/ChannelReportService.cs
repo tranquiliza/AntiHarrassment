@@ -57,6 +57,7 @@ namespace AntiHarassment.Core
             var usersWhoExceeded = new List<UserRulesExceeded>();
             foreach (var user in usersInSystem.Distinct(StringComparer.OrdinalIgnoreCase))
             {
+                // TODO FIX THIS GARBAGE (This is expensive)
                 if (allSuspensionsForChannel.Any(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase) && !x.InvalidSuspension && x.Audited))
                     continue;
 

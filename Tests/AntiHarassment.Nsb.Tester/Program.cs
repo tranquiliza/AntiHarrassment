@@ -23,6 +23,7 @@ namespace AntiHarassment.Nsb.Tester
                     builder.ConfigureRouting(routing =>
                     {
                         routing.RouteToEndpoint(typeof(CheckDataFeedCommand), "AntiHarassmentChatlistener");
+                        routing.RouteToEndpoint(typeof(TrainSystemCommand), "AntiHarassmentChatlistener");
                         routing.RouteToEndpoint(typeof(LeaveChannelCommand), "AntiHarassmentChatlistener");
                         routing.RouteToEndpoint(typeof(JoinChannelCommand), "AntiHarassmentChatlistener");
                     });
