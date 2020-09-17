@@ -15,7 +15,8 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public class ChatlistenerService : IChatlistenerService, IDisposable
     {
-        private readonly TimeSpan ChatRecordTime = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan TimeoutChatLogRecordTime = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan BanChatLogRecordTime = TimeSpan.FromHours(1);
 
         private readonly IChatClient client;
         private readonly IPubSubClient pubSubClient;
@@ -92,7 +93,7 @@ namespace AntiHarassment.Chatlistener.Core
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var timeOfSuspension = datetimeProvider.UtcNow;
-            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
+            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, TimeoutChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
             var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
             var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser, userForChannel == null);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
@@ -112,7 +113,7 @@ namespace AntiHarassment.Chatlistener.Core
             if (latestForChannel != null && latestForChannel.Timestamp.AddSeconds(30) >= timeOfSuspension)
                 return;
 
-            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, ChatRecordTime, timeOfSuspension).ConfigureAwait(false);
+            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, BanChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
             var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
 
             var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser, userForChannel == null);
