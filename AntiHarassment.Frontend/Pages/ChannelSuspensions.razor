@@ -163,7 +163,7 @@ else
         <div class="row">
             <div class="col s12">
                 <ul class="collapsible">
-                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.Audited && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date).OrderBy(x => x.InvalidSuspension).ThenBy(x => x.Timestamp).Take(auditedToShow))
+                    @foreach (var suspension in suspensionService.Suspensions.Where(x => x.Audited && x.LocalTimeStamp().Date == suspensionService.SelectedDate.Date).OrderBy(x => x.InvalidSuspension).ThenByDescending(x => x.Timestamp).Take(auditedToShow))
                     {
                         <SuspensionComponent suspension="suspension" counter="counter" />
 
