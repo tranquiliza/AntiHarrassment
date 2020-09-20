@@ -10,8 +10,7 @@
 <div class="row">
     <div class="col s4">
         <div class="input-field">
-            <input @onkeyup="KeyUpEvent" type="text" @bind-value="searchTerm" />
-            <label>Twitch Username</label>
+            <input @onkeyup="KeyUpEvent" type="text" placeholder="Twitch Username" @bind-value="searchTerm" />
         </div>
         @if (!string.IsNullOrEmpty(userReportService.UserReportLookupError))
         {
