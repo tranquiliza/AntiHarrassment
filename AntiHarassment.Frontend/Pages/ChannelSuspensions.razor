@@ -283,7 +283,6 @@ else
         suspensionService.SelectedDate = DateTime.Now.Date;
         await suspensionService.FetchSuspensionForChannel(channelName);
         await suspensionService.FetchSeenUsersForChannel(channelName);
-        await suspensionService.FetchDaysWithUnauditedSuspensions(channelName);
     }
 
     private async Task CloseLinkUserModal()

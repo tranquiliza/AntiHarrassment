@@ -77,22 +77,6 @@ namespace AntiHarassment.WebApi.Controllers
             return NoContent();
         }
 
-        [HttpGet("{channelOfOrigin}/unauditedDates")]
-        public async Task<IActionResult> GetDatesWithUnauditedSuspensions([FromRoute] string channelOfOrigin)
-        {
-            var result = await suspensionService.GetUnauditedDatesFor(channelOfOrigin, ApplicationContext).ConfigureAwait(false);
-            if (result.State == ResultState.AccessDenied)
-                return Unauthorized();
-
-            if (result.State == ResultState.Failure)
-                return BadRequest(result.FailureReason);
-
-            if (result.State == ResultState.Success)
-                return Ok(result.Data);
-
-            return NoContent();
-        }
-
         [HttpPost("{suspensionId}/validity")]
         public async Task<IActionResult> UpdateSuspensionValidity([FromRoute] Guid suspensionId, [FromBody] MarkSuspensionValidityModel model)
         {

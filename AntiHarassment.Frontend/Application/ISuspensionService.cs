@@ -39,6 +39,5 @@ namespace AntiHarassment.Frontend.Application
         Task CreateNewSuspension(string username);
         Task UploadImage(Guid suspensionId, MemoryStream memoryStream, string filename);
         void SetCurrentlySelectedSuspensionForImages(SuspensionModel suspension);
-        Task FetchDaysWithUnauditedSuspensions(string channelName);
     }
 }

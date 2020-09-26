@@ -67,14 +67,8 @@ namespace AntiHarassment.Frontend.Application
                 return;
 
             var existingSuspension = Suspensions.Find(x => x.SuspensionId == args.SuspensionId);
-            if (existingSuspension != null)
-                Suspensions.Remove(existingSuspension);
-
-            if (updatedSuspension.Audited)
-                await FetchDaysWithUnauditedSuspensions(CurrentlySelectedChannel).ConfigureAwait(false);
-
-            if (updatedSuspension.Timestamp.ToLocalTime().Date == SelectedDate.Date)
-                Suspensions.Add(updatedSuspension);
+            Suspensions.Remove(existingSuspension);
+            Suspensions.Add(updatedSuspension);
 
             NotifyStateChanged();
         }
@@ -106,28 +100,14 @@ namespace AntiHarassment.Frontend.Application
                 if (Channels.Count > 0)
                 {
                     await FetchSuspensionForChannel(Channels[0].ChannelName).ConfigureAwait(false);
-                    await FetchDaysWithUnauditedSuspensions(Channels[0].ChannelName).ConfigureAwait(false);
                     await FetchSeenUsersForChannel(Channels[0].ChannelName).ConfigureAwait(false);
                 }
             }
             else
             {
                 await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
-                await FetchDaysWithUnauditedSuspensions(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
                 await FetchSeenUsersForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
             }
-        }
-
-        public async Task FetchDaysWithUnauditedSuspensions(string channelName)
-        {
-            DatesWithUnauditedSuspensions = null;
-
-            var result = await apiGateway.Get<List<DateTime>>("suspensions", routeValues: new string[] { channelName, "unauditedDates" }).ConfigureAwait(false);
-
-            DatesWithUnauditedSuspensions = result ?? new List<DateTime>();
-
-            if (DatesWithUnauditedSuspensions.Count > 0)
-                NotifyStateChanged();
         }
 
         public void SetCurrentlySelectedSuspensionForImages(SuspensionModel suspension)
@@ -243,9 +223,7 @@ namespace AntiHarassment.Frontend.Application
 
             var existingValue = Suspensions.Find(x => x.SuspensionId == model.SuspensionId);
             Suspensions.Remove(existingValue);
-
-            if (model.Timestamp.Date.ToLocalTime().Date == SelectedDate.Date)
-                Suspensions.Add(model);
+            Suspensions.Add(model);
 
             NotifyStateChanged();
         }

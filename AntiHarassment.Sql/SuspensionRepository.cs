@@ -232,30 +232,5 @@ namespace AntiHarassment.Sql
                 throw;
             }
         }
-
-        public async Task<List<DateTime>> GetUnauditedDatesFor(string channelOfOrigin)
-        {
-            try
-            {
-                var result = new List<DateTime>();
-
-                using (var command = sql.CreateStoredProcedure("[Core].[GetDatesForUnauditedSuspensionsForChannel]"))
-                {
-                    command.WithParameter("channelOfOrigin", channelOfOrigin);
-                    using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
-                    while (await reader.ReadAsync().ConfigureAwait(false))
-                    {
-                        result.Add(reader.GetDateTime("DateWithUnauditedSuspensions"));
-                    }
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Error when attempting to get dates for unaudited suspensions");
-                throw;
-            }
-        }
     }
 }

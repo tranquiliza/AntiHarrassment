@@ -103,7 +103,6 @@
     <Build Include="StoredProcedures\Suspensions\GetUniqueUsersFromSuspensionsForSystem.sql" />
     <Build Include="StoredProcedures\ChatMessages\GetLatestMessageTimestamp.sql" />
     <Build Include="StoredProcedures\Suspensions\GetSuspensionsForChannelForDate.sql" />
-    <Build Include="StoredProcedures\Suspensions\GetDatesForUnauditedSuspensionsForChannel.sql" />
     <Build Include="Tables\Chatters.sql" />
     <Build Include="StoredProcedures\Chatters\UpsertChatter.sql" />
     <Build Include="StoredProcedures\Chatters\GetAllChatters.sql" />

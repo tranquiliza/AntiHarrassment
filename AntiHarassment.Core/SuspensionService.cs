@@ -6,7 +6,6 @@ using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Core
@@ -156,8 +155,7 @@ namespace AntiHarassment.Core
 
             if (suspension.SuspensionType == SuspensionType.Ban && !invalidate)
             {
-                // Check if there are any newer bans that are currently valid. If so, We cannot do this.
-
+                // Check if there are any bans that are currently valid. If so, We cannot do this.
                 var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(suspension.Username).ConfigureAwait(false);
                 var futureBansForUserInChannel = suspensionsForUser
                     .Where(x => string.Equals(x.ChannelOfOrigin, suspension.ChannelOfOrigin)
@@ -271,16 +269,6 @@ namespace AntiHarassment.Core
             await fileRepository.SaveImage(imageBytes, imageName).ConfigureAwait(false);
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
-        }
-
-        public async Task<IResult<List<DateTime>>> GetUnauditedDatesFor(string channelOfOrigin, IApplicationContext context)
-        {
-            var channel = await channelRepository.GetChannel(channelOfOrigin).ConfigureAwait(false);
-            if (!context.HaveAccessTo(channel))
-                return Result<List<DateTime>>.Unauthorized();
-
-            var dates = await suspensionRepository.GetUnauditedDatesFor(channelOfOrigin).ConfigureAwait(false);
-            return Result<List<DateTime>>.Succeeded(dates);
         }
     }
 }
