@@ -2,6 +2,7 @@
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.SignalR.Contract;
 using AntiHarassment.SignalR.Contract.EventArgs;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,8 +43,9 @@ namespace AntiHarassment.Frontend.Application
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
         private readonly SuspensionsHubSignalRClient suspensionsHub;
+        private readonly IJSRuntime jSRuntime;
 
-        public SuspensionService(IApiGateway apiGateway, IUserService userService, SuspensionsHubSignalRClient suspensionsHub)
+        public SuspensionService(IApiGateway apiGateway, IUserService userService, IJSRuntime jSRuntime, SuspensionsHubSignalRClient suspensionsHub)
         {
             this.apiGateway = apiGateway;
             this.userService = userService;
@@ -51,6 +53,7 @@ namespace AntiHarassment.Frontend.Application
 
             suspensionsHub.OnNewSuspension += async (sender, args) => await SuspensionsHub_OnNewSuspension(sender, args);
             suspensionsHub.OnSuspensionUpdated += async (sender, args) => await SuspensionsHub_SuspensionUpdated(sender, args);
+            this.jSRuntime = jSRuntime;
         }
 
         private async Task SuspensionsHub_SuspensionUpdated(object _, SuspensionUpdatedEventArgs args)
@@ -172,14 +175,21 @@ namespace AntiHarassment.Frontend.Application
 
         public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason = "")
         {
-            var result = await apiGateway.Post<SuspensionModel, MarkSuspensionValidityModel>(
-                new MarkSuspensionValidityModel { Invalidate = invalidate, InvalidationReason = invalidationReason },
-                "suspensions",
-                routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
+            try
+            {
+                var result = await apiGateway.Post<SuspensionModel, MarkSuspensionValidityModel>(
+                    new MarkSuspensionValidityModel { Invalidate = invalidate, InvalidationReason = invalidationReason },
+                    "suspensions",
+                    routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
 
-            CurrentInvalidationReason = "";
+                CurrentInvalidationReason = "";
 
-            UpdateState(result);
+                UpdateState(result);
+            }
+            catch (Exception ex)
+            {
+                await jSRuntime.InvokeVoidAsync("alert", ex.Message);
+            }
         }
 
         public async Task UpdateAudited(Guid suspensionId, bool audited)

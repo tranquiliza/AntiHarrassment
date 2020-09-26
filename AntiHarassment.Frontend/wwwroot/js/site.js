@@ -127,6 +127,10 @@ window.SetTitle = function (title) {
     document.title = title;
 }
 
+window.ShowError = function (errorText) {
+    window.alert("sometext");
+}
+
 $(document).on('click', '#toast-container .toast', function () {
     $(this).fadeOut(function () {
         $(this).remove();

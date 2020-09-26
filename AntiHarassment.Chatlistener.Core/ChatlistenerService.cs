@@ -118,9 +118,9 @@ namespace AntiHarassment.Chatlistener.Core
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
-            var latestBanForUser = suspensionsForUser
+            var previousBansForUser = suspensionsForUser
                 .Where(x => string.Equals(x.ChannelOfOrigin, e.Channel, StringComparison.OrdinalIgnoreCase) && x.SuspensionType == SuspensionType.Ban)
-                .OrderByDescending(x => x.Timestamp).FirstOrDefault();
+                .OrderByDescending(x => x.Timestamp);
 
             var timeOfSuspension = datetimeProvider.UtcNow;
             if (userHasBeenRecentlyBanned())
@@ -133,9 +133,16 @@ namespace AntiHarassment.Chatlistener.Core
 
             if (userHasExistingBan() && chatlogForUser.Count > 0)
             {
-                latestBanForUser.UpdateValidity(true, "Ban is being overwritten with new ban", systemApplicationContext, timeOfSuspension);
-                latestBanForUser.UpdateAuditedState(false, systemApplicationContext, timeOfSuspension);
-                await suspensionRepository.Save(latestBanForUser).ConfigureAwait(false);
+                foreach (var ban in previousBansForUser)
+                {
+                    if (ban.InvalidSuspension)
+                        continue;
+
+                    ban.UpdateValidity(true, "Ban is being overwritten with new ban", systemApplicationContext, timeOfSuspension);
+                    ban.UpdateAuditedState(false, systemApplicationContext, timeOfSuspension);
+                    await suspensionRepository.Save(ban).ConfigureAwait(false);
+                    await messageDispatcher.Publish(new SuspensionUpdatedEvent { ChannelOfOrigin = ban.ChannelOfOrigin, SuspensionId = ban.SuspensionId }).ConfigureAwait(false);
+                }
             }
 
             var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser, isUnconfirmedSource);
@@ -147,10 +154,10 @@ namespace AntiHarassment.Chatlistener.Core
             await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = analysedSuspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
 
             bool userHasBeenRecentlyBanned()
-                => latestBanForUser != null && latestBanForUser.Timestamp.AddSeconds(30) >= timeOfSuspension;
+                => previousBansForUser.Any() && previousBansForUser.OrderByDescending(x => x.Timestamp).First().Timestamp.AddSeconds(30) >= timeOfSuspension;
 
             bool userHasExistingBan()
-                => latestBanForUser != null;
+                => previousBansForUser.Any();
         }
 
         private bool hasBootedUp = false;

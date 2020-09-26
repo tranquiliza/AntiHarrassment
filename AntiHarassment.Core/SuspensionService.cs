@@ -6,6 +6,7 @@ using AntiHarassment.Messaging.NServiceBus;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Core
@@ -106,6 +107,23 @@ namespace AntiHarassment.Core
                 return fetch;
 
             var suspension = fetch.Data;
+
+            if (suspension.SuspensionType == SuspensionType.Ban)
+            {
+                var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(suspension.Username).ConfigureAwait(false);
+                foreach (var ban in suspensionsForUser.Where(x => x.SuspensionType == SuspensionType.Ban
+                && x.Audited
+                && string.Equals(x.ChannelOfOrigin, suspension.ChannelOfOrigin, StringComparison.OrdinalIgnoreCase)).ToList())
+                {
+                    if (ban.Timestamp < suspension.Timestamp && !ban.InvalidSuspension)
+                    {
+                        ban.UpdateValidity(true, "Invalid because a new ban overwrites", context, datetimeProvider.UtcNow);
+                        await suspensionRepository.Save(ban).ConfigureAwait(false);
+                        await PublishSuspensionUpdatedEvent(ban).ConfigureAwait(false);
+                    }
+                }
+            }
+
             suspension.UpdateAuditedState(audited, context, datetimeProvider.UtcNow);
             await suspensionRepository.Save(suspension).ConfigureAwait(false);
 
@@ -135,6 +153,21 @@ namespace AntiHarassment.Core
                 return fetch;
 
             var suspension = fetch.Data;
+
+            if (suspension.SuspensionType == SuspensionType.Ban && !invalidate)
+            {
+                // Check if there are any newer bans that are currently valid. If so, We cannot do this.
+
+                var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(suspension.Username).ConfigureAwait(false);
+                var futureBansForUserInChannel = suspensionsForUser
+                    .Where(x => string.Equals(x.ChannelOfOrigin, suspension.ChannelOfOrigin)
+                                           && x.Audited
+                                           && !x.InvalidSuspension);
+
+                if (futureBansForUserInChannel.Any())
+                    return Result<Suspension>.Failure("Cannot mark a ban valid, when there is an active ban");
+            }
+
             if (!suspension.UpdateValidity(invalidate, invalidationReason, context, datetimeProvider.UtcNow))
                 return Result<Suspension>.Failure("Cannot mark Invalid without a reason");
 
