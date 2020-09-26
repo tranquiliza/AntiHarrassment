@@ -30,6 +30,8 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IDeletedMessagesRepository deletedMessagesRepository;
         private readonly ILogger<ChatlistenerService> logger;
 
+        private readonly IApplicationContext systemApplicationContext;
+
         public ChatlistenerService(
             IChatClient client,
             IPubSubClient pubSubClient,
@@ -56,6 +58,8 @@ namespace AntiHarassment.Chatlistener.Core
             this.deletedMessagesRepository = deletedMessagesRepository;
             this.dataAnalyser = dataAnalyser;
             this.logger = logger;
+
+            systemApplicationContext = new SystemAppContext();
 
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
@@ -97,7 +101,12 @@ namespace AntiHarassment.Chatlistener.Core
             var timeOfSuspension = datetimeProvider.UtcNow;
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, TimeoutChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
             var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
-            var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser, userForChannel == null);
+
+            var isUnconfirmedSource = userForChannel == null;
+
+            var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser, isUnconfirmedSource);
+            if (chatlogForUser.Count == 0)
+                suspension.UpdateValidity(true, "Insufficient Evidence", systemApplicationContext, timeOfSuspension);
 
             var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
             await suspensionRepository.Save(analysedSuspension).ConfigureAwait(false);
@@ -109,22 +118,39 @@ namespace AntiHarassment.Chatlistener.Core
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
 
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
-            var latestForChannel = suspensionsForUser
+            var latestBanForUser = suspensionsForUser
                 .Where(x => string.Equals(x.ChannelOfOrigin, e.Channel, StringComparison.OrdinalIgnoreCase) && x.SuspensionType == SuspensionType.Ban)
                 .OrderByDescending(x => x.Timestamp).FirstOrDefault();
 
             var timeOfSuspension = datetimeProvider.UtcNow;
-            if (latestForChannel != null && latestForChannel.Timestamp.AddSeconds(30) >= timeOfSuspension)
+            if (userHasBeenRecentlyBanned())
                 return;
 
             var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, BanChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
-            var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
 
-            var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser, userForChannel == null);
+            var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
+            var isUnconfirmedSource = userForChannel == null;
+
+            if (userHasExistingBan() && chatlogForUser.Count > 0)
+            {
+                latestBanForUser.UpdateValidity(true, "Ban is being overwritten with new ban", systemApplicationContext, timeOfSuspension);
+                latestBanForUser.UpdateAuditedState(false, systemApplicationContext, timeOfSuspension);
+                await suspensionRepository.Save(latestBanForUser).ConfigureAwait(false);
+            }
+
+            var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser, isUnconfirmedSource);
+            if (chatlogForUser.Count == 0)
+                suspension.UpdateValidity(true, "Insufficient evidence", new SystemAppContext(), timeOfSuspension);
 
             var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
             await suspensionRepository.Save(analysedSuspension).ConfigureAwait(false);
             await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = analysedSuspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
+
+            bool userHasBeenRecentlyBanned()
+                => latestBanForUser != null && latestBanForUser.Timestamp.AddSeconds(30) >= timeOfSuspension;
+
+            bool userHasExistingBan()
+                => latestBanForUser != null;
         }
 
         private bool hasBootedUp = false;

@@ -35,7 +35,7 @@ namespace AntiHarassment.MachineLearning
             this.suspensionRepository = suspensionRepository;
             this.datetimeProvider = datetimeProvider;
             this.logger = logger;
-            this.systemApplicationContext = CreateSystemApplicationContext();
+            this.systemApplicationContext = new SystemAppContext();
             this.modelsStoragePath = Path.Combine(fileStoragePath, "machineModels");
             this.predictionEngineLookup = new Dictionary<Guid, PredictionEngine<SuspensionDataRow, SentimentPrediction>>();
             this.skipTag = new List<Guid>();
@@ -182,23 +182,6 @@ namespace AntiHarassment.MachineLearning
         {
             var tags = await tagRepository.Get().ConfigureAwait(false);
             return tags.Where(x => x.TagId != Guid.Parse("B4FA9D56-BF4B-43CD-9562-791031B6BFA2")).ToList();
-        }
-
-        private IApplicationContext CreateSystemApplicationContext()
-        {
-            return new SystemAppContext();
-        }
-
-        private class SystemAppContext : IApplicationContext
-        {
-            public SystemAppContext()
-            {
-                User = User.CreateSystemUser();
-            }
-
-            public User User { get; }
-
-            public Guid UserId => User.Id;
         }
     }
 }
