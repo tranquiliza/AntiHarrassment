@@ -4,15 +4,16 @@
 
 @if (userService.IsUserLoggedIn)
 {
-    <main>
+    <header>
         <NavMenu />
+        <SideMenu />
+    </header>
 
+    <main>
         <div style="margin-left:32px;">
             @Body
         </div>
-
     </main>
-    <SideMenu />
 }
 else
 {
