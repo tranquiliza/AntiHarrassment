@@ -139,6 +139,8 @@ $(document).on('click', '#toast-container .toast', function () {
 
 var overallChart;
 var tagsChart;
+var systemBansChart;
+var rulesChart;
 
 window.InitializeStatisticsPage = function () {
     var overAllContext = document.getElementById('overallChart').getContext('2d');
@@ -181,11 +183,43 @@ window.InitializeStatisticsPage = function () {
         },
         options: {}
     });
+
+    var systemBansContext = document.getElementById('SystemBansChart').getContext('2d');
+    systemBansChart = new Chart(systemBansContext, {
+        type: 'line',
+
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'System Bans',
+                borderColor: 'rgb(255, 51, 51)',
+                data: []
+            }]
+        },
+
+        options: {}
+    });
+
+    var rulesContext = document.getElementById('chartForRules').getContext('2d');
+    rulesChart = new Chart(rulesContext, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'count',
+                backgroundColor: 'rgb(255, 204, 204)',
+                data: []
+            }]
+        },
+        options: {}
+    });
 }
 
 window.ClearGraph = function () {
     overallChart.destroy();
     tagsChart.destroy();
+    systemBansChart.destroy();
+    rulesChart.destroy();
 
     window.InitializeStatisticsPage();
 }
@@ -204,6 +238,18 @@ window.AddDataToGraph = function (suspensionsPerDay) {
     overallChart.update();
 }
 
+window.AddDataToSystemBansGraph = function (suspensionsPerDay) {
+    suspensionsPerDay.forEach((valuePair) => {
+        let date = Date.parse(valuePair.date);
+        const dateTimeFormat = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'long', day: '2-digit' });
+        const [{ value: month }, , { value: day }, , { value: year }] = dateTimeFormat.formatToParts(date);
+        systemBansChart.data.labels.push(`${day}-${month}-${year}`);
+        systemBansChart.data.datasets[0].data.push(valuePair.count);
+    });
+
+    systemBansChart.update();
+}
+
 window.AddDataToTagsGraph = function (data) {
     data.forEach((TagCountModel) => {
         tagsChart.data.labels.push(TagCountModel.tag.tagName);
@@ -211,6 +257,15 @@ window.AddDataToTagsGraph = function (data) {
     });
 
     tagsChart.update();
+}
+
+window.AddDataToRulesGraph = function (data) {
+    data.forEach((model) => {
+        rulesChart.data.labels.push(model.channelRuleName);
+        rulesChart.data.datasets[0].data.push(model.count);
+    });
+
+    rulesChart.update();
 }
 
 var systemOverallChart;

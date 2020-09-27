@@ -39,8 +39,9 @@ namespace AntiHarassment.Core
             var usersForChannel = await chatRepository.GetUniqueChattersForChannel(channelName).ConfigureAwait(false);
 
             var suspensionsForChannelWithoutSystem = suspensionsForChannel.Where(x => x.SuspensionSource != SuspensionSource.System).ToList();
+            var systemSuspensionsForChannel = suspensionsForChannel.Where(x => x.SuspensionSource == SuspensionSource.System).ToList();
 
-            var channelReport = new ChannelReport(channelName, suspensionsForChannelWithoutSystem, usersForChannel.Count);
+            var channelReport = new ChannelReport(channelName, suspensionsForChannelWithoutSystem, systemSuspensionsForChannel, usersForChannel.Count);
             return Result<ChannelReport>.Succeeded(channelReport);
         }
 

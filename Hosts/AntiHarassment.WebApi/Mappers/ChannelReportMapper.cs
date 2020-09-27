@@ -39,7 +39,19 @@ namespace AntiHarassment.WebApi.Mappers
                 UniqueUsersBan = channelReport.UniqueUsersBan,
                 UniqueUsersSuspensions = channelReport.UniqueUsersSuspensions,
                 UniqueUsersTimeout = channelReport.UniqueUsersTimeout,
+                RuleCounts = channelReport.RulesTriggered.Select(x => new RuleCountModel { ChannelRuleName = x.Key, Count = x.Value }).ToList(),
+                TotalSystemBanCount = channelReport.TotalSystemBans,
+                SystemBansPerDay = GetSystemBanPerDays(channelReport)
             };
+        }
+
+        private static List<SystemBanPerDay> GetSystemBanPerDays(ChannelReport channelReport)
+        {
+            var result = new List<SystemBanPerDay>();
+            foreach (var item in channelReport.SystemBanPerDay)
+                result.Add(new SystemBanPerDay { Date = item.Key, Count = item.Value });
+
+            return result;
         }
 
         private static List<StatsPerDay> GenerateStatsPerDay(ChannelReport channelReport)

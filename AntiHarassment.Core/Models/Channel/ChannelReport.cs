@@ -34,15 +34,45 @@ namespace AntiHarassment.Core.Models
         public int UniqueUsersTimeout { get; private set; }
         public int UniqueUsersBan { get; private set; }
 
-        public ChannelReport(string channelName, List<Suspension> suspensions, int uniqueUserCountForChannel)
+        public int TotalSystemBans { get; set; }
+        public Dictionary<string, int> RulesTriggered { get; private set; } = new Dictionary<string, int>();
+        public Dictionary<DateTime, int> SystemBanPerDay { get; set; } = new Dictionary<DateTime, int>();
+
+        public ChannelReport(string channelName, List<Suspension> suspensions, List<Suspension> systemSuspensions, int uniqueUserCountForChannel)
         {
             ChannelName = channelName;
             Suspensions = suspensions;
+            UniqueUsers = uniqueUserCountForChannel;
 
+            AnalyseSuspensions(suspensions);
+
+            AnalyseSystemSuspensions(systemSuspensions);
+        }
+
+        private void AnalyseSystemSuspensions(List<Suspension> systemSuspensions)
+        {
+            TotalSystemBans = systemSuspensions.Count;
+
+            foreach (var sus in systemSuspensions)
+            {
+                var key = sus.SystemReason.Replace("Automated ban from rule: ", "");
+
+                if (RulesTriggered.ContainsKey(key))
+                    RulesTriggered[key]++;
+                else
+                    RulesTriggered.Add(key, 1);
+            }
+
+            var suspensionsOnDate = new Dictionary<DateTime, List<Suspension>>();
+            foreach (var group in systemSuspensions.GroupBy(x => x.Timestamp.Date))
+                SystemBanPerDay.Add(group.Key, group.Count());
+        }
+
+        private void AnalyseSuspensions(List<Suspension> suspensions)
+        {
             TotalSuspensions = suspensions.Count;
             TotalBans = suspensions.Count(x => x.SuspensionType == SuspensionType.Ban);
             TotalTimeouts = suspensions.Count(x => x.SuspensionType == SuspensionType.Timeout);
-            UniqueUsers = uniqueUserCountForChannel;
 
             UniqueUsersSuspensions = suspensions.DistinctBy(x => x.Username).Count();
             UniqueUsersTimeout = suspensions.DistinctBy(x => x.Username).Count(x => x.SuspensionType == SuspensionType.Timeout);

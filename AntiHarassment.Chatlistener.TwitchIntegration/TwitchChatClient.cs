@@ -126,7 +126,7 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 
         public void BanUser(string username, string channelName, string systemReason)
         {
-            client.BanUser(channelName, username, systemReason);
+            //client.BanUser(channelName, username, systemReason);
         }
 
         private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
