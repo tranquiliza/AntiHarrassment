@@ -18,7 +18,6 @@ namespace AntiHarassment.Core
         Task<IResult<Suspension>> RemoveUserLinkFromSuspension(Guid suspensionId, string twitchUsername, IApplicationContext context);
         Task<IResult<Suspension>> CreateManualSuspension(string username, string channelOfOrigin, IApplicationContext context);
         Task AddImageTo(Guid suspensionId, byte[] imageBytes, string fileExtension, IApplicationContext context);
-        Task<IResult<List<DateTime>>> GetUnauditedDatesFor(string channelOfOrigin, IApplicationContext context);
         Task<IResult<List<Suspension>>> GetAllUnconfirmedSourcesSuspensions(IApplicationContext context);
     }
 }

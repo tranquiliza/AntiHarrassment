@@ -2,6 +2,7 @@
 using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.SignalR.Contract;
 using AntiHarassment.SignalR.Contract.EventArgs;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,8 +43,9 @@ namespace AntiHarassment.Frontend.Application
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
         private readonly SuspensionsHubSignalRClient suspensionsHub;
+        private readonly IJSRuntime jSRuntime;
 
-        public SuspensionService(IApiGateway apiGateway, IUserService userService, SuspensionsHubSignalRClient suspensionsHub)
+        public SuspensionService(IApiGateway apiGateway, IUserService userService, IJSRuntime jSRuntime, SuspensionsHubSignalRClient suspensionsHub)
         {
             this.apiGateway = apiGateway;
             this.userService = userService;
@@ -51,6 +53,7 @@ namespace AntiHarassment.Frontend.Application
 
             suspensionsHub.OnNewSuspension += async (sender, args) => await SuspensionsHub_OnNewSuspension(sender, args);
             suspensionsHub.OnSuspensionUpdated += async (sender, args) => await SuspensionsHub_SuspensionUpdated(sender, args);
+            this.jSRuntime = jSRuntime;
         }
 
         private async Task SuspensionsHub_SuspensionUpdated(object _, SuspensionUpdatedEventArgs args)
@@ -64,14 +67,8 @@ namespace AntiHarassment.Frontend.Application
                 return;
 
             var existingSuspension = Suspensions.Find(x => x.SuspensionId == args.SuspensionId);
-            if (existingSuspension != null)
-                Suspensions.Remove(existingSuspension);
-
-            if (updatedSuspension.Audited)
-                await FetchDaysWithUnauditedSuspensions(CurrentlySelectedChannel).ConfigureAwait(false);
-
-            if (updatedSuspension.Timestamp.ToLocalTime().Date == SelectedDate.Date)
-                Suspensions.Add(updatedSuspension);
+            Suspensions.Remove(existingSuspension);
+            Suspensions.Add(updatedSuspension);
 
             NotifyStateChanged();
         }
@@ -103,28 +100,14 @@ namespace AntiHarassment.Frontend.Application
                 if (Channels.Count > 0)
                 {
                     await FetchSuspensionForChannel(Channels[0].ChannelName).ConfigureAwait(false);
-                    await FetchDaysWithUnauditedSuspensions(Channels[0].ChannelName).ConfigureAwait(false);
                     await FetchSeenUsersForChannel(Channels[0].ChannelName).ConfigureAwait(false);
                 }
             }
             else
             {
                 await FetchSuspensionForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
-                await FetchDaysWithUnauditedSuspensions(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
                 await FetchSeenUsersForChannel(userService.CurrentUserTwitchUsername).ConfigureAwait(false);
             }
-        }
-
-        public async Task FetchDaysWithUnauditedSuspensions(string channelName)
-        {
-            DatesWithUnauditedSuspensions = null;
-
-            var result = await apiGateway.Get<List<DateTime>>("suspensions", routeValues: new string[] { channelName, "unauditedDates" }).ConfigureAwait(false);
-
-            DatesWithUnauditedSuspensions = result ?? new List<DateTime>();
-
-            if (DatesWithUnauditedSuspensions.Count > 0)
-                NotifyStateChanged();
         }
 
         public void SetCurrentlySelectedSuspensionForImages(SuspensionModel suspension)
@@ -172,14 +155,21 @@ namespace AntiHarassment.Frontend.Application
 
         public async Task UpdateSuspensionValidity(Guid suspensionId, bool invalidate, string invalidationReason = "")
         {
-            var result = await apiGateway.Post<SuspensionModel, MarkSuspensionValidityModel>(
-                new MarkSuspensionValidityModel { Invalidate = invalidate, InvalidationReason = invalidationReason },
-                "suspensions",
-                routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
+            try
+            {
+                var result = await apiGateway.Post<SuspensionModel, MarkSuspensionValidityModel>(
+                    new MarkSuspensionValidityModel { Invalidate = invalidate, InvalidationReason = invalidationReason },
+                    "suspensions",
+                    routeValues: new string[] { suspensionId.ToString(), "validity" }).ConfigureAwait(false);
 
-            CurrentInvalidationReason = "";
+                CurrentInvalidationReason = "";
 
-            UpdateState(result);
+                UpdateState(result);
+            }
+            catch (Exception ex)
+            {
+                await jSRuntime.InvokeVoidAsync("alert", ex.Message);
+            }
         }
 
         public async Task UpdateAudited(Guid suspensionId, bool audited)
@@ -233,9 +223,7 @@ namespace AntiHarassment.Frontend.Application
 
             var existingValue = Suspensions.Find(x => x.SuspensionId == model.SuspensionId);
             Suspensions.Remove(existingValue);
-
-            if (model.Timestamp.Date.ToLocalTime().Date == SelectedDate.Date)
-                Suspensions.Add(model);
+            Suspensions.Add(model);
 
             NotifyStateChanged();
         }

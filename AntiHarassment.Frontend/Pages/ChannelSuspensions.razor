@@ -47,7 +47,7 @@ else
 }
 else
 {
-    @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.DatesWithUnauditedSuspensions.Count(x => x != suspensionService.SelectedDate) > 0)
+    @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.Suspensions.Where(x => !x.Audited && x.LocalTimeStamp().Date != suspensionService.SelectedDate.Date).Count() > 0)
     {
         <div class="row">
             <div class="col s12">
@@ -55,10 +55,14 @@ else
                     <div class="card-content">
                         <span class="card-title"><b>UNAUDITED SUSPENSIONS DETECTED</b></span>
                         <div class="collection with-header">
-                            @foreach (var date in suspensionService.DatesWithUnauditedSuspensions.Where(x => x != suspensionService.SelectedDate))
+                            @foreach (var unaudited in suspensionService.Suspensions
+                             .Where(x => !x.Audited && x.LocalTimeStamp().Date != suspensionService.SelectedDate.Date)
+                             .GroupBy(x => x.LocalTimeStamp().Date)
+                             .Select(key => key.Key)
+                             .ToList())
                             {
-                                <a @onclick="_ => SetDate(date.ToLocalTime().Date)" class="hand-pointer collection-item">
-                                    @date.Date.ToLocalTime().ShortFancyFormat()
+                                <a @onclick="() => SetDate(unaudited.Date)" class="hand-pointer collection-item">
+                                    @unaudited.Date.ShortFancyFormat()
                                 </a>
                             }
                         </div>
@@ -279,7 +283,6 @@ else
         suspensionService.SelectedDate = DateTime.Now.Date;
         await suspensionService.FetchSuspensionForChannel(channelName);
         await suspensionService.FetchSeenUsersForChannel(channelName);
-        await suspensionService.FetchDaysWithUnauditedSuspensions(channelName);
     }
 
     private async Task CloseLinkUserModal()

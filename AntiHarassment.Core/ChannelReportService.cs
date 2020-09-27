@@ -32,7 +32,7 @@ namespace AntiHarassment.Core
             if (!context.HaveAccessTo(channel))
                 return Result<ChannelReport>.Unauthorized();
 
-            var suspensionsForChannel = await suspensionRepository.GetAuditedSuspensionsForChannel(channelName, datetimeProvider.UtcNow.AddDays(-30)).ConfigureAwait(false);
+            var suspensionsForChannel = await suspensionRepository.GetAuditedSuspensionsForChannel(channelName, datetimeProvider.UtcNow.AddYears(-1)).ConfigureAwait(false);
             if (suspensionsForChannel.Count == 0)
                 return Result<ChannelReport>.NoContentFound();
 
