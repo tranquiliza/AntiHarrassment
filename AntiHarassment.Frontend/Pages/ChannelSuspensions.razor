@@ -47,7 +47,7 @@ else
 }
 else
 {
-    @if (suspensionService.DatesWithUnauditedSuspensions != null && suspensionService.Suspensions.Where(x => !x.Audited && x.LocalTimeStamp().Date != suspensionService.SelectedDate.Date).Count() > 0)
+    @if (suspensionService.Suspensions.Where(x => !x.Audited && x.LocalTimeStamp().Date != suspensionService.SelectedDate.Date).Count() > 0)
     {
         <div class="row">
             <div class="col s12">

@@ -37,7 +37,6 @@ namespace AntiHarassment.Frontend.Application
         public string CurrentlySelectedChannel { get; private set; }
         public List<SuspensionModel> Suspensions { get; private set; }
         public SuspensionModel CurrentlySelectedSuspensionForImages { get; private set; }
-        public List<DateTime> DatesWithUnauditedSuspensions { get; set; }
         public DateTime SelectedDate { get; set; } = DateTime.Now;
 
         private readonly IApiGateway apiGateway;
