@@ -270,5 +270,16 @@ namespace AntiHarassment.Core
 
             await PublishSuspensionUpdatedEvent(suspension).ConfigureAwait(false);
         }
+
+        public async Task<IResult<List<Suspension>>> GetAllSuspensionsAnonymised()
+        {
+            var suspensions = await suspensionRepository.GetSuspensions(datetimeProvider.UtcNow.AddYears(-1)).ConfigureAwait(false);
+            if (suspensions.Count == 0)
+                return Result<List<Suspension>>.NoContentFound();
+
+            var auditedAndValidSuspensions = suspensions.Where(x => x.Audited && !x.InvalidSuspension).ToList();
+
+            return Result<List<Suspension>>.Succeeded(auditedAndValidSuspensions);
+        }
     }
 }

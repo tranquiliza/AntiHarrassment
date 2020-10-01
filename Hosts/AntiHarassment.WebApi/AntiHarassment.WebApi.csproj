@@ -18,6 +18,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\AntiHarassment.Contract.Public\AntiHarassment.Contract.Public.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Contract\AntiHarassment.Contract.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.Core\AntiHarassment.Core.csproj" />
     <ProjectReference Include="..\..\AntiHarassment.FileSystem\AntiHarassment.FileSystem.csproj" />

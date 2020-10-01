@@ -19,5 +19,6 @@ namespace AntiHarassment.Core
         Task<IResult<Suspension>> CreateManualSuspension(string username, string channelOfOrigin, IApplicationContext context);
         Task AddImageTo(Guid suspensionId, byte[] imageBytes, string fileExtension, IApplicationContext context);
         Task<IResult<List<Suspension>>> GetAllUnconfirmedSourcesSuspensions(IApplicationContext context);
+        Task<IResult<List<Suspension>>> GetAllSuspensionsAnonymised();
     }
 }
