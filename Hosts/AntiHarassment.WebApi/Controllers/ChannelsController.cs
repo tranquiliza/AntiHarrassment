@@ -63,6 +63,35 @@ namespace AntiHarassment.WebApi.Controllers
             return NoContent();
         }
 
+        [HttpGet("locked")]
+        public async Task<IActionResult> GetLockedChannels()
+        {
+            var result = await channelService.GetLockedChannels(ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map());
+
+            return NoContent();
+        }
+
+        [HttpPost("{channelName}/lock")]
+        public async Task<IActionResult> UpdateChannelLock([FromRoute] string channelName, [FromBody] UpdateChannelLockModel model)
+        {
+            var result = await channelService.UpdateChannelLock(channelName, model.ShouldLock, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.Success)
+                return Ok();
+
+            return NoContent();
+        }
+
         [HttpGet("{channelName}/chatlogs")]
         public async Task<IActionResult> GetChatLogForChannel([FromRoute] string channelName, [FromQuery] DateTime earliestTime, [FromQuery] DateTime latestTime)
         {

@@ -1,5 +1,6 @@
 ﻿using AntiHarassment.Frontend.Application;
 using Microsoft.Extensions.Configuration;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,12 +17,14 @@ namespace AntiHarassment.Frontend.Infrastructure
         private readonly string apiBaseAddress;
         private readonly HttpClient httpClient;
         private readonly IApplicationStateManager applicationStateManager;
+        private readonly IJSRuntime jSRuntime;
 
-        public ApiGateway(string apiBaseAddress, IApplicationStateManager applicationStateManager, HttpClient httpClient)
+        public ApiGateway(string apiBaseAddress, IApplicationStateManager applicationStateManager, HttpClient httpClient, IJSRuntime jSRuntime)
         {
             this.apiBaseAddress = apiBaseAddress;
             this.httpClient = httpClient;
             this.applicationStateManager = applicationStateManager;
+            this.jSRuntime = jSRuntime;
         }
 
         public async Task<ResponseModel> Get<ResponseModel>(string controller, string action = null, string[] routeValues = null, params QueryParam[] queryParams)
@@ -110,6 +113,13 @@ namespace AntiHarassment.Frontend.Infrastructure
             if (!response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                if (content.Contains("User has been locked"))
+                {
+                    await jSRuntime.InvokeVoidAsync("alert", "Your account has been locked. Please log out.");
+                    return default;
+                }
+
                 throw new Exception(content);
             }
 

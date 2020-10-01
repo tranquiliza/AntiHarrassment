@@ -48,6 +48,9 @@ namespace AntiHarassment.Core
             if (!user.EmailConfirmed)
                 return Result<User>.Failure("Account registration has not been confirmed");
 
+            if (user.IsLocked)
+                return Result<User>.Failure("Your account has been locked");
+
             return Result<User>.Succeeded(user);
         }
 
@@ -64,6 +67,9 @@ namespace AntiHarassment.Core
                 user.UpdateEmail(tokenResult.Email);
 
             await userRepository.Save(user).ConfigureAwait(false);
+
+            if (user.IsLocked)
+                return Result<User>.Failure("Your account has been locked");
 
             return Result<User>.Succeeded(user);
         }

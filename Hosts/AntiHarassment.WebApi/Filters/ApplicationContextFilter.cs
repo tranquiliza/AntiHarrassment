@@ -1,5 +1,6 @@
 ﻿using AntiHarassment.Core;
 using AntiHarassment.WebApi.Controllers;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -24,6 +25,12 @@ namespace AntiHarassment.WebApi.Filters
                 controller.CurrentUrl = $"{context.HttpContext.Request.Scheme}://{context.HttpContext.Request.Host}{context.HttpContext.Request.PathBase}";
 
                 var user = await userRepository.GetById(userId).ConfigureAwait(false);
+                if (user.IsLocked)
+                {
+                    context.Result = new BadRequestObjectResult("User has been locked");
+                    return;
+                }
+
                 controller.ApplicationContext = ApplicationContext.Create(user);
             }
 

@@ -5,7 +5,6 @@ using AntiHarassment.SignalR.Contract.EventArgs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Authentication.ExtendedProtection;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Frontend.Application
@@ -15,6 +14,8 @@ namespace AntiHarassment.Frontend.Application
         public List<ChannelModel> Channels { get; private set; }
 
         public List<ChannelModel> ChannelsWithoutUser { get; private set; }
+
+        public List<ChannelModel> LockedChannels { get; private set; }
 
         private readonly IApiGateway apiGateway;
         private readonly IUserService userService;
@@ -145,14 +146,23 @@ namespace AntiHarassment.Frontend.Application
         {
             Channels = null;
             ChannelsWithoutUser = null;
+            LockedChannels = null;
 
             Channels = await apiGateway.Get<List<ChannelModel>>("Channels").ConfigureAwait(false);
             ChannelsWithoutUser = await apiGateway.Get<List<ChannelModel>>("Channels", routeValues: new string[] { "noUser" }).ConfigureAwait(false);
+            LockedChannels = await apiGateway.Get<List<ChannelModel>>("Channels", routeValues: new string[] { "locked" }).ConfigureAwait(false);
         }
 
         public async Task UpdateChannel(ChannelModel channelModel)
         {
             await apiGateway.Post(channelModel, "Channels").ConfigureAwait(false);
+        }
+
+        public async Task UpdateChannelLock(string channelName, bool shouldLock)
+        {
+            await apiGateway.Post(new UpdateChannelLockModel { ShouldLock = shouldLock }, "Channels", routeValues: new string[] { channelName, "lock" }).ConfigureAwait(false);
+
+            await FetchChannels().ConfigureAwait(false);
         }
     }
 }

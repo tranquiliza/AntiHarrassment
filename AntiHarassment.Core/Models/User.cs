@@ -21,6 +21,9 @@ namespace AntiHarassment.Core.Models
         public string Email { get; private set; }
 
         [JsonProperty]
+        public bool IsLocked { get; set; }
+
+        [JsonProperty]
         public byte[] PasswordHash { get; private set; }
 
         [JsonProperty]
@@ -114,6 +117,16 @@ namespace AntiHarassment.Core.Models
         internal void UpdateEmail(string newEmail)
         {
             Email = newEmail;
+        }
+
+        internal void LockUser()
+        {
+            IsLocked = true;
+        }
+
+        internal void UnlockUser()
+        {
+            IsLocked = false;
         }
 
         internal static User CreateNewUser(string email, string twitchUsername, byte[] passwordHash, byte[] passwordSalt) => new User(email, twitchUsername, passwordHash, passwordSalt);

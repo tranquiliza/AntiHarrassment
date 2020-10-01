@@ -100,7 +100,7 @@ namespace AntiHarassment.Core
             if (context.User.HasRole(Roles.Admin))
             {
                 var users = await userRepository.GetUsers().ConfigureAwait(false);
-                var filtered = query.Where(y => users.Any(x => string.Equals(x.TwitchUsername, y.ChannelName, StringComparison.OrdinalIgnoreCase))).ToList();
+                var filtered = query.Where(y => users.Any(x => string.Equals(x.TwitchUsername, y.ChannelName, StringComparison.OrdinalIgnoreCase) && !x.IsLocked)).ToList();
 
                 return Result<List<Channel>>.Succeeded(filtered);
             }
@@ -112,6 +112,20 @@ namespace AntiHarassment.Core
                 return Result<List<Channel>>.NoContentFound();
 
             return Result<List<Channel>>.Succeeded(result);
+        }
+
+        public async Task<IResult<List<Channel>>> GetLockedChannels(IApplicationContext context)
+        {
+            var query = await channelRepository.GetChannels().ConfigureAwait(false);
+            if (context.User.HasRole(Roles.Admin))
+            {
+                var users = await userRepository.GetUsers().ConfigureAwait(false);
+                var filtered = query.Where(y => users.Any(x => string.Equals(x.TwitchUsername, y.ChannelName, StringComparison.OrdinalIgnoreCase) && x.IsLocked)).ToList();
+
+                return Result<List<Channel>>.Succeeded(filtered);
+            }
+
+            return Result<List<Channel>>.Unauthorized();
         }
 
         public async Task UpdateChannelListenerState(string channelName, bool shouldListen, IApplicationContext context)
@@ -250,6 +264,25 @@ namespace AntiHarassment.Core
 
             var command = new RuleExceedCheckCommand { ChannelOfOrigin = channelName, TwitchUsername = twitchUsername };
             await messageDispatcher.Send(command).ConfigureAwait(false);
+        }
+
+        public async Task<IResult> UpdateChannelLock(string channelName, bool shouldLock, IApplicationContext context)
+        {
+            if (!context.User.HasRole(Roles.Admin))
+                return Result.Unauthorized();
+
+            var userForChannel = await userRepository.GetByTwitchUsername(channelName).ConfigureAwait(false);
+            if (userForChannel == null)
+                return Result.Failure("User doesn't exist for this channel");
+
+            if (shouldLock)
+                userForChannel.LockUser(); // Logout the user.
+            else
+                userForChannel.UnlockUser();
+
+            await userRepository.Save(userForChannel).ConfigureAwait(false);
+
+            return Result.Succeeded;
         }
     }
 }
