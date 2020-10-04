@@ -17,7 +17,7 @@ namespace AntiHarassment.WebApi.Controllers
     [Route("[controller]")]
     [ApiController]
     [Authorize]
-    public class UsersController : ControllerBase
+    public class UsersController : ContextController
     {
         private readonly IUserService userService;
         private readonly IApplicationConfiguration applicationConfiguration;
@@ -77,6 +77,42 @@ namespace AntiHarassment.WebApi.Controllers
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUser([FromRoute] Guid userId)
+        {
+            var result = await userService.Get(userId, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.NoContent)
+                return BadRequest("No user with this Id?");
+
+            return Ok(result.Data.Map());
+        }
+
+        [HttpPost("{userId}/discord")]
+        public async Task<IActionResult> EnableDiscordNotifications([FromRoute] Guid userId, [FromBody] EnableDiscordForUserModel model)
+        {
+            var result = await userService.EnableDiscordForUser(userId, model.DiscordUserId, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            return Ok();
+        }
+
+        [HttpDelete("{userId}/discord")]
+        public async Task<IActionResult> DeleteDiscordNotifications([FromRoute] Guid userId)
+        {
+            var result = await userService.DisableDiscordForUser(userId, ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            return Ok();
         }
 
         [HttpPost]

@@ -1,7 +1,6 @@
 ﻿using AntiHarassment.Chatlistener.Core;
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.Events;
-using Microsoft.Extensions.Logging;
 using NServiceBus;
 using System.Threading.Tasks;
 
