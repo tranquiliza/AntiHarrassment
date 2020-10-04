@@ -4,6 +4,7 @@
     {
         None = 0,
         Ban = 1,
-        NotifyWebsite = 2
+        NotifyWebsite = 2,
+        NotifyDiscord = 3
     }
 }

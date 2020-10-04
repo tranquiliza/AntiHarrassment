@@ -19,13 +19,29 @@ namespace AntiHarassment.Frontend.Application
             public List<string> Roles { get; private set; }
             public DateTime TokenExpires { get; private set; }
             public string TwitchUsername { get; private set; }
+            public bool HasDiscordNotificationsEnabled { get; private set; }
+            public ulong DiscordUserId { get; private set; }
 
-            public UserInformation(Guid id, List<string> roles, DateTime tokenExpires, string twitchUsername)
+            public UserInformation(Guid id, List<string> roles, DateTime tokenExpires, string twitchUsername, bool hasDiscordNotificationsEnabled, ulong discordUserId)
             {
                 Id = id;
                 Roles = roles;
                 TokenExpires = tokenExpires;
                 TwitchUsername = twitchUsername;
+                HasDiscordNotificationsEnabled = hasDiscordNotificationsEnabled;
+                DiscordUserId = discordUserId;
+            }
+
+            internal void EnableDiscord(ulong discordUserId)
+            {
+                HasDiscordNotificationsEnabled = true;
+                DiscordUserId = discordUserId;
+            }
+
+            internal void DisableDiscord()
+            {
+                DiscordUserId = 0;
+                HasDiscordNotificationsEnabled = false;
             }
         }
 
@@ -58,6 +74,7 @@ namespace AntiHarassment.Frontend.Application
         }
 
         public bool IsUserAdmin => User?.Roles.Any(role => string.Equals("ADMIN", role, StringComparison.Ordinal)) == true;
+        public bool HasDiscordNotificationsEnabled => User?.HasDiscordNotificationsEnabled == true;
         public string CurrentUserTwitchUsername => User?.TwitchUsername;
 
         public UserService(
@@ -97,6 +114,24 @@ namespace AntiHarassment.Frontend.Application
             }
         }
 
+        public async Task EnableDiscordNotifications(ulong discordUserId)
+        {
+            if (User == null)
+                return;
+
+            await apiGateway.Post(new EnableDiscordForUserModel { DiscordUserId = discordUserId }, "Users", routeValues: new string[] { User.Id.ToString(), "discord" }).ConfigureAwait(false);
+            User.EnableDiscord(discordUserId);
+        }
+
+        public async Task DisableDiscordNotifications()
+        {
+            if (User == null)
+                return;
+
+            await apiGateway.Delete("Users", routeValues: new string[] { User.Id.ToString(), "discord" }).ConfigureAwait(false);
+            User.DisableDiscord();
+        }
+
         private async Task<UserInformation> CreateUserFromJwtToken(string jwtToken)
         {
             if (string.IsNullOrEmpty(jwtToken))
@@ -117,7 +152,9 @@ namespace AntiHarassment.Frontend.Application
 
             var roles = jwt.Claims.Where(x => x.Type == "role").Select(x => x.Value).ToList();
 
-            return new UserInformation(userId, roles, expires, twitchUsername?.Value);
+            var userInformation = await apiGateway.Get<UserModel>("Users", routeValues: new string[] { userId.ToString() }).ConfigureAwait(false);
+
+            return new UserInformation(userId, roles, expires, twitchUsername?.Value, userInformation.HasDiscordNotificationsEnabled, userInformation.DiscordUserId);
         }
 
         public string LoginError { get; private set; }

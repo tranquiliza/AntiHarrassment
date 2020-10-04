@@ -2,6 +2,7 @@
 using AntiHarassment.Chatlistener.TwitchIntegration;
 using AntiHarassment.Core;
 using AntiHarassment.Core.Repositories;
+using AntiHarassment.DiscordIntegration;
 using AntiHarassment.MachineLearning;
 using AntiHarassment.Sql;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,10 @@ namespace AntiHarassment.Chatlistener
                 var secret = context.Configuration["Twitch:Secret"];
                 var fileStoragePath = context.Configuration["ApplicationSettings:FileStoragePath"];
 
+                var discordToken = context.Configuration["Discord:AuthToken"];
+                var discordServerId = ulong.Parse(context.Configuration["Discord:PrometheusServerId"]);
+                var discordChannelId = ulong.Parse(context.Configuration["Discord:StatusChannelId"]);
+
                 var chatClientSettings = new TwitchClientSettings(twitchUsername, twitchBotOAuth, clientId, secret);
 
                 services.AddSingleton(chatClientSettings);
@@ -41,6 +46,10 @@ namespace AntiHarassment.Chatlistener
                 services.AddSingleton<IChatterRepository, ChatterRepository>(x => new ChatterRepository(connectionString, x.GetRequiredService<ILogger<ChatterRepository>>()));
                 services.AddSingleton<IDeletedMessagesRepository, DeletedMessagesRepository>(x => new DeletedMessagesRepository(connectionString, x.GetRequiredService<ILogger<DeletedMessagesRepository>>()));
                 services.AddSingleton<IDataAnalyser, DataAnalyser>(x => new DataAnalyser(fileStoragePath, x.GetRequiredService<ITagRepository>(), x.GetRequiredService<ISuspensionRepository>(), x.GetRequiredService<IDatetimeProvider>(), x.GetRequiredService<ILogger<DataAnalyser>>()));
+
+                services.AddSingleton<IDiscordMessageClient, DiscordMessageClient>();
+                services.AddSingleton<IDiscordClientSettings>(new DiscordClientSettings(discordToken, discordServerId, discordChannelId));
+                services.AddSingleton<IDiscordNotificationService, DiscordNotificationService>();
 
                 services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
             });

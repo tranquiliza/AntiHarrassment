@@ -14,7 +14,9 @@ namespace AntiHarassment.WebApi.Mappers
             {
                 Email = user.Email,
                 Username = user.TwitchUsername,
-                Id = user.Id
+                Id = user.Id,
+                DiscordUserId = user.DiscordUserId,
+                HasDiscordNotificationsEnabled = user.DiscordEnabled
             };
         }
 
@@ -28,7 +30,9 @@ namespace AntiHarassment.WebApi.Mappers
                 Id = user.Id,
                 Username = user.TwitchUsername,
                 Email = user.Email,
-                Token = token
+                Token = token,
+                DiscordUserId = user.DiscordUserId,
+                HasEnabledDiscordNotifications = user.DiscordEnabled
             };
         }
     }

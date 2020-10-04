@@ -7,5 +7,7 @@ namespace AntiHarassment.Contract
         public Guid Id { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
+        public ulong DiscordUserId { get; set; }
+        public bool HasDiscordNotificationsEnabled { get; set; }
     }
 }

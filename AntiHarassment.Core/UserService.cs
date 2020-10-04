@@ -1,4 +1,5 @@
 ﻿using AntiHarassment.Core.Models;
+using AntiHarassment.Core.Security;
 using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.NServiceBus;
 using System;
@@ -169,6 +170,33 @@ namespace AntiHarassment.Core
             return Result.Succeeded;
         }
 
+        public async Task<IResult> EnableDiscordForUser(Guid userId, ulong discordUserId, IApplicationContext context)
+        {
+            var user = await userRepository.GetById(userId).ConfigureAwait(false);
+            if (!string.Equals(user.TwitchUsername, context.User?.TwitchUsername, StringComparison.OrdinalIgnoreCase) && !context.User.HasRole(Roles.Admin))
+                return Result.Unauthorized();
+
+            if (!user.TryEnableDiscordNotifications(discordUserId))
+                return Result.Failure("Discord Id is not valid. Cannot be 0");
+
+            await userRepository.Save(user).ConfigureAwait(false);
+
+            return Result.Succeeded;
+        }
+
+        public async Task<IResult> DisableDiscordForUser(Guid userId, IApplicationContext context)
+        {
+            var user = await userRepository.GetById(userId).ConfigureAwait(false);
+            if (!string.Equals(user.TwitchUsername, context.User?.TwitchUsername, StringComparison.OrdinalIgnoreCase) && !context.User.HasRole(Roles.Admin))
+                return Result.Unauthorized();
+
+            user.DisableDiscordNotifications();
+            
+            await userRepository.Save(user).ConfigureAwait(false);
+
+            return Result.Succeeded;
+        }
+
         private bool PasswordIsValid(string password, out string failureReason)
         {
             if (string.IsNullOrEmpty(password))
@@ -207,6 +235,15 @@ namespace AntiHarassment.Core
 
             failureReason = string.Empty;
             return true;
+        }
+
+        public async Task<IResult<User>> Get(Guid userId, IApplicationContext context)
+        {
+            var user = await userRepository.GetById(userId).ConfigureAwait(false);
+            if (!string.Equals(user.TwitchUsername, context.User?.TwitchUsername, StringComparison.OrdinalIgnoreCase) && !context.User.HasRole(Roles.Admin))
+                return Result<User>.Unauthorized();
+
+            return Result<User>.Succeeded(user);
         }
     }
 }
