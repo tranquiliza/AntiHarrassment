@@ -12,6 +12,7 @@ using AntiHarassment.Frontend.Application;
 using AntiHarassment.SignalR.Contract;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.JSInterop;
+using System.ComponentModel;
 
 namespace AntiHarassment.Frontend
 {
@@ -33,6 +34,7 @@ namespace AntiHarassment.Frontend
             // Line because optimazation is eating everything?
             _ = new JwtHeader();
             _ = new JwtPayload();
+            _ = new UInt64Converter();
 
 #if DEBUG
             const string apiUrl = "https://localhost:44329/";
