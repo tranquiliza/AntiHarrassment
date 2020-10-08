@@ -50,6 +50,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Contract.Pub
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.DiscordIntegration", "AntiHarassment.DiscordIntegration\AntiHarassment.DiscordIntegration.csproj", "{C6E8405D-30DB-4759-824E-A9EB0B4ED8FF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{2D47F536-295A-4D48-85FE-D6301422F83B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntiHarassment.BotBanTool", "Tools\AntiHarassment.BotBanTool\AntiHarassment.BotBanTool.csproj", "{35C5BFF6-94A8-4E87-B739-3EED32ABFA23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -130,6 +134,10 @@ Global
 		{C6E8405D-30DB-4759-824E-A9EB0B4ED8FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6E8405D-30DB-4759-824E-A9EB0B4ED8FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6E8405D-30DB-4759-824E-A9EB0B4ED8FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35C5BFF6-94A8-4E87-B739-3EED32ABFA23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35C5BFF6-94A8-4E87-B739-3EED32ABFA23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35C5BFF6-94A8-4E87-B739-3EED32ABFA23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35C5BFF6-94A8-4E87-B739-3EED32ABFA23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -141,6 +149,7 @@ Global
 		{1B8A0946-0D7B-4DCF-8093-57C589F99964} = {0E865BE6-7C27-4C2F-B9C0-CF6BA69EA6D3}
 		{55A705BB-BB71-4393-AB2B-FDC5A45ECB5F} = {0E865BE6-7C27-4C2F-B9C0-CF6BA69EA6D3}
 		{1B575109-A6CA-45A5-8981-98E4EB6CE72E} = {28B6ED2D-900B-4DF9-AA6E-CE110064645E}
+		{35C5BFF6-94A8-4E87-B739-3EED32ABFA23} = {2D47F536-295A-4D48-85FE-D6301422F83B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DF00D685-7AA8-4140-A4BD-9BAA935732F2}

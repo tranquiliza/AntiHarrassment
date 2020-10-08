@@ -23,8 +23,6 @@ namespace AntiHarassment.Chatlistener.Handlers
 
         public async Task Handle(CheckDataFeedCommand message, IMessageHandlerContext context)
         {
-            await discordMessageClient.SendMessageToPrometheus("Running health check on the datafeed").ConfigureAwait(false);
-
             if (await chatlistenerService.CheckConnectionAndRestartIfNeeded().ConfigureAwait(false))
             {
                 const string logMessage = "Connection problems had been detected, connection has been attempted reset";

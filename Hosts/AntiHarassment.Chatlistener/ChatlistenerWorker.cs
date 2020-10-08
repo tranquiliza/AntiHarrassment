@@ -26,8 +26,10 @@ namespace AntiHarassment.Chatlistener
 
             await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
+            var environment = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")) ? "Production" : Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+
             await discordMessageClient.SendMessageToPrometheus("Chatlisterner started, Discord Client Started").ConfigureAwait(false);
-            await discordMessageClient.SendMessageToPrometheus(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") + " environment ready to go!").ConfigureAwait(false);
+            await discordMessageClient.SendMessageToPrometheus($"{environment} environment ready to go!").ConfigureAwait(false);
         }
 
         public async override Task StopAsync(CancellationToken cancellationToken)
