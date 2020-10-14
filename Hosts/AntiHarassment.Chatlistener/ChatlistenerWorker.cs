@@ -24,6 +24,11 @@ namespace AntiHarassment.Chatlistener
 
             await discordMessageClient.Initialize().ConfigureAwait(false);
 
+            await NotifiyPrometheusSystemStartup().ConfigureAwait(false);
+        }
+
+        private async Task NotifiyPrometheusSystemStartup()
+        {
             await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
             var environment = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")) ? "Production" : Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
