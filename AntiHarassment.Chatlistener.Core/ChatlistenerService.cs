@@ -27,7 +27,8 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IServiceProvider serviceProvider;
         private readonly IChatterRepository chatterRepository;
         private readonly IUserRepository userRepository;
-        private readonly IDeletedMessagesRepository deletedMessagesRepository;
+        private readonly IChatlogService chatlogService;
+        private readonly IDataAnalyser dataAnalyser;
         private readonly ILogger<ChatlistenerService> logger;
 
         private readonly IApplicationContext systemApplicationContext;
@@ -42,8 +43,8 @@ namespace AntiHarassment.Chatlistener.Core
             IServiceProvider serviceProvider,
             IChatterRepository chatterRepository,
             IUserRepository userRepository,
-            IDeletedMessagesRepository deletedMessagesRepository,
             IDataAnalyser dataAnalyser,
+            IChatlogService chatlogService,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
@@ -55,24 +56,15 @@ namespace AntiHarassment.Chatlistener.Core
             this.serviceProvider = serviceProvider;
             this.chatterRepository = chatterRepository;
             this.userRepository = userRepository;
-            this.deletedMessagesRepository = deletedMessagesRepository;
             this.dataAnalyser = dataAnalyser;
             this.logger = logger;
+            this.chatlogService = chatlogService;
 
             systemApplicationContext = new SystemAppContext();
 
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
-
-            client.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
-            pubSubClient.OnMessageReceived += async (sender, eventArgs) => await OnMessageReceived(sender, eventArgs).ConfigureAwait(false);
-            pubSubClient.OnMessageDeleted += async (sender, eventArgs) => await OnMessageDeleted(sender, eventArgs).ConfigureAwait(false);
-        }
-
-        private async Task OnMessageDeleted(object _, MessageDeletedEvent e)
-        {
-            await deletedMessagesRepository.Insert(e.Channel, e.Username, e.DeletedBy, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserJoined(object _, UserJoinedEvent e)
@@ -84,11 +76,6 @@ namespace AntiHarassment.Chatlistener.Core
             await chatterRepository.UpsertChatter(e.Username, datetimeProvider.UtcNow).ConfigureAwait(false);
             await messageDispatcher.Publish(userEnteredChannelEvent).ConfigureAwait(false);
             await messageDispatcher.SendLocal(checkBanRulesCommand).ConfigureAwait(false);
-        }
-
-        private async Task OnMessageReceived(object _, MessageReceivedEvent e)
-        {
-            await chatRepository.SaveChatMessage(e.DisplayName, e.Channel, e.AutoModded, e.Message, datetimeProvider.UtcNow).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserTimedout(object _, UserTimedoutEvent e)
@@ -161,7 +148,6 @@ namespace AntiHarassment.Chatlistener.Core
         }
 
         private bool hasBootedUp = false;
-        private readonly IDataAnalyser dataAnalyser;
 
         public async Task<bool> CheckConnectionAndRestartIfNeeded()
         {

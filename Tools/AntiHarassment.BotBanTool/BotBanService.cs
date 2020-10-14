@@ -29,6 +29,10 @@ namespace AntiHarassment.BotBanTool
             var chatMessage = new ChatMessage(
                 utcNow,
                 "",
+                "",
+                "",
+                "",
+                false,
                 false);
 
             var fakedChatMessages = new List<ChatMessage> { chatMessage };

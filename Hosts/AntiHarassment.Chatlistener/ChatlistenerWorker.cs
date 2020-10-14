@@ -11,15 +11,22 @@ namespace AntiHarassment.Chatlistener
     {
         private readonly IChatlistenerService chatlistenerService;
         private readonly IDiscordMessageClient discordMessageClient;
+        private readonly ICompositeChatClient compositeChatClient;
 
-        public ChatlistenerWorker(IChatlistenerService chatlistenerService, IDiscordMessageClient discordMessageClient)
+        public ChatlistenerWorker(
+            IChatlistenerService chatlistenerService,
+            IDiscordMessageClient discordMessageClient,
+            ICompositeChatClient compositeChatClient)
         {
             this.chatlistenerService = chatlistenerService;
             this.discordMessageClient = discordMessageClient;
+            this.compositeChatClient = compositeChatClient;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            compositeChatClient.SubscribeToEvents();
+
             await chatlistenerService.ConnectAndJoinChannels().ConfigureAwait(false);
 
             await discordMessageClient.Initialize().ConfigureAwait(false);
@@ -39,6 +46,8 @@ namespace AntiHarassment.Chatlistener
 
         public async override Task StopAsync(CancellationToken cancellationToken)
         {
+            compositeChatClient.Dispose();
+
             await discordMessageClient.DisposeAsync();
         }
     }

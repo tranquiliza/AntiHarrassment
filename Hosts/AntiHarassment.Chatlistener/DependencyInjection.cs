@@ -52,6 +52,9 @@ namespace AntiHarassment.Chatlistener
                 services.AddSingleton<IDiscordNotificationService, DiscordNotificationService>();
 
                 services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
+
+                services.AddSingleton<ICompositeChatClient, CompositeChatClient>();
+                services.AddSingleton<IChatlogService, ChatlogService>();
             });
         }
     }

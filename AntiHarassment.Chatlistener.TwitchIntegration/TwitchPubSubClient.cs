@@ -23,6 +23,12 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         public event EventHandler<MessageReceivedEvent> OnMessageReceived;
         public event EventHandler<MessageDeletedEvent> OnMessageDeleted;
 
+        public event EventHandler<UserTimedoutEvent> OnUserTimedout;
+        public event EventHandler<UserUntimedoutEvent> OnUserUnTimedout;
+
+        public event EventHandler<UserBannedEvent> OnUserBanned;
+        public event EventHandler<UserUnbannedEvent> OnUserUnbanned;
+
         public TwitchPubSubClient(TwitchClientSettings twitchClientSettings, ILogger<TwitchPubSubClient> logger)
         {
             this.twitchClientSettings = twitchClientSettings;
@@ -150,21 +156,25 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         private void NewConnection_OnUserUntimedout(object sender, UserUntimedoutEvent e)
         {
             logger.LogInformation("Received untimeout on {arg}, issued by {arg2} in channel {arg3}", e.Username, e.UntimedoutBy, e.Channel);
+            OnUserUnTimedout?.Invoke(this, e);
         }
 
         private void NewConnection_OnUserUnbanned(object sender, UserUnbannedEvent e)
         {
             logger.LogInformation("Received Unban on {arg}, issued by {arg2} in channel {arg3}", e.Username, e.UnbannedBy, e.Channel);
+            OnUserUnbanned?.Invoke(this, e);
         }
 
         private void NewConnection_OnUserTimedout(object sender, UserTimedoutEvent e)
         {
             logger.LogInformation("Received Timedout on {arg}, issued by {arg2} in channel {arg3} for {arg4} seconds", e.Username, e.TimedoutBy, e.Channel, e.TimeoutDuration);
+            OnUserTimedout?.Invoke(this, e);
         }
 
         private void NewConnection_OnUserBanned(object sender, UserBannedEvent e)
         {
             logger.LogInformation("Received Ban on {arg}, issued by {arg2} in channel {arg3}", e.Username, e.BannedBy, e.Channel);
+            OnUserBanned?.Invoke(this, e);
         }
 
         private void NewConnection_OnMessageReceived(object _, MessageReceivedEvent e)
