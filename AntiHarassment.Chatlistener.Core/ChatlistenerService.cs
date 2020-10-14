@@ -27,7 +27,6 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IServiceProvider serviceProvider;
         private readonly IChatterRepository chatterRepository;
         private readonly IUserRepository userRepository;
-        private readonly IChatlogService chatlogService;
         private readonly IDataAnalyser dataAnalyser;
         private readonly ILogger<ChatlistenerService> logger;
 
@@ -44,11 +43,11 @@ namespace AntiHarassment.Chatlistener.Core
             IChatterRepository chatterRepository,
             IUserRepository userRepository,
             IDataAnalyser dataAnalyser,
-            IChatlogService chatlogService,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
             this.pubSubClient = pubSubClient;
+
             this.channelRepository = channelRepository;
             this.datetimeProvider = datetimeProvider;
             this.suspensionRepository = suspensionRepository;
@@ -58,11 +57,11 @@ namespace AntiHarassment.Chatlistener.Core
             this.userRepository = userRepository;
             this.dataAnalyser = dataAnalyser;
             this.logger = logger;
-            this.chatlogService = chatlogService;
 
             systemApplicationContext = new SystemAppContext();
 
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
+
             client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
             client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
         }

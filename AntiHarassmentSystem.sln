@@ -53,7 +53,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.DiscordInteg
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{2D47F536-295A-4D48-85FE-D6301422F83B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.BotBanTool", "Tools\AntiHarassment.BotBanTool\AntiHarassment.BotBanTool.csproj", "{35C5BFF6-94A8-4E87-B739-3EED32ABFA23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AntiHarassment.Tool", "Tools\AntiHarassment.BotBanTool\AntiHarassment.Tool.csproj", "{35C5BFF6-94A8-4E87-B739-3EED32ABFA23}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

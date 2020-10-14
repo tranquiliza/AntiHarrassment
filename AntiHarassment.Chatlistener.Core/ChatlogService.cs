@@ -1,6 +1,7 @@
 ﻿using AntiHarassment.Chatlistener.Core.Events;
 using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,19 +15,27 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IChatRepository chatRepository;
         private readonly IDeletedMessagesRepository deletedMessagesRepository;
         private readonly IDatetimeProvider datetimeProvider;
+        private readonly ILogger<ChatlogService> logger;
 
         public ChatlogService(
             ICompositeChatClient compositeChatClient,
             IChatRepository chatRepository,
             IDeletedMessagesRepository deletedMessagesRepository,
-            IDatetimeProvider datetimeProvider)
+            IDatetimeProvider datetimeProvider,
+            ILogger<ChatlogService> logger)
         {
             this.compositeChatClient = compositeChatClient;
-
-            this.compositeChatClient.OnMessageReceived += Client_OnMessageReceived;
             this.chatRepository = chatRepository;
             this.deletedMessagesRepository = deletedMessagesRepository;
             this.datetimeProvider = datetimeProvider;
+            this.logger = logger;
+        }
+
+        public void Start()
+        {
+            logger.LogInformation("Starting Chatlogging");
+            compositeChatClient.OnMessageReceived += Client_OnMessageReceived;
+            logger.LogInformation("Chatlogging Initiated");
         }
 
         private async Task Client_OnMessageReceived(MessageReceivedEvent e)
@@ -56,6 +65,11 @@ namespace AntiHarassment.Chatlistener.Core
 
                 await chatRepository.SaveChatMessage(chatMessage).ConfigureAwait(false);
             }
+        }
+
+        public void Dispose()
+        {
+            compositeChatClient.OnMessageReceived -= Client_OnMessageReceived;
         }
     }
 }

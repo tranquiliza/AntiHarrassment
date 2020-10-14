@@ -4,8 +4,8 @@ using System.Text;
 
 namespace AntiHarassment.Chatlistener.Core
 {
-    public interface IChatlogService
+    public interface IChatlogService : IDisposable
     {
-
+        void Start();
     }
 }

@@ -200,5 +200,54 @@ namespace AntiHarassment.Sql
                 throw;
             }
         }
+
+        // TODO REMOVE AFTER 2.0.0
+        /// <summary>
+        /// PLEASE DELETE ME AFTER UPDATE COMPLETED TO 2.0.0 (THANKS)
+        /// </summary>
+        /// <returns></returns>
+        public async Task MigrateData()
+        {
+            using var command = sql.CreateQuery(@"SELECT [Id]
+      ,[ChatMessageId]
+      ,[TwitchMessageId]
+      ,[Username]
+      ,[ChannelOfOrigin]
+      ,[Message]
+      ,[Timestamp]
+      ,[AutoModded]
+      ,[Deleted]
+      ,[Data]
+  FROM [Core].[ChatMessage]
+  WHERE [ChatMessageId] IS NULL");
+            using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+            while (await reader.ReadAsync().ConfigureAwait(false))
+            {
+                var chatMessage = new ChatMessage(
+                    reader.GetDateTime("Timestamp"),
+                    twitchMessageId: "",
+                    reader.GetString("Username"),
+                    reader.GetString("ChannelOfOrigin"),
+                    reader.GetString("Message"),
+                    reader.GetBoolean("AutoModded"),
+                    reader.GetBoolean("Deleted"));
+
+                using var updateCommand = sql.CreateQuery(@"UPDATE [Core].[ChatMessage]
+  SET
+  [ChatMessageId] = @chatMessageId,
+  [TwitchMessageId] = '',
+  [Data] = @data
+  WHERE Id = @id");
+
+                var id = reader.GetInt64("Id");
+                Console.WriteLine($"Updateing row {id} to new data format!");
+
+                updateCommand.WithParameter("chatMessageId", chatMessage.ChatMessageId)
+                    .WithParameter("data", Serialization.Serialize(chatMessage))
+                    .WithParameter("id", id);
+
+                await updateCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
+            }
+        }
     }
 }

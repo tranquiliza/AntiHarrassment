@@ -14,5 +14,6 @@ namespace AntiHarassment.Core
         Task<List<string>> GetUniqueChattersForSystem();
         Task<DateTime> GetTimeStampForLatestMessage();
         Task<ChatMessage> GetMessageFromTwitchMessageId(string twitchMessageId);
+        Task MigrateData();
     }
 }

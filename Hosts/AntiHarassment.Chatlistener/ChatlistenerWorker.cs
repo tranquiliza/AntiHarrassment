@@ -12,26 +12,30 @@ namespace AntiHarassment.Chatlistener
         private readonly IChatlistenerService chatlistenerService;
         private readonly IDiscordMessageClient discordMessageClient;
         private readonly ICompositeChatClient compositeChatClient;
+        private readonly IChatlogService chatlogService;
 
         public ChatlistenerWorker(
             IChatlistenerService chatlistenerService,
             IDiscordMessageClient discordMessageClient,
-            ICompositeChatClient compositeChatClient)
+            ICompositeChatClient compositeChatClient,
+            IChatlogService chatlogService)
         {
             this.chatlistenerService = chatlistenerService;
             this.discordMessageClient = discordMessageClient;
             this.compositeChatClient = compositeChatClient;
+            this.chatlogService = chatlogService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            compositeChatClient.SubscribeToEvents();
-
             await chatlistenerService.ConnectAndJoinChannels().ConfigureAwait(false);
 
             await discordMessageClient.Initialize().ConfigureAwait(false);
 
             await NotifiyPrometheusSystemStartup().ConfigureAwait(false);
+
+            compositeChatClient.SubscribeToEvents();
+            chatlogService.Start();
         }
 
         private async Task NotifiyPrometheusSystemStartup()
@@ -47,6 +51,7 @@ namespace AntiHarassment.Chatlistener
         public async override Task StopAsync(CancellationToken cancellationToken)
         {
             compositeChatClient.Dispose();
+            chatlogService.Dispose();
 
             await discordMessageClient.DisposeAsync();
         }
