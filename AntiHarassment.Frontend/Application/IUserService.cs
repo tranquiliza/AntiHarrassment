@@ -19,6 +19,7 @@ namespace AntiHarassment.Frontend.Application
         string ConfirmAccountTokenError { get; }
         string RequestPasswordResetError { get; }
         string ResetPasswordError { get; }
+        bool HasDiscordNotificationsEnabled { get; }
 
         Task Initialize();
         Task<bool> CreateAccount(RegisterUserModel model);
@@ -28,5 +29,7 @@ namespace AntiHarassment.Frontend.Application
         Task<bool> RequestPasswordReset(RequestResetTokenModel model);
         Task<bool> ResetPassword(ResetPasswordModel model);
         Task<bool> SetTokensAndLoginWithTwitch(string accessToken);
+        Task DisableDiscordNotifications();
+        Task EnableDiscordNotifications(ulong discordUserId);
     }
 }

@@ -60,12 +60,28 @@ else
                 <li>Of which Bans: @channelStatisticsService.ChannelReportModel.TotalBans</li>
                 <li>Of which Timeouts: @channelStatisticsService.ChannelReportModel.TotalTimeouts</li>
             </ul>
+            <h5>System Statistics</h5>
+            <ul>
+                <li>Users banned by system: @channelStatisticsService.ChannelReportModel.TotalSystemBanCount</li>
+            </ul>
         </div>
     </div>
 
     <div class="row">
         <div class="col s12">
             <canvas id="chartForTags"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <canvas id="SystemBansChart"></canvas>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col s12">
+            <canvas id="chartForRules"></canvas>
         </div>
     </div>
 }
@@ -101,8 +117,10 @@ else
         await jsRuntime.InvokeVoidAsync("ClearGraph");
         var suspensions = channelStatisticsService.ChannelReportModel.SuspensionsPerDay;
         await jsRuntime.InvokeVoidAsync("AddDataToGraph", suspensions);
+        await jsRuntime.InvokeVoidAsync("AddDataToSystemBansGraph", channelStatisticsService.ChannelReportModel.SystemBansPerDay);
 
         await jsRuntime.InvokeVoidAsync("AddDataToTagsGraph", channelStatisticsService.ChannelReportModel.TagAppearances.OrderByDescending(x => x.Count));
+        await jsRuntime.InvokeVoidAsync("AddDataToRulesGraph", channelStatisticsService.ChannelReportModel.RuleCounts.OrderByDescending(x => x.Count));
     }
 
     private async Task UpdateView()

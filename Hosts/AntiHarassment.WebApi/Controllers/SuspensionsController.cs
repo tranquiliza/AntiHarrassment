@@ -22,19 +22,6 @@ namespace AntiHarassment.WebApi.Controllers
             this.suspensionService = suspensionService;
         }
 
-        [HttpGet("unconfirmed")]
-        public async Task<IActionResult> GetUnconfirmedSourcesSuspensions()
-        {
-            var result = await suspensionService.GetAllUnconfirmedSourcesSuspensions(ApplicationContext).ConfigureAwait(false);
-            if (result.State == ResultState.AccessDenied)
-                return Unauthorized();
-
-            if (result.State == ResultState.Success)
-                return Ok(result.Data.Map(CurrentUrl));
-
-            return NoContent();
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetSuspension([FromQuery] Guid suspensionId)
         {
@@ -59,6 +46,19 @@ namespace AntiHarassment.WebApi.Controllers
                 return Unauthorized();
 
             return Ok(result.Data.Map(CurrentUrl));
+        }
+
+        [HttpGet("unconfirmed")]
+        public async Task<IActionResult> GetUnconfirmedSourcesSuspensions()
+        {
+            var result = await suspensionService.GetAllUnconfirmedSourcesSuspensions(ApplicationContext).ConfigureAwait(false);
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.Map(CurrentUrl));
+
+            return NoContent();
         }
 
         [HttpGet("{channelOfOrigin}")]
@@ -184,6 +184,23 @@ namespace AntiHarassment.WebApi.Controllers
             }
 
             return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("anonymized")]
+        public async Task<IActionResult> GetSuspensionsAnonymized()
+        {
+            var result = await suspensionService.GetAllSuspensionsAnonymised().ConfigureAwait(false);
+            if (result.State == ResultState.Success)
+                return Ok(result.Data.MapAnon());
+
+            if (result.State == ResultState.Failure)
+                return BadRequest(result.FailureReason);
+
+            if (result.State == ResultState.AccessDenied)
+                return Unauthorized();
+
+            return NoContent();
         }
     }
 }

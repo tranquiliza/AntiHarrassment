@@ -20,5 +20,9 @@ namespace AntiHarassment.Contract
         public int UniqueUsersSuspensions { get; set; }
         public int UniqueUsersTimeout { get; set; }
         public int UniqueUsersBan { get; set; }
+
+        public int TotalSystemBanCount { get; set; }
+        public List<RuleCountModel> RuleCounts { get; set; }
+        public List<SystemBanPerDay> SystemBansPerDay { get; set; }
     }
 }

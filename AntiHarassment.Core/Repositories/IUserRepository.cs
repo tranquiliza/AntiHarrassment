@@ -7,7 +7,7 @@ namespace AntiHarassment.Core
 {
     public interface IUserRepository
     {
-        Task<User> GetByTwitchUsername(string email);
+        Task<User> GetByTwitchUsername(string username);
         Task Save(User user);
         Task<User> GetById(Guid id);
         Task Delete(Guid userId);

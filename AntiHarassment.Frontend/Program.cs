@@ -11,6 +11,8 @@ using AntiHarassment.Frontend.Infrastructure;
 using AntiHarassment.Frontend.Application;
 using AntiHarassment.SignalR.Contract;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.JSInterop;
+using System.ComponentModel;
 
 namespace AntiHarassment.Frontend
 {
@@ -32,6 +34,7 @@ namespace AntiHarassment.Frontend
             // Line because optimazation is eating everything?
             _ = new JwtHeader();
             _ = new JwtPayload();
+            _ = new UInt64Converter();
 
 #if DEBUG
             const string apiUrl = "https://localhost:44329/";
@@ -53,7 +56,7 @@ namespace AntiHarassment.Frontend
             services.AddSingleton(_ => new ChannelsHubSignalRClient(apiUrl));
             services.AddSingleton(_ => new SuspensionsHubSignalRClient(apiUrl));
             services.AddSingleton(_ => new NotificationHubSignalRClient(apiUrl));
-            services.AddSingleton<IApiGateway, ApiGateway>(x => new ApiGateway(apiUrl, x.GetRequiredService<IApplicationStateManager>(), x.GetRequiredService<HttpClient>()));
+            services.AddSingleton<IApiGateway, ApiGateway>(x => new ApiGateway(apiUrl, x.GetRequiredService<IApplicationStateManager>(), x.GetRequiredService<HttpClient>(), x.GetRequiredService<IJSRuntime>()));
         }
     }
 }

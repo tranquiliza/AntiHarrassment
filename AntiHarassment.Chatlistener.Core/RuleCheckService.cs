@@ -4,6 +4,7 @@ using AntiHarassment.Messaging.Commands;
 using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,17 +15,23 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IChannelRepository channelRepository;
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IMessageDispatcher messageDispatcher;
+        private readonly IDiscordMessageClient discordMessageClient;
+        private readonly IUserRepository userRepository;
         private readonly ILogger<RuleCheckService> logger;
 
         public RuleCheckService(
             IChannelRepository channelRepository,
             ISuspensionRepository suspensionRepository,
             IMessageDispatcher messageDispatcher,
+            IDiscordMessageClient discordMessageClient,
+            IUserRepository userRepository,
             ILogger<RuleCheckService> logger)
         {
             this.channelRepository = channelRepository;
             this.suspensionRepository = suspensionRepository;
             this.messageDispatcher = messageDispatcher;
+            this.discordMessageClient = discordMessageClient;
+            this.userRepository = userRepository;
             this.logger = logger;
         }
 
@@ -70,6 +77,12 @@ namespace AntiHarassment.Chatlistener.Core
                 if (userReport.Exceeds(rule))
                     await SendUserExceededRuleNotifyEvent(username, channelOfOrigin.ChannelName, rule.RuleName).ConfigureAwait(false);
             }
+
+            foreach (var rule in channelOfOrigin.ChannelRules.Where(x => x.ActionOnTrigger == ChannelRuleAction.NotifyDiscord))
+            {
+                if (userReport.Exceeds(rule))
+                    await SendDiscordNotifications(username, channelOfOrigin.ChannelName, rule.RuleId).ConfigureAwait(false);
+            }
         }
 
         private async Task SendBanCommandFor(string username, string channel, string ruleName)
@@ -83,6 +96,12 @@ namespace AntiHarassment.Chatlistener.Core
             logger.LogInformation("Sending notification about {arg} on {arg2} for {arg3}", username, channel, ruleName);
             var notifyEvent = new NotifyWebsiteUserExceededRuleEvent(username, channel, ruleName);
             await messageDispatcher.Publish(notifyEvent).ConfigureAwait(false);
+        }
+
+        private async Task SendDiscordNotifications(string username, string channelOfOrigin, Guid ruleId)
+        {
+            var sendNotificationCommand = new SendDiscordNotificaitonCommand { Username = username, ChannelOfOrigin = channelOfOrigin, RuleId = ruleId };
+            await messageDispatcher.SendLocal(sendNotificationCommand).ConfigureAwait(false);
         }
     }
 }

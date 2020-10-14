@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 // Possibly need a transition property in the future if changing property names.
 // https://stackoverflow.com/questions/43714050/multiple-jsonproperty-name-assigned-to-single-property
@@ -19,6 +20,9 @@ namespace AntiHarassment.Core.Models
 
         [JsonProperty]
         public string Email { get; private set; }
+
+        [JsonProperty]
+        public bool IsLocked { get; set; }
 
         [JsonProperty]
         public byte[] PasswordHash { get; private set; }
@@ -44,6 +48,12 @@ namespace AntiHarassment.Core.Models
 
         [JsonIgnore]
         public IReadOnlyList<string> Roles => roles.AsReadOnly();
+
+        [JsonProperty]
+        public bool DiscordEnabled { get; private set; }
+
+        [JsonProperty]
+        public ulong DiscordUserId { get; private set; }
 
         private User() { }
 
@@ -114,6 +124,32 @@ namespace AntiHarassment.Core.Models
         internal void UpdateEmail(string newEmail)
         {
             Email = newEmail;
+        }
+
+        internal void LockUser()
+        {
+            IsLocked = true;
+        }
+
+        internal void UnlockUser()
+        {
+            IsLocked = false;
+        }
+
+        internal bool TryEnableDiscordNotifications(ulong discordUserId)
+        {
+            if (discordUserId == 0)
+                return false;
+
+            DiscordEnabled = true;
+            DiscordUserId = discordUserId;
+
+            return true;
+        }
+
+        internal void DisableDiscordNotifications()
+        {
+            DiscordEnabled = false;
         }
 
         internal static User CreateNewUser(string email, string twitchUsername, byte[] passwordHash, byte[] passwordSalt) => new User(email, twitchUsername, passwordHash, passwordSalt);

@@ -9,6 +9,75 @@
 
 <div class="row">
     <div class="col s12">
+        @if (channelService.LockedChannels == null)
+        {
+            <Spinner />
+        }
+        else
+        {
+            @if (channelService.LockedChannels.Count > 0)
+            {
+                <h5>Locked Channels</h5>
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">ChannelName</th>
+                            <th scope="col">Should Listen</th>
+                            <th scope="col">Is Modded</th>
+                            <th scope="col">AutoMod Listener Active</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var channel in channelService.LockedChannels.OrderByDescending(x => x.ShouldListen).ThenBy(x => x.ChannelName))
+                        {
+                            <tr>
+                                <td>@channel.ChannelName</td>
+                                <td>
+                                    @if (channel.ShouldListen)
+                                    {
+                                        <button class="waves-effect waves-light btn green" @onclick="async () => await UpdateChannel(channel.ChannelName, false)">Enabled</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="waves-effect waves-light btn red" @onclick="async () => await UpdateChannel(channel.ChannelName, true)">Disabled</button>
+                                    }
+                                </td>
+                                <td>
+                                    @if (channel.SystemIsModerator)
+                                    {
+                                        <button class="waves-effect waves-light btn green" @onclick="async () => await channelService.UpdateChannelSystemIsModerator(channel.ChannelName, false)">Is Moderator</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="waves-effect waves-light btn red" @onclick="async () => await channelService.UpdateChannelSystemIsModerator(channel.ChannelName, true)">Not Moderator</button>
+                                    }
+                                </td>
+                                <td>
+                                    @if (channel.ShouldListenForAutoModdedMessages)
+                                    {
+                                        <button disabled="disabled" class="waves-effect waves-light btn green">Listening For AutoModded</button>
+                                    }
+                                    else
+                                    {
+                                        <button disabled="disabled" class="waves-effect waves-light btn red">Not Listening For AutoModded</button>
+                                    }
+                                </td>
+                                <td>
+                                    <button @onclick="async _ => await channelService.UpdateChannelLock(channel.ChannelName, false)" class="waves-effect waves-light btn green">Unlock</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+    </div>
+</div>
+
+<div class="row">
+    <div class="col s12">
         @if (channelService.Channels == null)
         {
             <Spinner />
@@ -23,6 +92,7 @@
                         <th scope="col">Should Listen</th>
                         <th scope="col">Is Modded</th>
                         <th scope="col">AutoMod Listener Active</th>
+                        <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,6 +142,9 @@
                                 {
                                     <button disabled="disabled" class="waves-effect waves-light btn red">Not Listening For AutoModded</button>
                                 }
+                            </td>
+                            <td>
+                                <button @onclick="async _ => await channelService.UpdateChannelLock(channel.ChannelName, true)" class="waves-effect waves-light btn red">Lock</button>
                             </td>
                         </tr>
                     }
