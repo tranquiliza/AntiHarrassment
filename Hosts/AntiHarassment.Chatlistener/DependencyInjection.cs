@@ -8,6 +8,7 @@ using AntiHarassment.Sql;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace AntiHarassment.Chatlistener
 {
@@ -28,7 +29,12 @@ namespace AntiHarassment.Chatlistener
                 var discordServerId = ulong.Parse(context.Configuration["Discord:PrometheusServerId"]);
                 var discordChannelId = ulong.Parse(context.Configuration["Discord:StatusChannelId"]);
 
+                var timeoutChatLogInMinutes = TimeSpan.FromMinutes(int.Parse(context.Configuration["SuspensionLogSettings:TimeoutChatLogInMinutes"]));
+                var banChatLogInMinutes = TimeSpan.FromMinutes(int.Parse(context.Configuration["SuspensionLogSettings:BanChatLogInMinutes"]));
+                var minimumDurationForTimeouts = int.Parse(context.Configuration["SuspensionLogSettings:MinimumDurationForTimeoutsInSeconds"]);
+
                 var chatClientSettings = new TwitchClientSettings(twitchUsername, twitchBotOAuth, clientId, secret);
+                var suspensionLogSettings = new SuspensionLogSettings(timeoutChatLogInMinutes, banChatLogInMinutes, minimumDurationForTimeouts);
 
                 services.AddSingleton(chatClientSettings);
                 services.AddSingleton<IChatClient, TwitchChatClient>();
@@ -53,8 +59,10 @@ namespace AntiHarassment.Chatlistener
 
                 services.AddSingleton<IDatetimeProvider, DatetimeProvider>();
 
+                services.AddSingleton<ISuspensionLogSettings>(suspensionLogSettings);
                 services.AddSingleton<ICompositeChatClient, CompositeChatClient>();
                 services.AddSingleton<IChatlogService, ChatlogService>();
+                services.AddSingleton<ISuspensionLogService, SuspensionLogService>();
             });
         }
     }

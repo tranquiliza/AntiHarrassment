@@ -13,17 +13,20 @@ namespace AntiHarassment.Chatlistener
         private readonly IDiscordMessageClient discordMessageClient;
         private readonly ICompositeChatClient compositeChatClient;
         private readonly IChatlogService chatlogService;
+        private readonly ISuspensionLogService suspensionLogService;
 
         public ChatlistenerWorker(
             IChatlistenerService chatlistenerService,
             IDiscordMessageClient discordMessageClient,
             ICompositeChatClient compositeChatClient,
-            IChatlogService chatlogService)
+            IChatlogService chatlogService,
+            ISuspensionLogService suspensionLogService)
         {
             this.chatlistenerService = chatlistenerService;
             this.discordMessageClient = discordMessageClient;
             this.compositeChatClient = compositeChatClient;
             this.chatlogService = chatlogService;
+            this.suspensionLogService = suspensionLogService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -36,6 +39,7 @@ namespace AntiHarassment.Chatlistener
 
             compositeChatClient.SubscribeToEvents();
             chatlogService.Start();
+            suspensionLogService.Start();
         }
 
         private async Task NotifiyPrometheusSystemStartup()

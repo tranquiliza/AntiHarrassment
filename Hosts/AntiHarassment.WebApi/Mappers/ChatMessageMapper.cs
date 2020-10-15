@@ -16,7 +16,8 @@ namespace AntiHarassment.WebApi.Mappers
                 Username = chatMessage.Username,
                 Message = chatMessage.Message,
                 Timestamp = chatMessage.Timestamp,
-                AutoModded = chatMessage.AutoModded
+                AutoModded = chatMessage.AutoModded,
+                Deleted = chatMessage.Deleted
             };
     }
 }

@@ -12,6 +12,9 @@ namespace AntiHarassment.Chatlistener.Core
         event Func<UserJoinedEvent, Task> OnUserJoined;
         event Func<UserTimedoutEvent, Task> OnUserTimedOut;
         event Func<UserBannedEvent, Task> OnUserBanned;
+        event Func<UserUnbannedEvent, Task> OnUserUnBanned;
+        event Func<UserUntimedoutEvent, Task> OnUserUnTimedout;
+
         void SubscribeToEvents();
     }
 }

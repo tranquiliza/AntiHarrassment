@@ -15,34 +15,23 @@ namespace AntiHarassment.Chatlistener.Core
 {
     public class ChatlistenerService : IChatlistenerService, IDisposable
     {
-        private readonly TimeSpan TimeoutChatLogRecordTime = TimeSpan.FromMinutes(10);
-        private readonly TimeSpan BanChatLogRecordTime = TimeSpan.FromHours(1);
-
         private readonly IChatClient client;
         private readonly IPubSubClient pubSubClient;
         private readonly IChannelRepository channelRepository;
         private readonly IDatetimeProvider datetimeProvider;
-        private readonly ISuspensionRepository suspensionRepository;
         private readonly IChatRepository chatRepository;
         private readonly IServiceProvider serviceProvider;
         private readonly IChatterRepository chatterRepository;
-        private readonly IUserRepository userRepository;
-        private readonly IDataAnalyser dataAnalyser;
         private readonly ILogger<ChatlistenerService> logger;
-
-        private readonly IApplicationContext systemApplicationContext;
 
         public ChatlistenerService(
             IChatClient client,
             IPubSubClient pubSubClient,
             IChannelRepository channelRepository,
             IDatetimeProvider datetimeProvider,
-            ISuspensionRepository suspensionRepository,
             IChatRepository chatRepository,
             IServiceProvider serviceProvider,
             IChatterRepository chatterRepository,
-            IUserRepository userRepository,
-            IDataAnalyser dataAnalyser,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
@@ -50,20 +39,12 @@ namespace AntiHarassment.Chatlistener.Core
 
             this.channelRepository = channelRepository;
             this.datetimeProvider = datetimeProvider;
-            this.suspensionRepository = suspensionRepository;
             this.chatRepository = chatRepository;
             this.serviceProvider = serviceProvider;
             this.chatterRepository = chatterRepository;
-            this.userRepository = userRepository;
-            this.dataAnalyser = dataAnalyser;
             this.logger = logger;
 
-            systemApplicationContext = new SystemAppContext();
-
             client.OnUserJoined += async (sender, eventArgs) => await Client_OnUserJoined(sender, eventArgs).ConfigureAwait(false);
-
-            client.OnUserBanned += async (sender, eventArgs) => await Client_OnUserBanned(sender, eventArgs).ConfigureAwait(false);
-            client.OnUserTimedout += async (sender, eventArgs) => await Client_OnUserTimedout(sender, eventArgs).ConfigureAwait(false);
         }
 
         private async Task Client_OnUserJoined(object _, UserJoinedEvent e)
@@ -75,75 +56,6 @@ namespace AntiHarassment.Chatlistener.Core
             await chatterRepository.UpsertChatter(e.Username, datetimeProvider.UtcNow).ConfigureAwait(false);
             await messageDispatcher.Publish(userEnteredChannelEvent).ConfigureAwait(false);
             await messageDispatcher.SendLocal(checkBanRulesCommand).ConfigureAwait(false);
-        }
-
-        private async Task Client_OnUserTimedout(object _, UserTimedoutEvent e)
-        {
-            if (e.TimeoutDuration <= 10)
-                return;
-
-            var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
-
-            var timeOfSuspension = datetimeProvider.UtcNow;
-            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, TimeoutChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
-            var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
-
-            var isUnconfirmedSource = userForChannel == null;
-
-            var suspension = Suspension.CreateTimeout(e.Username, e.Channel, e.TimeoutDuration, timeOfSuspension, chatlogForUser, isUnconfirmedSource);
-            if (chatlogForUser.Count == 0)
-                suspension.UpdateValidity(true, "Insufficient Evidence", systemApplicationContext, timeOfSuspension);
-
-            var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
-            await suspensionRepository.Save(analysedSuspension).ConfigureAwait(false);
-            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = analysedSuspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
-        }
-
-        private async Task Client_OnUserBanned(object _, UserBannedEvent e)
-        {
-            var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
-
-            var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(e.Username).ConfigureAwait(false);
-            var previousBansForUser = suspensionsForUser
-                .Where(x => string.Equals(x.ChannelOfOrigin, e.Channel, StringComparison.OrdinalIgnoreCase) && x.SuspensionType == SuspensionType.Ban)
-                .OrderByDescending(x => x.Timestamp);
-
-            var timeOfSuspension = datetimeProvider.UtcNow;
-            if (userHasBeenRecentlyBanned())
-                return;
-
-            var chatlogForUser = await chatRepository.GetMessagesFor(e.Username, e.Channel, BanChatLogRecordTime, timeOfSuspension).ConfigureAwait(false);
-
-            var userForChannel = await userRepository.GetByTwitchUsername(e.Channel).ConfigureAwait(false);
-            var isUnconfirmedSource = userForChannel == null;
-
-            if (userHasExistingBan() && chatlogForUser.Count > 0)
-            {
-                foreach (var ban in previousBansForUser)
-                {
-                    if (ban.InvalidSuspension)
-                        continue;
-
-                    ban.UpdateValidity(true, "Ban is being overwritten with new ban", systemApplicationContext, timeOfSuspension);
-                    ban.UpdateAuditedState(false, systemApplicationContext, timeOfSuspension);
-                    await suspensionRepository.Save(ban).ConfigureAwait(false);
-                    await messageDispatcher.Publish(new SuspensionUpdatedEvent { ChannelOfOrigin = ban.ChannelOfOrigin, SuspensionId = ban.SuspensionId }).ConfigureAwait(false);
-                }
-            }
-
-            var suspension = Suspension.CreateBan(e.Username, e.Channel, timeOfSuspension, chatlogForUser, isUnconfirmedSource);
-            if (chatlogForUser.Count == 0)
-                suspension.UpdateValidity(true, "Insufficient evidence", new SystemAppContext(), timeOfSuspension);
-
-            var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
-            await suspensionRepository.Save(analysedSuspension).ConfigureAwait(false);
-            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = analysedSuspension.SuspensionId, ChannelOfOrigin = e.Channel }).ConfigureAwait(false);
-
-            bool userHasBeenRecentlyBanned()
-                => previousBansForUser.Any() && previousBansForUser.OrderByDescending(x => x.Timestamp).First().Timestamp.AddSeconds(30) >= timeOfSuspension;
-
-            bool userHasExistingBan()
-                => previousBansForUser.Any();
         }
 
         private bool hasBootedUp = false;

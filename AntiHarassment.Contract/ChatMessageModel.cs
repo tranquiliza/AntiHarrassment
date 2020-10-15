@@ -8,5 +8,6 @@ namespace AntiHarassment.Contract
         public DateTime Timestamp { get; set; }
         public string Message { get; set; }
         public bool AutoModded { get; set; }
+        public bool Deleted { get; set; }
     }
 }

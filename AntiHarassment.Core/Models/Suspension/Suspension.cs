@@ -9,6 +9,10 @@ namespace AntiHarassment.Core.Models
 {
     public sealed class Suspension : DomainBase
     {
+        private const string INSUFFICIENT_EVIDENCE_REASON = "Insufficient Evidence.";
+        private const string SUSPENSION_OVERWRITTEN_REASON = "Suspension Overwritten by new Suspension.";
+        private const string SUSPENSION_UNDONE_REASON = "Suspension was removed before the suspension expired.";
+
         [JsonProperty]
         public Guid SuspensionId { get; private set; }
 
@@ -78,6 +82,9 @@ namespace AntiHarassment.Core.Models
         [JsonProperty]
         public bool UnconfirmedSource { get; private set; }
 
+        [JsonProperty]
+        public string UndoneByUser { get; private set; }
+
         private Suspension() { }
 
         private Suspension(string username, string channelOfOrigin, DateTime timestamp)
@@ -99,6 +106,31 @@ namespace AntiHarassment.Core.Models
             AddAuditTrail(context, nameof(InvalidSuspension), invalidate, timestamp);
 
             return true;
+        }
+
+        public bool IsActive(DateTime now)
+        {
+            if (InvalidSuspension)
+                return false;
+
+            if (SuspensionType == SuspensionType.Ban)
+                return true;
+
+            var expires = Timestamp.AddSeconds(Duration);
+            return expires >= now;
+        }
+
+        public void MarkSuspensionAsOverwritten(string upgradedTo)
+        {
+            InvalidSuspension = true;
+            InvalidationReason =  $"{SUSPENSION_OVERWRITTEN_REASON} Upgraded to {upgradedTo}";
+        }
+
+        public void MarkSuspensionAsUndone(string undoneByUser)
+        {
+            InvalidSuspension = true;
+            UndoneByUser = undoneByUser;
+            InvalidationReason = $"{SUSPENSION_UNDONE_REASON} Undone by {undoneByUser}";
         }
 
         public void UpdateAuditedState(bool audited, IApplicationContext context, DateTime timestamp)
@@ -157,7 +189,7 @@ namespace AntiHarassment.Core.Models
 
         public static Suspension CreateTimeout(string username, string channelOfOrigin, int duration, DateTime timestamp, List<ChatMessage> chatMessages, bool unconfirmedSource)
         {
-            return new Suspension(username, channelOfOrigin, timestamp)
+            var newSuspension = new Suspension(username, channelOfOrigin, timestamp)
             {
                 SuspensionType = SuspensionType.Timeout,
                 SuspensionSource = SuspensionSource.Listener,
@@ -166,18 +198,34 @@ namespace AntiHarassment.Core.Models
                 ChatMessages = chatMessages,
                 UnconfirmedSource = unconfirmedSource
             };
+
+            if (chatMessages.Count == 0)
+            {
+                newSuspension.InvalidSuspension = true;
+                newSuspension.InvalidationReason = INSUFFICIENT_EVIDENCE_REASON;
+            }
+
+            return newSuspension;
         }
 
         public static Suspension CreateBan(string username, string channelOfOrigin, DateTime timestamp, List<ChatMessage> chatMessages, bool unconfirmedSource)
         {
-            return new Suspension(username, channelOfOrigin, timestamp)
+            var newSuspension = new Suspension(username, channelOfOrigin, timestamp)
             {
                 SuspensionType = SuspensionType.Ban,
                 SuspensionSource = SuspensionSource.Listener,
                 Duration = 0,
                 ChatMessages = chatMessages,
-                UnconfirmedSource = unconfirmedSource
+                UnconfirmedSource = unconfirmedSource,
             };
+
+            if (chatMessages.Count == 0)
+            {
+                newSuspension.InvalidSuspension = true;
+                newSuspension.InvalidationReason = INSUFFICIENT_EVIDENCE_REASON;
+            }
+
+            return newSuspension;
         }
 
         public static Suspension CreateManualBan(string username, string channelOfOrigin, DateTime timestamp, string createdBy)

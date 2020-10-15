@@ -36,11 +36,11 @@ namespace AntiHarassment.Chatlistener.Core
 
             pubSubClient.OnMessageDeleted += PubSubClient_OnMessageDeleted;
 
-            chatClient.OnUserBanned += Clients_OnUserBanned;
-            pubSubClient.OnUserBanned += Clients_OnUserBanned;
+            chatClient.OnUserBanned += ChatClient_OnUserBanned;
+            pubSubClient.OnUserBanned += PubSub_OnUserBanned;
 
             chatClient.OnUserTimedout += Client_OnUserTimedout;
-            pubSubClient.OnUserTimedout += Client_OnUserTimedout;
+            pubSubClient.OnUserTimedout += PubSub_OnUserTimedout;
 
             chatClient.OnUserJoined += ChatClient_OnUserJoined;
 
@@ -73,13 +73,36 @@ namespace AntiHarassment.Chatlistener.Core
         }
 
         private void Client_OnUserTimedout(object sender, UserTimedoutEvent e)
-            => OnUserTimedOut?.Invoke(e);
+        {
+            e.Source = EventSource.IRC;
+            PublishUserTimedoutEvent(e);
+        }
+
+        private void PubSub_OnUserTimedout(object sender, UserTimedoutEvent e)
+        {
+            e.Source = EventSource.PubSub;
+            PublishUserTimedoutEvent(e);
+        }
+
+        private void PublishUserTimedoutEvent(UserTimedoutEvent e) => OnUserTimedOut?.Invoke(e);
 
         private void ChatClient_OnUserJoined(object sender, UserJoinedEvent e)
             => OnUserJoined?.Invoke(e);
 
-        private void Clients_OnUserBanned(object sender, UserBannedEvent e)
-            => OnUserBanned?.Invoke(e);
+        private void PubSub_OnUserBanned(object sender, UserBannedEvent e)
+        {
+            e.Source = EventSource.PubSub;
+            PublishUserBannedEvent(e);
+        }
+
+        private void ChatClient_OnUserBanned(object sender, UserBannedEvent e)
+        {
+            e.Source = EventSource.IRC;
+            PublishUserBannedEvent(e);
+        }
+
+        private void PublishUserBannedEvent(UserBannedEvent e) => OnUserBanned?.Invoke(e);
+
 
         private void Clients_OnMessageReceived(object sender, MessageReceivedEvent e)
             => OnMessageReceived?.Invoke(e);
@@ -91,8 +114,8 @@ namespace AntiHarassment.Chatlistener.Core
 
             pubSubClient.OnMessageDeleted -= PubSubClient_OnMessageDeleted;
 
-            chatClient.OnUserBanned -= Clients_OnUserBanned;
-            pubSubClient.OnUserBanned -= Clients_OnUserBanned;
+            chatClient.OnUserBanned -= ChatClient_OnUserBanned;
+            pubSubClient.OnUserBanned -= ChatClient_OnUserBanned;
 
             chatClient.OnUserTimedout -= Client_OnUserTimedout;
             pubSubClient.OnUserTimedout -= Client_OnUserTimedout;
