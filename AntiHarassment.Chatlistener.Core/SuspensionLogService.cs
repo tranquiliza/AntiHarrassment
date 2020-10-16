@@ -23,6 +23,8 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly ISuspensionLogSettings suspensionLogSettings;
         private readonly ILogger<SuspensionLogService> logger;
 
+        private const string SYSTEM_USERNAME = "AntiHarassment";
+
         public SuspensionLogService(
             ICompositeChatClient compositeChatClient,
             IDatetimeProvider datetimeProvider,
@@ -122,7 +124,7 @@ namespace AntiHarassment.Chatlistener.Core
             await SaveAndPublishNewSuspension(analysedSuspension, messageDispatcher).ConfigureAwait(false);
 
             bool isSystemIssuedBan()
-                => !isUnconfirmedSource && userBannedEvent.Source == EventSource.PubSub && userBannedEvent.BanReason.StartsWith("[AHS]", StringComparison.OrdinalIgnoreCase);
+                => !isUnconfirmedSource && userBannedEvent.Source == EventSource.PubSub && string.Equals(userBannedEvent.BannedBy, SYSTEM_USERNAME, StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task CompositeChatClient_OnUserTimedOut(UserTimedoutEvent userTimedoutEvent)

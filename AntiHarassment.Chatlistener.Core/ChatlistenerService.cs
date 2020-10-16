@@ -16,8 +16,6 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IChannelRepository channelRepository;
         private readonly IDatetimeProvider datetimeProvider;
         private readonly IChatRepository chatRepository;
-        private readonly IServiceProvider serviceProvider;
-        private readonly IChatterRepository chatterRepository;
         private readonly ILogger<ChatlistenerService> logger;
 
         public ChatlistenerService(
@@ -26,8 +24,6 @@ namespace AntiHarassment.Chatlistener.Core
             IChannelRepository channelRepository,
             IDatetimeProvider datetimeProvider,
             IChatRepository chatRepository,
-            IServiceProvider serviceProvider,
-            IChatterRepository chatterRepository,
             ILogger<ChatlistenerService> logger)
         {
             this.client = client;
@@ -36,8 +32,6 @@ namespace AntiHarassment.Chatlistener.Core
             this.channelRepository = channelRepository;
             this.datetimeProvider = datetimeProvider;
             this.chatRepository = chatRepository;
-            this.serviceProvider = serviceProvider;
-            this.chatterRepository = chatterRepository;
             this.logger = logger;
         }
 
