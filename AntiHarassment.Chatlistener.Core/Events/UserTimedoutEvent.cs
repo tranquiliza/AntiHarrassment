@@ -2,6 +2,8 @@
 {
     public class UserTimedoutEvent
     {
+        public EventSource Source { get; set; }
+
         public string Channel { get; set; }
 
         /// <summary>

@@ -1,12 +1,19 @@
 ﻿CREATE TABLE [Core].[ChatMessage]
 (
 	[Id] BIGINT NOT NULL PRIMARY KEY IDENTITY(1,1), 
+    [ChatMessageId] UNIQUEIDENTIFIER NULL,
+    [TwitchMessageId] NVARCHAR(MAX),
     [Username] NVARCHAR(100) NOT NULL, 
     [ChannelOfOrigin] NVARCHAR(100) NOT NULL,
     [Message] NVARCHAR(2000) NOT NULL, 
     [Timestamp] DATETIME2(0) NOT NULL,
-    [AutoModded] BIT NOT NULL DEFAULT 0
+    [AutoModded] BIT NOT NULL DEFAULT 0, 
+    [Deleted] BIT NOT NULL DEFAULT 0, 
+    [Data] NVARCHAR(MAX) NULL,
 )
+GO
+
+CREATE INDEX [IX_CHATMESSAGE_CHATMESSAGEID] ON [Core].[ChatMessage](ChatMessageId)
 GO
 
 CREATE INDEX [IX_CHATMESSAGE_USERNAME] ON [Core].[ChatMessage](Username)

@@ -85,7 +85,7 @@
     <Build Include="StoredProcedures\Suspensions\GetSuspensionsForChannel.sql" />
     <Build Include="StoredProcedures\Suspensions\InsertSuspension.sql" />
     <Build Include="StoredProcedures\ChatMessages\GetChatMessagesForUser.sql" />
-    <Build Include="StoredProcedures\ChatMessages\InsertChatMessage.sql" />
+    <Build Include="StoredProcedures\ChatMessages\UpsertChatMessage.sql" />
     <Build Include="StoredProcedures\Channels\GetChannel.sql" />
     <Build Include="Tables\Tags.sql" />
     <Build Include="StoredProcedures\Tags\UpsertTag.sql" />
@@ -110,6 +110,7 @@
     <Build Include="StoredProcedures\Suspensions\GetUnconfirmedSourcesSuspensions.sql" />
     <Build Include="Tables\DeletedMessages.sql" />
     <Build Include="StoredProcedures\DeletedMessages\InsertDeletedMessage.sql" />
+    <Build Include="StoredProcedures\ChatMessages\GetChatMessageFromTwitchMessageId.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AntiHarassment.Database.refactorlog" />

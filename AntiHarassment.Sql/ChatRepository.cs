@@ -48,8 +48,7 @@ namespace AntiHarassment.Sql
                     using var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.Default).ConfigureAwait(false);
                     while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
-                        result.Add(chatMessage);
+                        result.Add(Serialization.Deserialize<ChatMessage>(reader.GetString("data")));
                     }
                 }
 
@@ -76,10 +75,7 @@ namespace AntiHarassment.Sql
                     using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
                     while (await reader.ReadAsync().ConfigureAwait(false))
                     {
-                        var chatMessage = new ChatMessage(reader.GetDateTime("timestamp"), reader.GetString("message"), reader.GetBoolean("AutoModded"));
-                        chatMessage.AttachUsername(reader.GetString("username"));
-
-                        result.Add(chatMessage);
+                        result.Add(Serialization.Deserialize<ChatMessage>(reader.GetString("data")));
                     }
                 }
 
@@ -161,16 +157,20 @@ namespace AntiHarassment.Sql
             }
         }
 
-        public async Task SaveChatMessage(string username, string channelOfOrigin, bool autoModded, string message, DateTime timestamp)
+        public async Task SaveChatMessage(ChatMessage chatMessage)
         {
             try
             {
-                using var command = sql.CreateStoredProcedure("[Core].[InsertChatMessage]");
-                command.WithParameter("username", username)
-                    .WithParameter("channelOfOrigin", channelOfOrigin)
-                    .WithParameter("message", message)
-                    .WithParameter("automodded", autoModded)
-                    .WithParameter("timestamp", timestamp);
+                using var command = sql.CreateStoredProcedure("[Core].[UpsertChatMessage]");
+                command.WithParameter("chatMessageID", chatMessage.ChatMessageId)
+                    .WithParameter("username", chatMessage.Username)
+                    .WithParameter("twitchMessageId", chatMessage.TwitchMessageId)
+                    .WithParameter("channelOfOrigin", chatMessage.ChannelOfOrigin)
+                    .WithParameter("automodded", chatMessage.AutoModded)
+                    .WithParameter("deleted", chatMessage.Deleted)
+                    .WithParameter("message", chatMessage.Message)
+                    .WithParameter("timestamp", chatMessage.Timestamp)
+                    .WithParameter("data", Serialization.Serialize(chatMessage));
 
                 await command.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
@@ -178,6 +178,75 @@ namespace AntiHarassment.Sql
             {
                 logger.LogWarning(ex, "Error when attempting to save chat message");
                 throw;
+            }
+        }
+
+        public async Task<ChatMessage> GetMessageFromTwitchMessageId(string twitchMessageId)
+        {
+            try
+            {
+                using var command = sql.CreateStoredProcedure("[Core].[GetChatMessageFromTwitchMessageId]");
+                command.WithParameter("twitchMessageId", twitchMessageId);
+
+                using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+                if (await reader.ReadAsync().ConfigureAwait(false))
+                    return Serialization.Deserialize<ChatMessage>(reader.GetString("data"));
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error when attempting to fetch a chat message from Twitch Message Id");
+                throw;
+            }
+        }
+
+        // TODO REMOVE AFTER 2.0.0
+        /// <summary>
+        /// PLEASE DELETE ME AFTER UPDATE COMPLETED TO 2.0.0 (THANKS)
+        /// </summary>
+        /// <returns></returns>
+        public async Task MigrateData()
+        {
+            using var command = sql.CreateQuery(@"SELECT [Id]
+      ,[ChatMessageId]
+      ,[TwitchMessageId]
+      ,[Username]
+      ,[ChannelOfOrigin]
+      ,[Message]
+      ,[Timestamp]
+      ,[AutoModded]
+      ,[Deleted]
+      ,[Data]
+  FROM [Core].[ChatMessage]
+  WHERE [ChatMessageId] IS NULL");
+            using var reader = await command.ExecuteReaderAsync().ConfigureAwait(false);
+            while (await reader.ReadAsync().ConfigureAwait(false))
+            {
+                var chatMessage = new ChatMessage(
+                    reader.GetDateTime("Timestamp"),
+                    twitchMessageId: "",
+                    reader.GetString("Username"),
+                    reader.GetString("ChannelOfOrigin"),
+                    reader.GetString("Message"),
+                    reader.GetBoolean("AutoModded"),
+                    reader.GetBoolean("Deleted"));
+
+                using var updateCommand = sql.CreateQuery(@"UPDATE [Core].[ChatMessage]
+  SET
+  [ChatMessageId] = @chatMessageId,
+  [TwitchMessageId] = '',
+  [Data] = @data
+  WHERE Id = @id");
+
+                var id = reader.GetInt64("Id");
+                Console.WriteLine($"Updateing row {id} to new data format!");
+
+                updateCommand.WithParameter("chatMessageId", chatMessage.ChatMessageId)
+                    .WithParameter("data", Serialization.Serialize(chatMessage))
+                    .WithParameter("id", id);
+
+                await updateCommand.ExecuteNonQueryAsync().ConfigureAwait(false);
             }
         }
     }

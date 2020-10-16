@@ -51,10 +51,11 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
 
             OnMessageDeleted?.Invoke(this, new MessageDeletedEvent
             {
+                TwitchMessageId = e.MessageId,
                 Channel = channelName,
                 DeletedBy = e.DeletedBy,
                 Message = e.Message,
-                Username = e.TargetUser
+                Username = e.TargetUser,
             });
         }
 
@@ -134,7 +135,6 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
                             {
                                 Message = cma.Args[1],
                                 DisplayName = cma.Args[0],
-                                UserId = cma.TargetUserId,
                                 Channel = targetChannelName,
                                 AutoModded = true
                             });

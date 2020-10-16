@@ -1,7 +1,5 @@
 ﻿using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
-using AntiHarassment.Messaging.Events;
-using AntiHarassment.Messaging.NServiceBus;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -12,17 +10,13 @@ namespace AntiHarassment.Chatlistener.Core
     public class SystemBanService : ISystemBanService
     {
         private readonly ISuspensionRepository suspensionRepository;
-        private readonly IDatetimeProvider datetimeProvider;
         private readonly IChatClient client;
-        private readonly IMessageDispatcher messageDispatcher;
         private readonly ILogger<SystemBanService> logger;
 
-        public SystemBanService(ISuspensionRepository suspensionRepository, IDatetimeProvider datetimeProvider, IChatClient client, IMessageDispatcher messageDispatcher, ILogger<SystemBanService> logger)
+        public SystemBanService(ISuspensionRepository suspensionRepository, IChatClient client, ILogger<SystemBanService> logger)
         {
             this.suspensionRepository = suspensionRepository;
-            this.datetimeProvider = datetimeProvider;
             this.client = client;
-            this.messageDispatcher = messageDispatcher;
             this.logger = logger;
         }
 
@@ -37,12 +31,7 @@ namespace AntiHarassment.Chatlistener.Core
                 return;
             }
 
-            var suspension = Suspension.CreateSystemBan(username, channelToBanFrom, datetimeProvider.UtcNow, systemReason);
             client.BanUser(username, channelToBanFrom, systemReason);
-
-            await suspensionRepository.Save(suspension).ConfigureAwait(false);
-            await messageDispatcher.Publish(new NewSuspensionEvent { SuspensionId = suspension.SuspensionId, ChannelOfOrigin = channelToBanFrom }).ConfigureAwait(false);
-            logger.LogInformation("Banned and Created suspension for {arg} in channel {arg2} and published Event", suspension.Username, channelToBanFrom);
         }
     }
 }

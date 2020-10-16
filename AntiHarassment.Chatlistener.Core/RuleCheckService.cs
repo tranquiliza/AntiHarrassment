@@ -15,23 +15,23 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IChannelRepository channelRepository;
         private readonly ISuspensionRepository suspensionRepository;
         private readonly IMessageDispatcher messageDispatcher;
-        private readonly IDiscordMessageClient discordMessageClient;
-        private readonly IUserRepository userRepository;
+        private readonly ISystemBanService systemBanService;
+        private readonly IDiscordNotificationService discordNotificationService;
         private readonly ILogger<RuleCheckService> logger;
 
         public RuleCheckService(
             IChannelRepository channelRepository,
             ISuspensionRepository suspensionRepository,
             IMessageDispatcher messageDispatcher,
-            IDiscordMessageClient discordMessageClient,
-            IUserRepository userRepository,
+            ISystemBanService systemBanService,
+            IDiscordNotificationService discordNotificationService,
             ILogger<RuleCheckService> logger)
         {
             this.channelRepository = channelRepository;
             this.suspensionRepository = suspensionRepository;
             this.messageDispatcher = messageDispatcher;
-            this.discordMessageClient = discordMessageClient;
-            this.userRepository = userRepository;
+            this.systemBanService = systemBanService;
+            this.discordNotificationService = discordNotificationService;
             this.logger = logger;
         }
 
@@ -58,12 +58,12 @@ namespace AntiHarassment.Chatlistener.Core
             }
         }
 
-        public async Task CheckRulesFor(string username, string channelName)
+        public async Task CheckRulesForUserInChannel(string username, string channelName)
         {
             var channelOfOrigin = await channelRepository.GetChannel(channelName).ConfigureAwait(false);
             if (channelOfOrigin == null)
             {
-                logger.LogWarning("We've received an event from a channel that doesnt exist?");
+                logger.LogWarning("We're attemping to check rules for a channel that doesn't exist in our system");
                 return;
             }
 
@@ -72,23 +72,34 @@ namespace AntiHarassment.Chatlistener.Core
                 return;
 
             var userReport = new UserReport(username, suspensionsForUser);
-            foreach (var rule in channelOfOrigin.ChannelRules.Where(x => x.ActionOnTrigger == ChannelRuleAction.NotifyWebsite))
+
+            var channelRules = channelOfOrigin.ChannelRules;
+
+            foreach (var rule in channelRules.Where(x => x.ActionOnTrigger == ChannelRuleAction.NotifyWebsite))
             {
                 if (userReport.Exceeds(rule))
                     await SendUserExceededRuleNotifyEvent(username, channelOfOrigin.ChannelName, rule.RuleName).ConfigureAwait(false);
             }
 
-            foreach (var rule in channelOfOrigin.ChannelRules.Where(x => x.ActionOnTrigger == ChannelRuleAction.NotifyDiscord))
+            foreach (var rule in channelRules.Where(x => x.ActionOnTrigger == ChannelRuleAction.NotifyDiscord))
             {
                 if (userReport.Exceeds(rule))
                     await SendDiscordNotifications(username, channelOfOrigin.ChannelName, rule.RuleId).ConfigureAwait(false);
+            }
+
+            if (channelOfOrigin.SystemIsModerator && channelOfOrigin.ShouldListen)
+            {
+                foreach (var rule in channelRules.Where(x => x.ActionOnTrigger == ChannelRuleAction.Ban))
+                {
+                    if (userReport.Exceeds(rule))
+                        await SendBanCommandFor(username, channelOfOrigin.ChannelName, rule.RuleName).ConfigureAwait(false);
+                }
             }
         }
 
         private async Task SendBanCommandFor(string username, string channel, string ruleName)
         {
-            var command = new SystemBanCommand(username, channel, $"Automated ban from rule: {ruleName}");
-            await messageDispatcher.SendLocal(command).ConfigureAwait(false);
+            await systemBanService.IssueBanFor(username, channel, $"[AHS] Automated ban from rule: {ruleName}").ConfigureAwait(false);
         }
 
         private async Task SendUserExceededRuleNotifyEvent(string username, string channel, string ruleName)
@@ -100,8 +111,7 @@ namespace AntiHarassment.Chatlistener.Core
 
         private async Task SendDiscordNotifications(string username, string channelOfOrigin, Guid ruleId)
         {
-            var sendNotificationCommand = new SendDiscordNotificaitonCommand { Username = username, ChannelOfOrigin = channelOfOrigin, RuleId = ruleId };
-            await messageDispatcher.SendLocal(sendNotificationCommand).ConfigureAwait(false);
+            await discordNotificationService.SendNotification(username, channelOfOrigin, ruleId).ConfigureAwait(false);
         }
     }
 }

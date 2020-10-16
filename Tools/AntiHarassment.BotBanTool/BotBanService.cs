@@ -2,10 +2,9 @@
 using AntiHarassment.Core.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace AntiHarassment.BotBanTool
+namespace AntiHarassment.Tool
 {
     public class BotBanService
     {
@@ -29,6 +28,10 @@ namespace AntiHarassment.BotBanTool
             var chatMessage = new ChatMessage(
                 utcNow,
                 "",
+                "",
+                "",
+                "",
+                false,
                 false);
 
             var fakedChatMessages = new List<ChatMessage> { chatMessage };
