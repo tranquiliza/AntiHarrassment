@@ -61,7 +61,8 @@ namespace AntiHarassment.Core
             var usersWhoExceeded = new List<UserRulesExceeded>();
             foreach (var user in usersFromSuspensions.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                if (allValidAuditedSuspensionForChannel.Any(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase)))
+                // If we already have a ban
+                if (allValidAuditedSuspensionForChannel.Any(x => string.Equals(x.Username, user, StringComparison.OrdinalIgnoreCase) && x.SuspensionType == SuspensionType.Ban))
                     continue;
 
                 var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(user).ConfigureAwait(false);

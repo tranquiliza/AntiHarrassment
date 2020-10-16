@@ -63,6 +63,7 @@ namespace AntiHarassment.Chatlistener
                 services.AddSingleton<ICompositeChatClient, CompositeChatClient>();
                 services.AddSingleton<IChatlogService, ChatlogService>();
                 services.AddSingleton<ISuspensionLogService, SuspensionLogService>();
+                services.AddSingleton<IChannelMonitoringService, ChannelMonitoringService>();
             });
         }
     }

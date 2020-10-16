@@ -1,30 +1,22 @@
 ﻿using AntiHarassment.Chatlistener.Core;
 using AntiHarassment.Messaging.Commands;
-using AntiHarassment.Messaging.Events;
 using NServiceBus;
 using System.Threading.Tasks;
 
 namespace AntiHarassment.Chatlistener.Handlers
 {
-    public class RuleExceedCheckommandHandler
-        : IHandleMessages<RuleExceedCheckCommand>,
-        IHandleMessages<UserEnteredChannelEvent>
+    public class RuleExceedCheckommandHandler : IHandleMessages<RuleExceedCheckCommand>
     {
-        private readonly IRuleCheckService auditActionService;
+        private readonly IRuleCheckService ruleCheckService;
 
-        public RuleExceedCheckommandHandler(IRuleCheckService auditActionService)
+        public RuleExceedCheckommandHandler(IRuleCheckService ruleCheckService)
         {
-            this.auditActionService = auditActionService;
+            this.ruleCheckService = ruleCheckService;
         }
 
         public async Task Handle(RuleExceedCheckCommand command, IMessageHandlerContext context)
         {
-            await auditActionService.CheckBanAction(command).ConfigureAwait(false);
-        }
-
-        public async Task Handle(UserEnteredChannelEvent message, IMessageHandlerContext context)
-        {
-            await auditActionService.CheckRulesFor(message.TwitchUsername, message.ChannelOfOrigin).ConfigureAwait(false);
+            await ruleCheckService.CheckBanAction(command).ConfigureAwait(false);
         }
     }
 }

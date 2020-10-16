@@ -2,7 +2,7 @@
 
 namespace AntiHarassment.Chatlistener.Core
 {
-    public interface IChatlogService : IDisposable
+    public interface IChannelMonitoringService : IDisposable
     {
         void Start();
     }

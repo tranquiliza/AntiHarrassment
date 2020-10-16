@@ -3,6 +3,8 @@ using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
 using AntiHarassment.Messaging.Events;
 using AntiHarassment.Messaging.NServiceBus;
+using Microsoft.Extensions.Logging;
+using MoreLinq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ namespace AntiHarassment.Chatlistener.Core
         private readonly IDataAnalyser dataAnalyser;
         private readonly IServiceProvider serviceProvider;
         private readonly ISuspensionLogSettings suspensionLogSettings;
+        private readonly ILogger<SuspensionLogService> logger;
 
         public SuspensionLogService(
             ICompositeChatClient compositeChatClient,
@@ -28,7 +31,8 @@ namespace AntiHarassment.Chatlistener.Core
             IUserRepository userRepository,
             IDataAnalyser dataAnalyser,
             IServiceProvider serviceProvider,
-            ISuspensionLogSettings suspensionLogSettings)
+            ISuspensionLogSettings suspensionLogSettings,
+            ILogger<SuspensionLogService> logger)
         {
             this.compositeChatClient = compositeChatClient;
             this.datetimeProvider = datetimeProvider;
@@ -38,14 +42,17 @@ namespace AntiHarassment.Chatlistener.Core
             this.dataAnalyser = dataAnalyser;
             this.serviceProvider = serviceProvider;
             this.suspensionLogSettings = suspensionLogSettings;
+            this.logger = logger;
         }
 
         public void Start()
         {
+            logger.LogInformation("Starting Suspension Logging");
             compositeChatClient.OnUserBanned += CompositeChatClient_OnUserBanned;
             compositeChatClient.OnUserTimedOut += CompositeChatClient_OnUserTimedOut;
             compositeChatClient.OnUserUnBanned += CompositeChatClient_OnUserUnBanned;
             compositeChatClient.OnUserUnTimedout += CompositeChatClient_OnUserUnTimedout;
+            logger.LogInformation("Suspension Logging Initiated");
         }
 
         private async Task CompositeChatClient_OnUserUnTimedout(UserUntimedoutEvent userUntimedoutEvent)
@@ -92,6 +99,16 @@ namespace AntiHarassment.Chatlistener.Core
             if (!isUnconfirmedSource && userBannedEvent.Source == EventSource.IRC)
                 return;
 
+            var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
+            if (isSystemIssuedBan())
+            {
+                var systemSuspension = await CreateSystemSuspensionWithEvidence(userBannedEvent.Username, userBannedEvent.Channel, timeOfSuspension, userBannedEvent.BanReason).ConfigureAwait(false);
+                await MarkActiveSuspensionsForUserAsOverwritten(userBannedEvent.Username, "SYSTEM BAN", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
+
+                await SaveAndPublishNewSuspension(systemSuspension, messageDispatcher).ConfigureAwait(false);
+                return;
+            }
+
             var suspension = Suspension.CreateBan(userBannedEvent.Username, userBannedEvent.Channel, timeOfSuspension, chatlogForUser, isUnconfirmedSource);
             if (suspension.InvalidSuspension)
             {
@@ -99,11 +116,13 @@ namespace AntiHarassment.Chatlistener.Core
                 return;
             }
 
-            var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
             await MarkActiveSuspensionsForUserAsOverwritten(userBannedEvent.Username, $"{suspension.SuspensionType}", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
 
             var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
             await SaveAndPublishNewSuspension(analysedSuspension, messageDispatcher).ConfigureAwait(false);
+
+            bool isSystemIssuedBan()
+                => !isUnconfirmedSource && userBannedEvent.Source == EventSource.PubSub && userBannedEvent.BanReason.StartsWith("[AHS]", StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task CompositeChatClient_OnUserTimedOut(UserTimedoutEvent userTimedoutEvent)
@@ -149,6 +168,24 @@ namespace AntiHarassment.Chatlistener.Core
                     SuspensionId = activeSuspension.SuspensionId
                 }).ConfigureAwait(false);
             }
+        }
+
+        // TODO Consider if its worthwhile adding chatlogs? (This could be alot of chatlogs)
+        private async Task<Suspension> CreateSystemSuspensionWithEvidence(string username, string channel, DateTime timeOfSuspension, string banReason)
+        {
+            var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(username).ConfigureAwait(false);
+            var validSuspensions = suspensionsForUser.Where(x => x.SuspensionSource != SuspensionSource.System && !x.InvalidSuspension);
+
+            var tags = validSuspensions.SelectMany(x => x.Tags).DistinctBy(x => x.TagId);
+
+            var systemSuspension = Suspension.CreateSystemBan(username, channel, timeOfSuspension, banReason);
+
+            var systemContext = new SystemAppContext();
+
+            foreach (var tag in tags)
+                systemSuspension.TryAddTag(tag, systemContext, timeOfSuspension);
+
+            return systemSuspension;
         }
 
         private async Task SaveAndPublishNewSuspension(Suspension suspension, IMessageDispatcher messageDispatcher)
