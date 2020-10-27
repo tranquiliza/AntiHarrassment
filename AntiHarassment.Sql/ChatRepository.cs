@@ -240,7 +240,9 @@ namespace AntiHarassment.Sql
   WHERE Id = @id");
 
                 var id = reader.GetInt64("Id");
-                Console.WriteLine($"Updateing row {id} to new data format!");
+
+                if (id % 10000 == 0)
+                    Console.WriteLine($"Updateing row {id} to new data format!");
 
                 updateCommand.WithParameter("chatMessageId", chatMessage.ChatMessageId)
                     .WithParameter("data", Serialization.Serialize(chatMessage))

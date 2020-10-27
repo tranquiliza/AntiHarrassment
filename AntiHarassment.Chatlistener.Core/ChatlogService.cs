@@ -43,7 +43,20 @@ namespace AntiHarassment.Chatlistener.Core
 
                 var existingChatMessage = await chatRepository.GetMessageFromTwitchMessageId(e.TwitchMessageId).ConfigureAwait(false);
                 if (existingChatMessage == null)
+                {
+                    var chatMessage = new ChatMessage(
+                    datetimeProvider.UtcNow,
+                    e.TwitchMessageId,
+                    e.DisplayName,
+                    e.Channel,
+                    e.Message,
+                    e.AutoModded,
+                    e.Deleted);
+
+                    await chatRepository.SaveChatMessage(chatMessage).ConfigureAwait(false);
+
                     return;
+                }
 
                 existingChatMessage.MarkDeleted();
 

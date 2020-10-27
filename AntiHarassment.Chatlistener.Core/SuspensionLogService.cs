@@ -99,13 +99,16 @@ namespace AntiHarassment.Chatlistener.Core
 
             // This is probably going to be followed shortly by better event.
             if (!isUnconfirmedSource && userBannedEvent.Source == EventSource.IRC)
+            {
+                logger.LogInformation("Received a ban from {channel}, on person {person}, but it was from channel with mod status, so we're skipping it", userBannedEvent.Channel, userBannedEvent.Username);
                 return;
+            }
 
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
             if (isSystemIssuedBan())
             {
                 var systemSuspension = await CreateSystemSuspensionWithEvidence(userBannedEvent.Username, userBannedEvent.Channel, timeOfSuspension, userBannedEvent.BanReason).ConfigureAwait(false);
-                await MarkActiveSuspensionsForUserAsOverwritten(userBannedEvent.Username, "SYSTEM BAN", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
+                await MarkActiveSuspensionsForUserAsOverwritten(userBannedEvent.Username, userBannedEvent.Channel, "SYSTEM BAN", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
 
                 await SaveAndPublishNewSuspension(systemSuspension, messageDispatcher).ConfigureAwait(false);
                 return;
@@ -118,7 +121,7 @@ namespace AntiHarassment.Chatlistener.Core
                 return;
             }
 
-            await MarkActiveSuspensionsForUserAsOverwritten(userBannedEvent.Username, $"{suspension.SuspensionType}", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
+            await MarkActiveSuspensionsForUserAsOverwritten(userBannedEvent.Username, userBannedEvent.Channel, $"{suspension.SuspensionType}", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
 
             var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
             await SaveAndPublishNewSuspension(analysedSuspension, messageDispatcher).ConfigureAwait(false);
@@ -150,17 +153,17 @@ namespace AntiHarassment.Chatlistener.Core
             }
 
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
-            await MarkActiveSuspensionsForUserAsOverwritten(userTimedoutEvent.Username, $"{suspension.SuspensionType} of duration: {suspension.Duration} seconds.", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
+            await MarkActiveSuspensionsForUserAsOverwritten(userTimedoutEvent.Username, userTimedoutEvent.Channel, $"{suspension.SuspensionType} of duration: {suspension.Duration} seconds.", timeOfSuspension, messageDispatcher).ConfigureAwait(false);
 
             var analysedSuspension = await dataAnalyser.AttemptToTagSuspension(suspension).ConfigureAwait(false);
             await SaveAndPublishNewSuspension(analysedSuspension, messageDispatcher).ConfigureAwait(false);
         }
 
-        private async Task MarkActiveSuspensionsForUserAsOverwritten(string username, string upgradedTo, DateTime timeOfSuspension, IMessageDispatcher messageDispatcher)
+        private async Task MarkActiveSuspensionsForUserAsOverwritten(string username, string channelOfOrigin, string upgradedTo, DateTime timeOfSuspension, IMessageDispatcher messageDispatcher)
         {
             var suspensionsForUser = await suspensionRepository.GetSuspensionsForUser(username).ConfigureAwait(false);
 
-            foreach (var activeSuspension in suspensionsForUser.Where(x => x.IsActive(timeOfSuspension)))
+            foreach (var activeSuspension in suspensionsForUser.Where(x => x.IsActive(timeOfSuspension) && string.Equals(channelOfOrigin, x.ChannelOfOrigin, StringComparison.OrdinalIgnoreCase)))
             {
                 activeSuspension.MarkSuspensionAsOverwritten(upgradedTo);
                 await suspensionRepository.Save(activeSuspension).ConfigureAwait(false);
