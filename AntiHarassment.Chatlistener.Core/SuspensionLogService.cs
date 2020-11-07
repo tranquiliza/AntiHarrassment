@@ -98,11 +98,11 @@ namespace AntiHarassment.Chatlistener.Core
             var isUnconfirmedSource = userForChannel == null;
 
             // This is probably going to be followed shortly by better event.
-            if (!isUnconfirmedSource && userBannedEvent.Source == EventSource.IRC)
-            {
-                logger.LogInformation("Received a ban from {channel}, on person {person}, but it was from channel with mod status, so we're skipping it", userBannedEvent.Channel, userBannedEvent.Username);
-                return;
-            }
+            //if (!isUnconfirmedSource && userBannedEvent.Source == EventSource.IRC)
+            //{
+            //    logger.LogInformation("Received a ban from {channel}, on person {person}, but it was from channel with mod status, so we're skipping it", userBannedEvent.Channel, userBannedEvent.Username);
+            //    return;
+            //}
 
             var messageDispatcher = serviceProvider.GetService(typeof(IMessageDispatcher)) as IMessageDispatcher;
             if (isSystemIssuedBan())
@@ -127,7 +127,7 @@ namespace AntiHarassment.Chatlistener.Core
             await SaveAndPublishNewSuspension(analysedSuspension, messageDispatcher).ConfigureAwait(false);
 
             bool isSystemIssuedBan()
-                => !isUnconfirmedSource && userBannedEvent.Source == EventSource.PubSub && string.Equals(userBannedEvent.BannedBy, SYSTEM_USERNAME, StringComparison.OrdinalIgnoreCase);
+                => !isUnconfirmedSource && (string.Equals(userBannedEvent.BannedBy, SYSTEM_USERNAME, StringComparison.OrdinalIgnoreCase) || userBannedEvent.BanReason.StartsWith("[AHS]"));
         }
 
         private async Task CompositeChatClient_OnUserTimedOut(UserTimedoutEvent userTimedoutEvent)
@@ -141,9 +141,9 @@ namespace AntiHarassment.Chatlistener.Core
             var userForChannel = await userRepository.GetByTwitchUsername(userTimedoutEvent.Channel).ConfigureAwait(false);
             var isUnconfirmedSource = userForChannel == null;
 
-            // This is probably going to be followed shortly by better event.
-            if (!isUnconfirmedSource && userTimedoutEvent.Source == EventSource.IRC)
-                return;
+            //// This is probably going to be followed shortly by better event.
+            //if (!isUnconfirmedSource && userTimedoutEvent.Source == EventSource.IRC)
+            //    return;
 
             var suspension = Suspension.CreateTimeout(userTimedoutEvent.Username, userTimedoutEvent.Channel, userTimedoutEvent.TimeoutDuration, timeOfSuspension, chatlogForUser, isUnconfirmedSource);
             if (suspension.InvalidSuspension)
