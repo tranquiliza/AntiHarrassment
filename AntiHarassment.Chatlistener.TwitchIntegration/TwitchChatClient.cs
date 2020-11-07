@@ -125,33 +125,21 @@ namespace AntiHarassment.Chatlistener.TwitchIntegration
         }
 
         public void BanUser(string username, string channelName, string systemReason)
-        {
-            client.BanUser(channelName, username, systemReason);
-        }
+            => client.BanUser(channelName, username, systemReason);
 
         private void Client_OnMessageReceived(object sender, OnMessageReceivedArgs e)
-        {
-            OnMessageReceived?.Invoke(this, e.Map(autoModded: false));
-        }
+            => OnMessageReceived?.Invoke(this, e.Map(autoModded: false, deleted: false));
 
         private void Client_OnUserBanned(object sender, OnUserBannedArgs e)
-        {
-            OnUserBanned?.Invoke(this, e.Map());
-        }
+            => OnUserBanned?.Invoke(this, e.Map());
 
         private void Client_OnUserTimedout(object sender, OnUserTimedoutArgs e)
-        {
-            OnUserTimedout?.Invoke(this, e.Map());
-        }
+            => OnUserTimedout?.Invoke(this, e.Map());
 
         private void Client_OnUserJoined(object sender, OnUserJoinedArgs e)
-        {
-            OnUserJoined?.Invoke(this, e.Map());
-        }
+            => OnUserJoined?.Invoke(this, e.Map());
 
         public void Dispose()
-        {
-            client.Disconnect();
-        }
+            => client.Disconnect();
     }
 }

@@ -11,11 +11,25 @@ namespace AntiHarassment.Chatlistener
     {
         private readonly IChatlistenerService chatlistenerService;
         private readonly IDiscordMessageClient discordMessageClient;
+        private readonly ICompositeChatClient compositeChatClient;
+        private readonly IChatlogService chatlogService;
+        private readonly ISuspensionLogService suspensionLogService;
+        private readonly IChannelMonitoringService channelMonitoringService;
 
-        public ChatlistenerWorker(IChatlistenerService chatlistenerService, IDiscordMessageClient discordMessageClient)
+        public ChatlistenerWorker(
+            IChatlistenerService chatlistenerService,
+            IDiscordMessageClient discordMessageClient,
+            ICompositeChatClient compositeChatClient,
+            IChatlogService chatlogService,
+            ISuspensionLogService suspensionLogService,
+            IChannelMonitoringService channelMonitoringService)
         {
             this.chatlistenerService = chatlistenerService;
             this.discordMessageClient = discordMessageClient;
+            this.compositeChatClient = compositeChatClient;
+            this.chatlogService = chatlogService;
+            this.suspensionLogService = suspensionLogService;
+            this.channelMonitoringService = channelMonitoringService;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,6 +39,11 @@ namespace AntiHarassment.Chatlistener
             await discordMessageClient.Initialize().ConfigureAwait(false);
 
             await NotifiyPrometheusSystemStartup().ConfigureAwait(false);
+
+            compositeChatClient.SubscribeToEvents();
+            chatlogService.Start();
+            suspensionLogService.Start();
+            channelMonitoringService.Start();
         }
 
         private async Task NotifiyPrometheusSystemStartup()
@@ -39,6 +58,10 @@ namespace AntiHarassment.Chatlistener
 
         public async override Task StopAsync(CancellationToken cancellationToken)
         {
+            compositeChatClient.Dispose();
+            chatlogService.Dispose();
+            channelMonitoringService.Dispose();
+
             await discordMessageClient.DisposeAsync();
         }
     }

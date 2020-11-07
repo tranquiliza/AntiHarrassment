@@ -1,20 +1,24 @@
 ﻿using AntiHarassment.Sql;
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AntiHarassment.BotBanTool
+namespace AntiHarassment.Tool
 {
     public static class Program
     {
         public static async Task Main(string[] args)
         {
-            const string connString = "";
-            var repository = new SuspensionRepository(connString, null);
+            const string connString = "Data Source=localhost\\sqlexpress;Initial Catalog=AntiHarassment.Development;Integrated Security=True";
 
-            var cleanupService = new SuspensionCleanupService(repository);
+            var repository = new ChatRepository(connString, null);
 
-            await cleanupService.CleanupOops().ConfigureAwait(false);
+            await repository.MigrateData().ConfigureAwait(false);
+
+
+            //var repository = new SuspensionRepository(connString, null);
+
+            //var cleanupService = new SuspensionCleanupService(repository);
+
+            //await cleanupService.CleanupOops().ConfigureAwait(false);
 
             //var tagRepo = new TagRepository(connString, null);
 

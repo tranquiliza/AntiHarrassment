@@ -60,7 +60,7 @@ namespace AntiHarassment.Core.Models
             }
 
             // As these are only used internally, and for calculation of automated ban triggers, we cannot include system as a source!
-            var allTimedoutTags = suspensions.Where(x => x.SuspensionType == SuspensionType.Timeout && x.SuspensionSource != SuspensionSource.System).SelectMany(x => x.Tags);
+            var allTimedoutTags = Suspensions.Where(x => x.SuspensionType == SuspensionType.Timeout && x.SuspensionSource != SuspensionSource.System).SelectMany(x => x.Tags);
             foreach (var group in allTimedoutTags.GroupBy(x => x.TagId))
             {
                 var tag = group.FirstOrDefault();

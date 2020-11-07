@@ -59,17 +59,17 @@
                 <a class="btn" target="_blank" href="/userlookup/@suspension.Username">Lookup User</a>
                 <button class="btn grey darken-3" @onclick="async _ => await CopyToClipboard(suspension.Username)">@CopyUsernameButtonText</button>
                 @*@if (suspension.Images.Count > 0)
-                    {
-                        <button class="btn" @onclick="SelectSuspensionAndShowModal">Show Images</button>
-                    }*@
+                {
+                    <button class="btn" @onclick="SelectSuspensionAndShowModal">Show Images</button>
+                }*@
             </div>
             @*@if (!suspension.Audited)
-                {
-                    <div class="col s4">
-                        <InputFile multiple OnChange="LoadFileIntoMemory" />
-                        <button class="btn grey darken-3" disabled="@uploadDisabled" @onclick="UploadSelectedImages">Upload</button>
-                    </div>
-                }*@
+            {
+                <div class="col s4">
+                    <InputFile multiple OnChange="LoadFileIntoMemory" />
+                    <button class="btn grey darken-3" disabled="@uploadDisabled" @onclick="UploadSelectedImages">Upload</button>
+                </div>
+            }*@
         </div>
         <div class="row">
             @foreach (var tag in suspension.Tags)
@@ -122,6 +122,10 @@
             @if (message.AutoModded)
             {
                 <p class="red-text"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
+            }
+            else if (message.Deleted)
+            {
+                <p class="orange-text"><b>@message.LocalTimestamp()</b> @message.Message <a target="_blank" href="https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=@message.Message">Translate</a></p>
             }
             else
             {

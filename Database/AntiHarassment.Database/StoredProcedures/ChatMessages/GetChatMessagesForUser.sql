@@ -4,7 +4,7 @@
 	@earliestTime DATETIME2(0)
 AS
 BEGIN
-	SELECT [Message], [AutoModded], [Timestamp] FROM [Core].[ChatMessage] 
+	SELECT [Data] FROM [Core].[ChatMessage] 
 	WHERE [Username] = @username 
 	AND [ChannelOfOrigin] = @channelOfOrigin
 	AND [Timestamp] > @earliestTime

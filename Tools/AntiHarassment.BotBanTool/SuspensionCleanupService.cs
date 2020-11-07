@@ -1,12 +1,10 @@
 ﻿using AntiHarassment.Core;
 using AntiHarassment.Core.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace AntiHarassment.BotBanTool
+namespace AntiHarassment.Tool
 {
     public class SuspensionCleanupService
     {
